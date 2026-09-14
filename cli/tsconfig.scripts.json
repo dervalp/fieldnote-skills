@@ -1,0 +1,14 @@
+// Type-gate for cli/scripts/*.ts, which tsconfig.json never sees (its
+// rootDir is src/). vendor.ts and release.ts rewrite tracked files, so they
+// need a type check as much as anything under src/. noEmit: these scripts run
+// through tsx, they are never compiled into dist/.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["scripts/**/*.ts", "src/**/*.ts"]
+}

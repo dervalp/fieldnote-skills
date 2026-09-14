@@ -1,0 +1,38 @@
+{
+  "name": "fieldnote-skills",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Interactive CLI for Vertuoza engineers to install and publish shared Claude Code skills.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "fieldnote-skills": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "catalog.json",
+    "release.json",
+    "skills.lock.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "bundle": "node --import tsx scripts/bundle.ts",
+    "prepack": "npm run build && npm run bundle",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.2.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "fflate": "^0.8.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
