@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Skill content + catalog are copied in at bundle/publish time, not committed.
+skills/
+catalog.json
+release.json
+skills.lock.json

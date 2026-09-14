@@ -3,3 +3,4 @@ cli/dist/
 dist/
 .DS_Store
 .superpowers/
+docs/superpowers/

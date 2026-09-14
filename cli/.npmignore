@@ -1,0 +1,14 @@
+# This file exists so `npm pack` (for the root npx installer) does NOT fall back
+# to cli/.gitignore, which excludes the built dist/, the bundled skills/, and
+# catalog.json — exactly the artifacts the published package must ship. When a
+# .npmignore is present, npm ignores .gitignore for this directory.
+#
+# The root package.json `files` allowlist already restricts the tarball to
+# cli/dist, cli/skills, cli/catalog.json, cli/package.json; the entries below
+# are belt-and-suspenders so dev-only files never ship even if `files` changes.
+src/
+scripts/
+node_modules/
+*.tsbuildinfo
+tsconfig.json
+package-lock.json
