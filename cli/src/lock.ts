@@ -1,11 +1,11 @@
 /**
- * skills.lock.json — the machine half of the parity contract (ADR-0010).
+ * skills.lock.json — the machine half of the parity contract.
  *
  * Per skill: its version, its provenance when vendored, a per-file hash map
  * tagged with the file's role, and a coreHash over the `prompt` files only.
- * coreHash deliberately excludes `tooling` files (scripts/) so that Mastra,
- * which vendors prompt content only, can match Claude Code exactly instead of
- * differing by design.
+ * coreHash deliberately excludes `tooling` files (scripts/) so that any system
+ * that vendors prompt content only can match a Claude Code install exactly,
+ * instead of differing by design.
  */
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, type Dirent } from "node:fs";
@@ -28,7 +28,7 @@ export interface LockEntry {
   bodyHash?: string;
   coreHash: string;
   files: Record<string, FileHash>;
-  /** Unmanaged skill folder names this skill replaces (ADR-0009). */
+  /** Unmanaged skill folder names this skill replaces. */
   supersedes?: string[];
 }
 

@@ -80,7 +80,7 @@ export function validateSkill(
     err(`frontmatter ${lineError}`);
   }
 
-  // --- vendored provenance (ADR-0009) --------------------------------------
+  // --- vendored provenance -------------------------------------------------
   const vendored = skill.vendored;
   if (isVendoredName(skill.folderName)) {
     if (vendored === null) {

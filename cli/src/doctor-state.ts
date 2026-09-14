@@ -1,6 +1,6 @@
 /**
  * Pure classification of what is installed against what the release says
- * should be (ADR-0010). No filesystem, no printing — the command layer
+ * should be. No filesystem, no printing — the command layer
  * gathers the inputs and renders the output, so every state is testable.
  *
  * This module is also the single definition of "orphan", shared by `doctor`
@@ -15,7 +15,7 @@ import type { Manifest } from "./types.js";
  * - `behind` — recorded release is not the lock's release.
  * - `divergent` — recorded release *is* the lock's release, but the content
  *   hash is not. The label says current, the bytes disagree. This is the case
- *   ADR-0010's "hashes to prove it" exists for, and it is deliberately not
+ *   per-skill content hashes exist to catch, and it is deliberately not
  *   folded into `behind`: printing "behind skills-v1.0.0" next to a recorded
  *   release of skills-v1.0.0 contradicts itself on screen, and the remedy
  *   message differs.

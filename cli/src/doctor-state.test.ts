@@ -142,7 +142,7 @@ test("supersedesMap inverts each skill's supersedes list", () => {
 
 // --- I1: the release label bound to content ------------------------------
 //
-// ADR 0010 promises "one number to quote, hashes to prove it". A copy whose
+// A release promises one number to quote and hashes to prove it. A copy whose
 // recorded release matches but whose bytes do not match the locked coreHash
 // is exactly the case the hash exists to catch: two engineers holding
 // different bytes, both stamped skills-v1.0.0. It must not report ok.

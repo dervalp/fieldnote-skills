@@ -45,24 +45,6 @@ async function writeLockFor(
   await writeFile(join(h.repoRoot, "release.json"), JSON.stringify({ release }) + "\n", "utf8");
 }
 
-/** Write a Mastra bundle at <root>/orch, returning the --orchestrator path. */
-async function writeOrchestrator(
-  h: Awaited<ReturnType<typeof makeHarness>>,
-  manifest: unknown,
-  pin?: unknown,
-): Promise<string> {
-  const root = join(h.repoRoot, "orch");
-  const knowledge = join(root, "apps", "orchestrator", "src", "mastra", "public", "knowledge");
-  await mkdir(knowledge, { recursive: true });
-  if (manifest !== undefined) {
-    await writeFile(join(knowledge, "manifest.json"), JSON.stringify(manifest), "utf8");
-  }
-  if (pin !== undefined) {
-    await writeFile(join(root, "apps", "orchestrator", "skills.pin.json"), JSON.stringify(pin), "utf8");
-  }
-  return root;
-}
-
 test("reports ok for a freshly installed skill and exits 0", async () => {
   const h = await makeHarness([SKILL]);
   try {
@@ -125,6 +107,18 @@ test("reports an unmanaged directory as orphaned and names its replacement", asy
   }
 });
 
+test("reports no orchestrator surface — this CLI has no Mastra deployment to check", async () => {
+  const h = await makeHarness([SKILL]);
+  try {
+    await writeLockFor(h, "skills-v1.0.0");
+    await runDoctor(h.env, {});
+    const out = h.logger.infos.join("\n");
+    assert.ok(!/mastra|orchestrator/i.test(out), `doctor must not mention a Mastra surface:\n${out}`);
+  } finally {
+    await h.cleanup();
+  }
+});
+
 test("says claude.ai cannot be inspected, and never claims it is fine", async () => {
   const h = await makeHarness([SKILL]);
   try {
@@ -133,32 +127,6 @@ test("says claude.ai cannot be inspected, and never claims it is fine", async ()
     const out = h.logger.infos.join("\n");
     assert.match(out, /cannot be inspected/);
     assert.match(out, /fieldnote-matt-tdd-skills-v1\.0\.0\.zip/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-test("says Mastra was not checked when no path is given", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    await runDoctor(h.env, {});
-    assert.match(h.logger.infos.join("\n"), /not checked/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-test("compares a Mastra manifest against the release when a path is given", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    const orch = await writeOrchestrator(h, {
-      release: "skills-v0.9.0",
-      skills: [{ name: SKILL.name, version: "1.0.0" }],
-    });
-    await runDoctor(h.env, { orchestrator: orch });
-    assert.match(h.logger.infos.join("\n"), /skills-v0\.9\.0/);
   } finally {
     await h.cleanup();
   }
@@ -215,78 +183,6 @@ test("survives a dangling symlink standing in for a whole skill folder", async (
 
     assert.equal(await runDoctor(h.env, {}), 0);
     assert.match(h.logger.infos.join("\n"), /some-skill/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-// --- I4: the Mastra row must verify something before printing a tick -----
-
-test("does not print a check mark for a Mastra manifest that carries no hashes", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    const orch = await writeOrchestrator(h, {
-      release: "skills-v1.0.0",
-      skills: [{ name: SKILL.name, version: "1.0.0" }],
-    });
-    await runDoctor(h.env, { orchestrator: orch });
-    const mastra = h.logger.infos.filter((l) => /manifest/.test(l)).join("\n");
-    assert.ok(!mastra.includes("✔"), `a hashless bundle must not get a tick: ${mastra}`);
-    assert.match(mastra, /no coreHash|cannot verify|carries no hashes/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-test("names the Mastra skills whose hashes differ from the lock", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    const orch = await writeOrchestrator(h, {
-      release: "skills-v1.0.0",
-      skills: [{ name: SKILL.name, version: "1.0.0", coreHash: "sha256:stale" }],
-    });
-    await runDoctor(h.env, { orchestrator: orch });
-    const mastra = h.logger.infos.filter((l) => /manifest/.test(l)).join("\n");
-    assert.ok(!mastra.includes("✔"));
-    assert.match(mastra, /fieldnote-matt-tdd/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-test("verifies hashes and says so when the Mastra bundle really matches", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.name));
-    const orch = await writeOrchestrator(
-      h,
-      { release: "skills-v1.0.0", skills: [{ name: SKILL.name, version: "1.0.0", coreHash }] },
-      { release: "skills-v1.0.0", skills: [SKILL.name] },
-    );
-    await runDoctor(h.env, { orchestrator: orch });
-    assert.match(h.logger.infos.join("\n"), /✔ manifest matches skills-v1\.0\.0, 1 skill\(s\), hashes verified/);
-  } finally {
-    await h.cleanup();
-  }
-});
-
-test("reports a Mastra pin that disagrees with the release", async () => {
-  const h = await makeHarness([SKILL]);
-  try {
-    await writeLockFor(h, "skills-v1.0.0");
-    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.name));
-    const orch = await writeOrchestrator(
-      h,
-      { release: "skills-v1.0.0", skills: [{ name: SKILL.name, version: "1.0.0", coreHash }] },
-      { release: "skills-v0.9.0", skills: [SKILL.name] },
-    );
-    await runDoctor(h.env, { orchestrator: orch });
-    const out = h.logger.infos.join("\n");
-    assert.match(out, /pin/);
-    assert.match(out, /skills-v0\.9\.0/);
   } finally {
     await h.cleanup();
   }
@@ -365,13 +261,12 @@ test("--json reports every surface, with claude.ai marked uninspectable", async 
     const payload = JSON.parse(h.logger.outputs.at(-1)!) as {
       release: string;
       claudeCode: { name: string; state: string }[];
-      mastra: { checked: boolean };
       claudeAi: { inspectable: boolean; expected: string[] };
       upstream: { pins: { repo: string; ref: string }[]; latestChecked: boolean };
     };
     assert.equal(payload.release, "skills-v1.0.0");
     assert.deepEqual(payload.claudeCode.map((r) => r.state), ["ok"]);
-    assert.equal(payload.mastra.checked, false);
+    assert.equal("mastra" in payload, false, "--json must not carry a mastra surface");
     assert.equal(payload.claudeAi.inspectable, false);
     assert.deepEqual(payload.claudeAi.expected, ["fieldnote-matt-tdd-skills-v1.0.0.zip"]);
     assert.deepEqual(payload.upstream.pins, [{ repo: "mattpocock/skills", ref: "v1.2.3", skills: 1 }]);

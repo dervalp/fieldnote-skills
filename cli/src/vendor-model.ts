@@ -1,5 +1,5 @@
 /**
- * The `vendored:` provenance block (ADR-0009). A skill whose name starts with
+ * The `vendored:` provenance block. A skill whose name starts with
  * a vendor prefix is a copy of someone else's work, and must say exactly
  * whose, from which ref, and what the upstream body hashed to *before* we
  * rewrote its internal references — that pre-rewrite hash is what makes a
