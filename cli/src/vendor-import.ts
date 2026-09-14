@@ -243,7 +243,7 @@ export function importSkill(args: {
   const rewritten = rewriteReferences(upstreamBody, vendoredNames, allUpstreamNames, prefix, refStyle);
   const unresolved = new Set(rewritten.unresolved);
 
-  // ADR-0009 puts every bit of Vertuoza adaptation (vertuoza-context.md) inside
+  // ADR-0009 puts every bit of local adaptation (fieldnote-context.md) inside
   // the vendored skill's own references/ directory, so the full wipe below
   // would otherwise destroy it on every re-sync. Snapshot it to a temp dir
   // *outside* destDir first — anything inside destDir is what rmSync is about
@@ -252,7 +252,7 @@ export function importSkill(args: {
   // (it doesn't today: upstream uses flat sibling .md files, never a
   // references/ directory), copySiblings below overwrites same-named files
   // with upstream's copy — upstream wins for anything it ships, and our own
-  // files (e.g. vertuoza-context.md, which upstream has no file to overwrite)
+  // files (e.g. fieldnote-context.md, which upstream has no file to overwrite)
   // survive untouched.
   const existingReferences = join(destDir, "references");
   let referencesSnapshot: string | null = null;

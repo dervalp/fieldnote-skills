@@ -39,7 +39,7 @@ export function requireSkill(catalog: Catalog, name: string): SkillEntry {
   if (!match) {
     throw new UserError(
       `No installable skill named "${name}". ` +
-        `Run \`vertuoza-skills list\` to see what is available.`,
+        `Run \`fieldnote-skills list\` to see what is available.`,
     );
   }
   return match;

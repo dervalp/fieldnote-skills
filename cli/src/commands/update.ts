@@ -45,7 +45,7 @@ export async function runUpdate(env: Env, names: string[]): Promise<void> {
   const rows = await computeRows(env, catalog);
   const installed = rows.filter((r) => r.installed);
   if (installed.length === 0) {
-    env.logger.info("No skills installed yet. Run `vertuoza-skills list` to install some.");
+    env.logger.info("No skills installed yet. Run `fieldnote-skills list` to install some.");
     return;
   }
 
@@ -177,13 +177,13 @@ export async function runSync(env: Env, flags: SyncFlags): Promise<void> {
   if (skipped.length > 0) {
     env.logger.info(
       `${skipped.length} skill(s) left alone because your copy differs from the bundle ` +
-        `(run \`vertuoza-skills update <name>\` to overwrite):`,
+        `(run \`fieldnote-skills update <name>\` to overwrite):`,
     );
     for (const s of skipped) env.logger.info(`  ${s.name} — ${s.state} on disk`);
   }
   if (available.length > 0) {
     env.logger.info(
-      `${available.length} new skill(s) available (run \`vertuoza-skills list\` to install): ` +
+      `${available.length} new skill(s) available (run \`fieldnote-skills list\` to install): ` +
         available.map((r) => r.entry.name).join(", "),
     );
   }

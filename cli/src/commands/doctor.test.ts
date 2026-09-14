@@ -99,7 +99,7 @@ test("reports an orphan and names its replacement", async () => {
     await writeLockFor(h, "skills-v1.0.0");
     await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".vertuoza-skills.json"),
+      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
       "utf8",
     );

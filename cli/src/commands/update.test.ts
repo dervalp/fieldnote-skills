@@ -122,7 +122,7 @@ test("sync reports an orphan and names its replacement", async () => {
   try {
     await mkdir(join(h.claudeDir, "skills"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".vertuoza-skills.json"),
+      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
       "utf8",
     );
@@ -147,7 +147,7 @@ test("sync removes an orphan when confirmed", async () => {
     await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
     await writeFile(join(h.claudeDir, "skills", "tdd", "SKILL.md"), "---\nname: tdd\n---\n", "utf8");
     await writeFile(
-      join(h.claudeDir, "skills", ".vertuoza-skills.json"),
+      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
       "utf8",
     );
@@ -170,7 +170,7 @@ test("sync --json lists orphans without prompting", async () => {
   try {
     await mkdir(join(h.claudeDir, "skills"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".vertuoza-skills.json"),
+      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
       "utf8",
     );

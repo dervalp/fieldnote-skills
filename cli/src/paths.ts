@@ -51,7 +51,7 @@ export function resolveEnv(deps: {
     : join(pkg, "catalog.json");
   const skillsSourceDir = pkgRepoRoot ? join(pkgRepoRoot, "skills") : join(pkg, "skills");
 
-  const claudeDir = process.env.VERTUOZA_CLAUDE_DIR ?? join(homedir(), ".claude");
+  const claudeDir = process.env.FIELDNOTE_CLAUDE_DIR ?? join(homedir(), ".claude");
 
   return {
     claudeDir,

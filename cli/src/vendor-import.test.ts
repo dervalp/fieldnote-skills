@@ -261,7 +261,7 @@ test("preserves an existing references/ directory across the destination wipe", 
 
     const dest = join(root, "out", "vertuo-matt-tdd");
     mkdirSync(join(dest, "references"), { recursive: true });
-    writeFileSync(join(dest, "references", "vertuoza-context.md"), "Our own Vertuoza context.\n", "utf8");
+    writeFileSync(join(dest, "references", "fieldnote-context.md"), "Our own fieldnote context.\n", "utf8");
 
     importSkill({
       refStyle: { kind: "slash" },
@@ -276,8 +276,8 @@ test("preserves an existing references/ directory across the destination wipe", 
     });
 
     assert.equal(
-      readFileSync(join(dest, "references", "vertuoza-context.md"), "utf8"),
-      "Our own Vertuoza context.\n",
+      readFileSync(join(dest, "references", "fieldnote-context.md"), "utf8"),
+      "Our own fieldnote context.\n",
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -290,11 +290,11 @@ test("upstream's references/ file wins over our preserved snapshot of the same n
     const src = join(root, "up", "skills", "engineering", "tdd");
     mkdirSync(join(src, "references"), { recursive: true });
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
-    writeFileSync(join(src, "references", "vertuoza-context.md"), "Upstream now ships this file too.\n", "utf8");
+    writeFileSync(join(src, "references", "fieldnote-context.md"), "Upstream now ships this file too.\n", "utf8");
 
     const dest = join(root, "out", "vertuo-matt-tdd");
     mkdirSync(join(dest, "references"), { recursive: true });
-    writeFileSync(join(dest, "references", "vertuoza-context.md"), "Our stale local copy.\n", "utf8");
+    writeFileSync(join(dest, "references", "fieldnote-context.md"), "Our stale local copy.\n", "utf8");
 
     importSkill({
       refStyle: { kind: "slash" },
@@ -309,7 +309,7 @@ test("upstream's references/ file wins over our preserved snapshot of the same n
     });
 
     assert.equal(
-      readFileSync(join(dest, "references", "vertuoza-context.md"), "utf8"),
+      readFileSync(join(dest, "references", "fieldnote-context.md"), "utf8"),
       "Upstream now ships this file too.\n",
     );
   } finally {

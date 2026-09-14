@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bundle installable skill content into the package so `npx vertuoza-skills`
+ * Bundle installable skill content into the package so `npx fieldnote-skills`
  * works outside a repo clone.
  *
  * Copies catalog.json and every code|both skill folder (with all subfolders —

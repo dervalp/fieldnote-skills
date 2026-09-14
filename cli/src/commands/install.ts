@@ -11,7 +11,7 @@ export interface InstallFlags {
 /** Non-interactive `install <name...>` — installs named skills without prompting. */
 export async function runInstall(env: Env, names: string[], flags: InstallFlags): Promise<void> {
   if (names.length === 0) {
-    throw new UserError("install requires at least one skill name. Try `vertuoza-skills list`.");
+    throw new UserError("install requires at least one skill name. Try `fieldnote-skills list`.");
   }
   const catalog = await loadCatalog(env);
   const entries = names.map((name) => requireSkill(catalog, name));

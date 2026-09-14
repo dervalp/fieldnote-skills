@@ -43,7 +43,7 @@ export async function scanInstalledSkills(env: Env): Promise<InstalledTree> {
   }
 
   for (const name of entries.sort()) {
-    if (name.startsWith(".")) continue; // .vertuoza-skills.json and friends
+    if (name.startsWith(".")) continue; // .fieldnote-skills.json and friends
     const path = join(root, name);
 
     let isSymlink = false;

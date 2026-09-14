@@ -138,7 +138,7 @@ test("a non-indented line with no colon is reported", () => {
 test("scripts/ is tooling, everything else is prompt", () => {
   assert.equal(fileRole("scripts/hitl-loop.template.sh"), "tooling");
   assert.equal(fileRole("SKILL.md"), "prompt");
-  assert.equal(fileRole("references/vertuoza-context.md"), "prompt");
+  assert.equal(fileRole("references/fieldnote-context.md"), "prompt");
 });
 
 // The spec's role split is `agents/** and scripts/** are tooling`. agents/

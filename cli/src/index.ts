@@ -11,15 +11,15 @@ import { renderBanner } from "./banner.js";
 import { UserError } from "./types.js";
 import { chalkStderr } from "chalk";
 
-const HELP = `vertuoza-skills — install shared Claude Code skills into ~/.claude
+const HELP = `fieldnote-skills — install shared Claude Code skills into ~/.claude
 
 Usage:
-  vertuoza-skills [list]            Interactive category + checkbox picker (default)
-  vertuoza-skills install <name…>   Install named skills (non-interactive)
+  fieldnote-skills [list]            Interactive category + checkbox picker (default)
+  fieldnote-skills install <name…>   Install named skills (non-interactive)
                   [--yes] [--json]
-  vertuoza-skills update [name…]    Update installed skills (outdated pre-checked)
-  vertuoza-skills sync [--json]     Update outdated + report newly available
-  vertuoza-skills doctor            Report release drift across all surfaces
+  fieldnote-skills update [name…]    Update installed skills (outdated pre-checked)
+  fieldnote-skills sync [--json]     Update outdated + report newly available
+  fieldnote-skills doctor            Report release drift across all surfaces
                   [--orchestrator <path>] [--strict] [--json]
 
 Flags:
@@ -28,7 +28,7 @@ Flags:
   --json        Machine-readable output
   --help, -h    Show this help
 
-To author a new skill, open a PR against the vertuo-ai-os repo on GitHub.
+To author a skill, open a pull request against dervalp/fieldnote-skills.
 `;
 
 async function main(): Promise<number> {

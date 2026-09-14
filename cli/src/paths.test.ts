@@ -8,7 +8,7 @@ import type { Logger, ProcessRunner, Prompter } from "./types.js";
 
 /** A directory that passes findRepoRoot's repo-clone markers. */
 function makeFakeClone(): string {
-  const root = mkdtempSync(join(tmpdir(), "vertuoza-fake-clone-"));
+  const root = mkdtempSync(join(tmpdir(), "fieldnote-fake-clone-"));
   mkdirSync(join(root, "skills"), { recursive: true });
   mkdirSync(join(root, "cli"), { recursive: true });
   writeFileSync(join(root, "cli", "package.json"), "{}\n");
@@ -34,7 +34,7 @@ test("findRepoRoot walks up to the clone root from a nested directory", () => {
 });
 
 test("findRepoRoot returns null outside a clone", () => {
-  const plain = mkdtempSync(join(tmpdir(), "vertuoza-plain-"));
+  const plain = mkdtempSync(join(tmpdir(), "fieldnote-plain-"));
   try {
     assert.equal(findRepoRoot(plain), null);
   } finally {

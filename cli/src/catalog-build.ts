@@ -4,7 +4,7 @@
  * - CATALOG.md is what employees read in the Drive folder to learn what's
  *   possible. It is auto-generated — never hand-edit it.
  * - catalog.json is the machine-readable single source of truth the
- *   `vertuoza-skills` CLI consumes to list and install Claude Code skills.
+ *   `fieldnote-skills` CLI consumes to list and install Claude Code skills.
  *
  * Both are built from the same shared skill model, so they can never disagree
  * about a skill's surface or version.
