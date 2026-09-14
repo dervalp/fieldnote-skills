@@ -1,0 +1,265 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { stat } from "node:fs/promises";
+import { join } from "node:path";
+import { runList, buildChoices, descriptionWidth, rowLabel } from "./list.js";
+import { computeRows } from "../state.js";
+import { targetDirFor } from "../installer.js";
+import { installSkill } from "../installer.js";
+import { makeHarness, toEntry } from "../testkit.js";
+
+async function exists(p: string): Promise<boolean> {
+  try {
+    await stat(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+test("list excludes desktop-only skills and groups installable ones by section", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-pretty-ppt", section: "brand", surface: "desktop" },
+    { name: "vertuo-do-work", section: "engineering-standards", surface: "code" },
+    { name: "vertuo-run-agent", section: "engineering-standards", surface: "both" },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const names = rows.map((r) => r.entry.name).sort();
+    assert.deepEqual(names, ["vertuo-do-work", "vertuo-run-agent"]);
+
+    const choices = buildChoices(rows);
+    // A non-selectable section header precedes the engineering-standards skills.
+    const header = choices.find((c) => c.disabled);
+    assert.ok(header && /Engineering Standards/.test(header.name));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("row label shows name, version, description and install state", async () => {
+  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  try {
+    let rows = await computeRows(h.env);
+    assert.match(rowLabel(rows[0]!), /vertuo-do-work/);
+    assert.match(rowLabel(rows[0]!), /v1\.0\.0/);
+    assert.doesNotMatch(rowLabel(rows[0]!), /installed/);
+
+    await installSkill(h.env, toEntry({ name: "vertuo-do-work", section: "engineering-standards" }));
+    rows = await computeRows(h.env);
+    assert.match(rowLabel(rows[0]!), /✓ installed/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("row label is laid out over multiple lines with the description on its own padded line", async () => {
+  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  try {
+    const rows = await computeRows(h.env);
+    const label = rowLabel(rows[0]!);
+    const lines = label.split("\n");
+    // Heading first, then an indented wrapped description.
+    assert.match(lines[0]!, /^ vertuo-do-work {2}· {2}v1\.0\.0$/);
+    assert.match(lines[1]!, /^ {6}\S/);
+    assert.equal(lines.slice(1, -1).map((line) => line.trim()).join(" "), rows[0]!.entry.description);
+    // Trailing blank line gives bottom padding.
+    assert.equal(lines.at(-1), "");
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("row label truncates a long description to 400 chars with an ellipsis", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-do-work", section: "engineering-standards", description: "x".repeat(600) },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const descText = rowLabel(rows[0]!)
+      .split("\n")
+      .slice(1)
+      .join(" ")
+      .replace(/\s+/g, "");
+    assert.equal(descText.length, 400);
+    assert.ok(descText.endsWith("..."));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("row label wraps long descriptions with a hanging indent", async () => {
+  const h = await makeHarness([
+    {
+      name: "vertuo-do-work",
+      section: "engineering-standards",
+      description:
+        "Use when an engineer wants a long description that wraps over several terminal lines while staying aligned under the skill name instead of falling back to the far left edge of the screen.",
+    },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const descLines = rowLabel(rows[0]!).split("\n").slice(1, -1);
+    assert.ok(descLines.length > 1);
+    assert.ok(descLines.every((line) => /^ {6}\S/.test(line)));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("ticking a skill in the picker installs it into ~/.claude", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-do-work", section: "engineering-standards" },
+    { name: "vertuo-run-agent", section: "engineering-standards" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["engineer"];
+    h.prompter.checkboxAnswers = [["vertuo-do-work"]];
+    await runList(h.env);
+
+    assert.ok(await exists(join(targetDirFor(h.env, "vertuo-do-work"), "SKILL.md")));
+    assert.equal(await exists(join(targetDirFor(h.env, "vertuo-run-agent"), "SKILL.md")), false);
+    assert.ok(h.logger.infos.some((l) => /Installed vertuo-do-work@1\.0\.0/.test(l)));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("default list asks for a category and filters the checkbox picker", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-plan-roadmap", section: "engineering-standards", category: "product" },
+    { name: "vertuo-do-work", section: "engineering-standards", category: "engineer" },
+    { name: "vertuo-validate-ticket", section: "engineering-standards", category: "qa" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["product"];
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env);
+
+    assert.deepEqual(
+      h.prompter.lastSelectChoices.map((c) => c.value),
+      ["all", "product", "engineer", "qa"],
+    );
+    const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
+    assert.ok(values.includes("vertuo-plan-roadmap"));
+    assert.equal(values.includes("vertuo-do-work"), false);
+    assert.equal(values.includes("vertuo-validate-ticket"), false);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("category flag skips category prompt and filters directly", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-plan-roadmap", section: "engineering-standards", category: "product" },
+    { name: "vertuo-do-work", section: "engineering-standards", category: "engineer" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["engineer"];
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env, { category: "product" });
+
+    assert.deepEqual(h.prompter.lastSelectChoices, []);
+    const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
+    assert.ok(values.includes("vertuo-plan-roadmap"));
+    assert.equal(values.includes("vertuo-do-work"), false);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("category picker hides empty categories", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-plan-roadmap", section: "engineering-standards", category: "product" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["product"];
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env);
+
+    assert.deepEqual(
+      h.prompter.lastSelectChoices.map((c) => c.value),
+      ["all", "product"],
+    );
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("category all keeps the full grouped picker", async () => {
+  const h = await makeHarness([
+    { name: "vertuo-plan-roadmap", section: "engineering-standards", category: "product" },
+    { name: "vertuo-do-work", section: "engineering-standards", category: "engineer" },
+  ]);
+  try {
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env, { category: "all" });
+
+    const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
+    assert.ok(values.includes("vertuo-plan-roadmap"));
+    assert.ok(values.includes("vertuo-do-work"));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("unknown category gives a user-facing error", async () => {
+  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  try {
+    await assert.rejects(() => runList(h.env, { category: "sales" }), /Unknown category "sales"/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("selecting nothing installs nothing", async () => {
+  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  try {
+    h.prompter.selectAnswers = ["all"];
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env);
+    assert.equal(await exists(targetDirFor(h.env, "vertuo-do-work")), false);
+    assert.ok(h.logger.infos.some((l) => /Nothing selected/.test(l)));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("description lines fit the terminal, so they never wrap back to column 0", async () => {
+  const h = await makeHarness([
+    {
+      name: "vertuo-do-work",
+      section: "engineering-standards",
+      description:
+        "Use when an engineer wants a long description that wraps over several terminal lines " +
+        "while staying aligned under the skill name instead of falling back to the far left " +
+        "edge of the screen, whatever width the terminal happens to be.",
+    },
+  ]);
+  try {
+    const row = (await computeRows(h.env))[0]!;
+    // 80 is the default an inherited pipe reports; the picker must fit it too.
+    for (const columns of [80, 100, 120]) {
+      const descLines = rowLabel(row, columns).split("\n").slice(1, -1);
+      assert.ok(descLines.length > 1, `expected wrapping at ${columns} columns`);
+      const tooWide = descLines.filter((line) => line.length > columns);
+      assert.deepEqual(tooWide, [], `these lines overflow a ${columns}-column terminal:\n${tooWide.join("\n")}`);
+    }
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("an unreported or nonsense terminal width falls back to 80 columns, not to the floor", () => {
+  // A pty that never had its window size set reports 0, not undefined — and 0
+  // is not nullish, so a `?? 80` fallback sails past it and wraps at the floor.
+  assert.equal(descriptionWidth(0), descriptionWidth(80));
+  assert.equal(descriptionWidth(-1), descriptionWidth(80));
+  assert.equal(descriptionWidth(Number.NaN), descriptionWidth(80));
+});
+
+test("description width tracks the terminal between a readable floor and ceiling", () => {
+  assert.equal(descriptionWidth(80), 72);
+  assert.equal(descriptionWidth(300), 96);
+  assert.equal(descriptionWidth(30), 40);
+});
