@@ -1,5 +1,5 @@
 /**
- * Stamping the catalog release into every SKILL.md (ADR-0010). This is the
+ * Stamping the catalog release into every SKILL.md. This is the
  * only way a claude.ai copy of a skill can state which release it belongs to,
  * since a manifest does not travel with an uploaded zip.
  */

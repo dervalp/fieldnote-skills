@@ -15,7 +15,7 @@ export interface SkillEntry {
   version: string;
   mcp: string[];
   variance: SkillVariance;
-  /** Artifact types this skill emits / reads (ADR-0006); absent when none. */
+  /** Artifact types this skill emits / reads; absent when none. */
   produces?: string[];
   consumes?: string[];
 }
@@ -30,7 +30,7 @@ export interface ManifestEntry {
   version: string;
   stage: SkillStage;
   surface: Surface;
-  /** Catalog release this copy came from (ADR-0010); absent for pre-0.3 installs. */
+  /** Catalog release this copy came from; absent for pre-0.3 installs. */
   release?: string;
   /** coreHash at install time, so a local edit can be told from being behind. */
   coreHash?: string;

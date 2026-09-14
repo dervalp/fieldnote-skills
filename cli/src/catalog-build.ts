@@ -67,7 +67,7 @@ export function renderMarkdown(skills: Skill[]): string {
 }
 
 /**
- * The typed-artifact dependency graph (ADR-0006), derived from each skill's
+ * The typed-artifact dependency graph, derived from each skill's
  * produces/consumes frontmatter. Empty when no skill declares any artifact.
  */
 function renderArtifactFlow(skills: Skill[]): string[] {

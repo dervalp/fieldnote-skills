@@ -6,7 +6,7 @@
  * Copies catalog.json and every code|both skill folder (with all subfolders —
  * commands/agents/hooks/references/scripts/assets, minus dev-only dirs like
  * tests/, see NON_SHIPPED_SKILL_DIRS) from the repo into cli/skills/ and
- * cli/catalog.json, plus release.json and skills.lock.json (ADR-0010) so a
+ * cli/catalog.json, plus release.json and skills.lock.json so a
  * bundled install can record a real release + coreHash, not "unreleased".
  * These bundled copies are gitignored and regenerated at publish time;
  * paths.ts falls back to them when no repo clone is detected.

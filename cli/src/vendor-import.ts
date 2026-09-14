@@ -1,5 +1,5 @@
 /**
- * Import mechanics for vendored skills (ADR-0009). Editorial choices — our
+ * Import mechanics for vendored skills. Editorial choices — our
  * description, surface, stage, variance, version, supersedes — come from the
  * tracked import manifest (cli/vendor/<upstream>.json), never from this code,
  * so a re-sync never re-litigates them.
@@ -245,7 +245,7 @@ export function importSkill(args: {
   const rewritten = rewriteReferences(upstreamBody, vendoredNames, allUpstreamNames, prefix, refStyle);
   const unresolved = new Set(rewritten.unresolved);
 
-  // ADR-0009 puts every bit of local adaptation (fieldnote-context.md) inside
+  // Every bit of local adaptation (fieldnote-context.md) deliberately lives inside
   // the vendored skill's own references/ directory, so the full wipe below
   // would otherwise destroy it on every re-sync. Snapshot it to a temp dir
   // *outside* destDir first — anything inside destDir is what rmSync is about
