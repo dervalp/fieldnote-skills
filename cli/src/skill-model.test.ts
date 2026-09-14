@@ -143,7 +143,7 @@ test("scripts/ is tooling, everything else is prompt", () => {
 
 // The spec's role split is `agents/** and scripts/** are tooling`. agents/
 // holds another harness's subagent metadata (upstream's agents/openai.yaml),
-// which must never reach coreHash or Mastra's prompt bundle.
+// which must never reach coreHash or a prompt-only bundle.
 test("agents/ is tooling too, at any depth", () => {
   assert.equal(fileRole("agents/openai.yaml"), "tooling");
   assert.equal(fileRole("agents/nested/reviewer.md"), "tooling");

@@ -83,7 +83,7 @@ export const BLOCK_KEYS: ReadonlySet<string> = new Set(["vendored"]);
  * Subfolders that are Claude-Code-only tooling, never prompt content.
  * `agents/` holds subagent definitions another harness reads (upstream ships
  * `agents/openai.yaml`); `scripts/` holds executables. Neither belongs in a
- * system prompt, so both stay out of `coreHash` and out of Mastra's bundle.
+ * system prompt, so both stay out of `coreHash` and out of any prompt-only bundle.
  */
 export const TOOLING_DIRS = ["scripts", "agents"] as const;
 export type FileRole = "prompt" | "tooling";
