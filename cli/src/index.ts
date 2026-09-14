@@ -7,6 +7,7 @@ import { runList } from "./commands/list.js";
 import { runInstall } from "./commands/install.js";
 import { runUpdate, runSync } from "./commands/update.js";
 import { runDoctor } from "./commands/doctor.js";
+import { runInit } from "./commands/init.js";
 import { renderBanner } from "./banner.js";
 import { UserError } from "./types.js";
 import { chalkStderr } from "chalk";
@@ -21,6 +22,7 @@ Usage:
   fieldnote-skills sync [--json]     Update outdated + report newly available
   fieldnote-skills doctor            Report release drift across all surfaces
                   [--orchestrator <path>] [--strict] [--json]
+  fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
 
 Flags:
   --stage       Filter list by plan, build, review, or all
@@ -72,6 +74,8 @@ async function main(): Promise<number> {
         strict: Boolean(flags.strict),
         json: Boolean(flags.json),
       });
+    case "init":
+      return await runInit(env, { force: Boolean(flags.force) });
     default:
       logger.error(`Unknown command "${command}".`);
       logger.output(HELP);

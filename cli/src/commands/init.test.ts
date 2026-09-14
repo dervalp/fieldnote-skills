@@ -1,0 +1,41 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { renderProfile } from "./init.js";
+import { parseProfile } from "../profile.js";
+
+test("maps a check script onto Commands.check", () => {
+  const md = renderProfile({
+    scripts: { check: "turbo run lint test", build: "tsc" },
+    labels: ["ready-for-agent", "bug"],
+    docs: ["docs/definition-of-done.md"],
+    strictStatusChecks: true,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.commands.check, "npm run check");
+  assert.equal(p.labels.ready, "ready-for-agent");
+  assert.equal(p.docs.definitionOfDone, "docs/definition-of-done.md");
+  assert.equal(p.mergePolicy.strictStatusChecks, "true");
+});
+
+test("writes TODO for anything it could not read", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.commands.check, "TODO");
+  assert.equal(p.labels.ready, "TODO");
+  assert.equal(p.mergePolicy.strictStatusChecks, "TODO");
+});
+
+test("never invents a label that the repository does not have", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: ["bug", "chore"],
+    docs: [],
+    strictStatusChecks: null,
+  });
+  assert.ok(!md.includes("ready-for-agent"));
+});
