@@ -11,7 +11,10 @@
    (`plan` / `build` / `review`), `version` (semver), and `variance`
    (`universal` / `configured` / `templated` — see below). `surface`
    defaults to `code`; only set it otherwise if the skill is desktop-only.
-   The full field-by-field rule set is in
+   Leave `release` as the template set it — once this repository has cut a
+   release, `npm run validate` checks it against `release.json`, and
+   `npm run release <version>` is what updates it, not a hand-edit. The
+   full field-by-field rule set is in
    [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 3. **Pick a variance honestly.**

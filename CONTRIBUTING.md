@@ -40,6 +40,11 @@ What the validator actually checks:
   skill exists yet.
 - **`stage`** — required; one of `plan`, `build`, `review`.
 - **`version`** — required; semver (`X.Y.Z`).
+- **`release`** — required once this repository has cut a release; must equal
+  the value in `release.json` at the repo root (currently `skills-v0.1.0`).
+  The template already carries the current value — leave it as-is and run
+  `npm run release <version>` to bump it repository-wide, rather than
+  hand-editing one skill's copy.
 - **`variance`** — required for any skill with `surface: code` or
   `surface: both` (the default, if `surface` is omitted); one of `universal`,
   `configured`, `templated`.
