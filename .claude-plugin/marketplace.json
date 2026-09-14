@@ -1,0 +1,11 @@
+{
+  "name": "fieldnote-skills",
+  "owner": { "name": "fieldnote", "url": "https://github.com/dervalp/fieldnote-skills" },
+  "plugins": [
+    {
+      "name": "fieldnote",
+      "source": "./",
+      "description": "The delivery loop as skills: brainstorm, PRD, plan, parallel waves, pull request, board drain."
+    }
+  ]
+}

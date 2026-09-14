@@ -1,0 +1,8 @@
+{
+  "name": "fieldnote",
+  "version": "0.1.0",
+  "description": "The delivery loop as skills: brainstorm, PRD, plan, parallel waves, pull request, board drain.",
+  "author": { "name": "fieldnote" },
+  "homepage": "https://github.com/dervalp/fieldnote-skills",
+  "license": "AGPL-3.0-only"
+}

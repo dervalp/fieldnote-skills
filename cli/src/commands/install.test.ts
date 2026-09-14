@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { runInstall } from "./install.js";
 import { targetDirFor } from "../installer.js";
@@ -78,6 +78,20 @@ test("install with no names is a user error", async () => {
   const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
     await assert.rejects(() => runInstall(h.env, [], {}), /requires at least one skill name/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("installs a flat-tree skill into the claude dir", async () => {
+  const h = await makeHarness([{ name: "fieldnote-parallel-wave", stage: "build", variance: "universal" }]);
+  try {
+    await runInstall(h.env, ["fieldnote-parallel-wave"], { yes: true, json: false });
+    const installed = join(targetDirFor(h.env, "fieldnote-parallel-wave"), "SKILL.md");
+    assert.ok(await exists(installed), "SKILL.md should be installed");
+    const body = await readFile(installed, "utf8");
+    assert.match(body, /stage: build/);
+    assert.ok(!/vertuo/i.test(body));
   } finally {
     await h.cleanup();
   }

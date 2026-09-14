@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "fieldnote-parallel-wave",
+      "stage": "build",
+      "description": "Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a \"wave\") and running them one-by-one would be slow; composes fieldnote-do-work + fieldnote-pull-request. Not for dependent issues, not for merging.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "universal"
+    }
+  ]
+}
