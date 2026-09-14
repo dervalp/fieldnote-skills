@@ -65,7 +65,19 @@ instead — see [docs/profile.md](docs/profile.md) for the sections it defines
 (`Tracker`, `Labels`, `Commands`, `Docs`, `Architecture`, `Parallelism`,
 `Merge policy`). A skill that hardcodes another repository's coordinates only
 runs in that repository; the whole point of this one is that a skill runs
-everywhere its facts are supplied.
+everywhere its facts are supplied. `npm run check:decoupling` (part of CI)
+enforces this mechanically against `skills/*/SKILL.md`; the rules live in
+`cli/src/decoupling.ts`.
+
+**The guard is conservative about `libs/`, `apps/`, and `packages/` paths.**
+It cannot tell a reference to this repository's own private monorepo layout
+from a generic example — a code sample showing a workspace convention, or a
+URL route like `/apps/settings`, will also trip it. This is deliberate: a
+looser rule would let real coupling through, and distinguishing "example"
+from "reference" isn't something a regex can do reliably. If your legitimate,
+portable content is flagged, rewrite the example to avoid the `libs/`,
+`apps/`, or `packages/` prefix (a different placeholder name works fine) — do
+not weaken the rule to accommodate it.
 
 ## Before opening a PR
 

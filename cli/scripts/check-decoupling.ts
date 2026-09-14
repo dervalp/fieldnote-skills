@@ -17,7 +17,7 @@ for (const entry of readdirSync(root)) {
 if (violations.length > 0) {
   console.error("Coupling violations — these skills would not work in another repository:\n");
   for (const v of violations) console.error(`  ${v}`);
-  console.error(`\n${violations.length} violation(s). Cite .fieldnote/profile.md instead.`);
+  console.error(`\n${violations.length} violation(s). See each line above for what to do about it.`);
   process.exit(1);
 }
 
