@@ -70,10 +70,13 @@ everywhere its facts are supplied.
 ## Before opening a PR
 
 ```bash
+cd cli && npm test
 npm run validate
 npm run catalog
 ```
 
-`npm run validate` must exit 0. `npm run catalog` regenerates `CATALOG.md`,
-`catalog.json`, and `skills.lock.json` from `skills/*/SKILL.md` — never
-hand-edit those three files; run the command and commit what it writes.
+`cd cli && npm test` runs the CLI's own test suite — required if you changed
+anything under `cli/`. `npm run validate` must exit 0. `npm run catalog`
+regenerates `CATALOG.md`, `catalog.json`, and `skills.lock.json` from
+`skills/*/SKILL.md` — never hand-edit those three files; run the command and
+commit what it writes.

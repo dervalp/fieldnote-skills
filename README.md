@@ -52,18 +52,18 @@ including the five skills that aren't here yet.
 **If you plan work**, start with `fieldnote-setup-prd`. Hand it a settled
 design — straight out of a brainstorm or a grill — and it writes the PRD,
 slices it into tracer-bullet child issues with a wired dependency graph, and
-publishes both behind a single review. You confirm one consolidated diff
-instead of running the PRD and the issue breakdown as two separate
-ceremonies.
+publishes both behind a single consolidated review, instead of running the
+PRD and the issue breakdown as two separate ceremonies.
 
 **If you write code**, start with `fieldnote-deliver`. Point it at a PRD or
 epic issue and it works out which child issues are actually takeable right
 now — open, labeled ready, every blocker merged, no PR yet — and runs that
-frontier as one parallel wave, one isolated worktree and one PR per issue.
-Re-run it after each merge to pull the next wave forward. It stops at the
-human-merge gate; nothing in this repository merges on its own, except
-`fieldnote-pr-monitor`, which is the one explicit, logged exception to that
-rule.
+frontier as one parallel wave, one isolated worktree and one PR per issue
+(today, by composing an implementation skill this repository doesn't ship
+yet — see Status below). Re-run it after each merge to pull the next wave
+forward. It stops at the human-merge gate; nothing in this repository merges
+on its own, except `fieldnote-pr-monitor`, which is the one explicit, logged
+exception to that rule.
 
 ## Tailoring
 
