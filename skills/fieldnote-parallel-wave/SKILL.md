@@ -5,6 +5,7 @@ stage: build
 variance: universal
 surface: code
 version: 0.1.0
+release: skills-v0.1.0
 ---
 
 # Fieldnote Parallel Wave

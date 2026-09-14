@@ -1,0 +1,16 @@
+{
+  "release": "skills-v0.1.0",
+  "skills": [
+    {
+      "name": "fieldnote-parallel-wave",
+      "version": "0.1.0",
+      "coreHash": "sha256:8811b1582a433d940347c8284d7cae707533090307912223ca3aaa4d1a4bc741",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:82e7b9daa8fbdb9af91d10cbb7fa5fae8bb28495eeb6b686f945bd73cb196de7"
+        }
+      }
+    }
+  ]
+}
