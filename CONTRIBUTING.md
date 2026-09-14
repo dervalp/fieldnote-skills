@@ -63,10 +63,12 @@ A `SKILL.md` may not name a path, label, environment variable, or shell
 command that exists only in one repository. Cite `.fieldnote/profile.md`
 instead — see [docs/profile.md](docs/profile.md) for the sections it defines
 (`Tracker`, `Labels`, `Commands`, `Docs`, `Architecture`, `Parallelism`,
-`Merge policy`). A skill that hardcodes another repository's coordinates only
-runs in that repository; the whole point of this one is that a skill runs
-everywhere its facts are supplied. `npm run check:decoupling` (part of CI)
-enforces this mechanically against `skills/*/SKILL.md`; the rules live in
+`Merge policy`, `Localization`, `Git`). A skill that hardcodes another
+repository's coordinates only runs in that repository; the whole point of
+this one is that a skill runs everywhere its facts are supplied.
+`npm run check:decoupling` (part of CI)
+enforces this mechanically against `skills/*/SKILL.md` plus every tracked
+file under `docs/` and `templates/`; the rules live in
 `cli/src/decoupling.ts`.
 
 **The guard is conservative about `libs/`, `apps/`, and `packages/` paths.**
