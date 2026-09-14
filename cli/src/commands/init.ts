@@ -19,6 +19,7 @@ export interface ProbeResult {
   docs: string[];
   strictStatusChecks: boolean | null;
   tracker: { kind: string | null; repo: string | null };
+  hasPlansDir: boolean;
 }
 
 const TODO = "TODO";
@@ -49,16 +50,25 @@ export function renderProfile(probe: ProbeResult): string {
   const trackerKind = probe.tracker.kind ?? TODO;
   const trackerRepo = probe.tracker.repo ?? TODO;
 
-  const check = pickScript(probe.scripts, ["check", "verify", "ci", "test"]) ?? TODO;
+  // "test" is deliberately excluded: a bare unit-test script is not the same
+  // claim as "this repository's fast checks (lint, typecheck, unit tests)"
+  // (docs/profile.md), and presenting one as the other would let a skill
+  // report a passing quality gate when lint/typecheck never ran.
+  const check = pickScript(probe.scripts, ["check", "verify", "ci"]) ?? TODO;
   const preflight = pickScript(probe.scripts, ["preflight", "quality:preflight", "lint"]) ?? TODO;
   const mutation = pickScript(probe.scripts, ["mutation", "mutation:changed", "stryker"]) ?? TODO;
 
   const ready = pickLabel(probe.labels, [/ready.*agent/i, /^ready$/i]) ?? TODO;
-  const needsPrd = pickLabel(probe.labels, [/prd/i, /^epic$/i]) ?? TODO;
+  // "epic" is deliberately excluded: it usually means "large feature", not
+  // "needs a PRD before implementation can start".
+  const needsPrd = pickLabel(probe.labels, [/prd/i]) ?? TODO;
 
   const dod = pickDoc(probe.docs, /definition-of-done|dod/i) ?? TODO;
   const pr = pickDoc(probe.docs, /pull-request|contributing/i) ?? TODO;
   const testing = pickDoc(probe.docs, /testing/i) ?? TODO;
+  const verification = pickDoc(probe.docs, /verification/i) ?? TODO;
+  const ciTriage = pickDoc(probe.docs, /ci-triage/i) ?? TODO;
+  const plans = probe.hasPlansDir ? "./plans/" : TODO;
   const strict =
     probe.strictStatusChecks === null ? TODO : String(probe.strictStatusChecks);
 
@@ -92,7 +102,9 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 - **definitionOfDone** — ${dod}
 - **pullRequest** — ${pr}
 - **testing** — ${testing}
-- **plans** — ./plans/
+- **verification** — ${verification}
+- **ciTriage** — ${ciTriage}
+- **plans** — ${plans}
 
 ## Architecture
 
@@ -100,7 +112,7 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 ## Parallelism
 
-- **waveSize** — 4
+- **waveSize** — ${TODO}
 
 ## Merge policy
 
@@ -141,11 +153,17 @@ function readDocs(repoRoot: string): string[] {
     "docs/definition-of-done.md",
     "docs/pull-request.md",
     "docs/testing.md",
+    "docs/verification.md",
     "docs/ci-triage.md",
   ]) {
     if (existsSync(join(repoRoot, candidate))) found.push(candidate);
   }
   return found;
+}
+
+/** Whether a `plans/` directory exists at the repo root. */
+function readPlansDir(repoRoot: string): boolean {
+  return existsSync(join(repoRoot, "plans"));
 }
 
 /**
@@ -202,6 +220,7 @@ export function probeRepo(repoRoot: string): ProbeResult {
     docs: readDocs(repoRoot),
     strictStatusChecks: readStrictChecks(),
     tracker: readTracker(repoRoot),
+    hasPlansDir: readPlansDir(repoRoot),
   };
 }
 

@@ -28,7 +28,9 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 - **definitionOfDone** — TODO
 - **pullRequest** — TODO
 - **testing** — TODO
-- **plans** — ./plans/
+- **verification** — TODO
+- **ciTriage** — TODO
+- **plans** — TODO
 
 ## Architecture
 
@@ -36,7 +38,7 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 ## Parallelism
 
-- **waveSize** — 4
+- **waveSize** — TODO
 
 ## Merge policy
 

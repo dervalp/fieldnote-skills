@@ -10,6 +10,7 @@ test("maps a check script onto Commands.check", () => {
     docs: ["docs/definition-of-done.md"],
     strictStatusChecks: true,
     tracker: { kind: null, repo: null },
+    hasPlansDir: false,
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "npm run check");
@@ -25,6 +26,7 @@ test("writes TODO for anything it could not read", () => {
     docs: [],
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
+    hasPlansDir: false,
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "TODO");
@@ -32,6 +34,8 @@ test("writes TODO for anything it could not read", () => {
   assert.equal(p.mergePolicy.strictStatusChecks, "TODO");
   assert.equal(p.tracker.kind, "TODO");
   assert.equal(p.tracker.repo, "TODO");
+  assert.equal(p.docs.plans, "TODO");
+  assert.equal(p.parallelism.waveSize, "TODO");
 });
 
 test("never invents a label that the repository does not have", () => {
@@ -41,6 +45,7 @@ test("never invents a label that the repository does not have", () => {
     docs: [],
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
+    hasPlansDir: false,
   });
   assert.ok(!md.includes("ready-for-agent"));
 });
@@ -52,8 +57,62 @@ test("maps an observed GitHub remote onto Tracker.kind and Tracker.repo", () => 
     docs: [],
     strictStatusChecks: null,
     tracker: { kind: "github", repo: "acme/widgets" },
+    hasPlansDir: false,
   });
   const p = parseProfile(md);
   assert.equal(p.tracker.kind, "github");
   assert.equal(p.tracker.repo, "acme/widgets");
+});
+
+test("does not treat a bare test script as the quality gate", () => {
+  const md = renderProfile({
+    scripts: { test: "jest" },
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: false,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.commands.check, "TODO");
+});
+
+test("does not treat an epic label as needing a PRD", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: ["epic"],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: false,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.labels.needsPrd, "TODO");
+});
+
+test("observes a plans/ directory when present", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: true,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.docs.plans, "./plans/");
+});
+
+test("emits all six documented Docs keys, including verification and ciTriage", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: ["docs/verification.md", "docs/ci-triage.md"],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: false,
+  });
+  const p = parseProfile(md);
+  assert.equal(p.docs.verification, "docs/verification.md");
+  assert.equal(p.docs.ciTriage, "docs/ci-triage.md");
 });
