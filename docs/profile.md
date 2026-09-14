@@ -55,11 +55,20 @@ Where issues live and how to address them: the issue tracker in use, the
 project or repo identifier, anything a skill needs to open or query an issue
 without asking.
 
+- **`Tracker.epicLink`** — how a child issue references its parent epic/PRD in
+  this tracker: a sub-issue relation, a project field, or a body reference
+  (e.g. `Parent #<n>`).
+- **`Tracker.blockedBy`** — how a blocker is expressed in this tracker: a
+  native "blocked by" relation, a project field, or a body reference (e.g. a
+  `Blocked by` section naming issue numbers).
+
 ```markdown
 ## Tracker
 
 - **kind** — github
 - **repo** — dervalp/fieldnote-skills
+- **epicLink** — body reference: `Parent #<n>`
+- **blockedBy** — body section: `## Blocked by`
 ```
 
 ### Labels
@@ -208,6 +217,8 @@ document.
 
 - **kind** — github
 - **repo** — dervalp/fieldnote-skills
+- **epicLink** — body reference: `Parent #<n>`
+- **blockedBy** — body section: `## Blocked by`
 
 ## Labels
 

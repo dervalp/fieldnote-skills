@@ -2,6 +2,17 @@
   "release": "skills-v0.1.0",
   "skills": [
     {
+      "name": "fieldnote-deliver",
+      "version": "0.1.0",
+      "coreHash": "sha256:cb4e246d7d81c6b5c20bf236cf3586f984be6ac7246d516e4732a352fbf73159",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:893a4ddc1cc275bb7e5e49126f480f1d91b2a47bf30d364e3f3c36ab0a64290e"
+        }
+      }
+    },
+    {
       "name": "fieldnote-parallel-wave",
       "version": "0.1.0",
       "coreHash": "sha256:8811b1582a433d940347c8284d7cae707533090307912223ca3aaa4d1a4bc741",
@@ -13,6 +24,17 @@
       }
     },
     {
+      "name": "fieldnote-pr-monitor",
+      "version": "0.1.0",
+      "coreHash": "sha256:f37f2f16fc9771bfd2f153e761c875ce93b386a92c63c6d88699bd819eb8b2c9",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:193037dd9cf72b1900bdff4d53b80937ce9a8fa66245c5d109d0f5b2b381e365"
+        }
+      }
+    },
+    {
       "name": "fieldnote-prd-to-plan",
       "version": "0.1.0",
       "coreHash": "sha256:761b3c2ae8233ee3098e05b75d302da1651ec0b749f51dc894e948dab0a3b042",
@@ -20,6 +42,39 @@
         "SKILL.md": {
           "role": "prompt",
           "hash": "sha256:a7a5cdec0878692eab9e4136b1818c4716338c5d2f52d9796e23302aa8a14e4b"
+        }
+      }
+    },
+    {
+      "name": "fieldnote-pull-request",
+      "version": "0.1.0",
+      "coreHash": "sha256:5d420dd728c3705fed6f92eaaebffffcc9ab39f11da7921a0bde5de99998ebcb",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:272c6bb918e193962d8528cbb54e745f631bdd2c4756486b6d24ca22f9a77a66"
+        }
+      }
+    },
+    {
+      "name": "fieldnote-setup-prd",
+      "version": "0.1.0",
+      "coreHash": "sha256:71d0971d039f9c8b4679efea59ff1742ede8a199f43d4b77ba7c6f7a6efe92f7",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:a1ea6b43f40cdcdafc76e4967b53d09df12181b42ded365737b5f220daaa3991"
+        }
+      }
+    },
+    {
+      "name": "fieldnote-testing",
+      "version": "0.1.0",
+      "coreHash": "sha256:5a2135fd12c8a4c7a9140f0cd8494051677f6894f919fff17efc9bbb9ff7d3b4",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:38437be7ed0830a7f4553f3a9ac8475ff304034196f7359f1d723593e90fcf52"
         }
       }
     }

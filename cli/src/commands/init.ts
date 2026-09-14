@@ -85,6 +85,8 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 - **kind** — ${trackerKind}
 - **repo** — ${trackerRepo}
+- **epicLink** — ${TODO}
+- **blockedBy** — ${TODO}
 
 ## Labels
 

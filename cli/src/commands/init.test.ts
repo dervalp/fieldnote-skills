@@ -34,6 +34,8 @@ test("writes TODO for anything it could not read", () => {
   assert.equal(p.mergePolicy.strictStatusChecks, "TODO");
   assert.equal(p.tracker.kind, "TODO");
   assert.equal(p.tracker.repo, "TODO");
+  assert.equal(p.tracker.epicLink, "TODO");
+  assert.equal(p.tracker.blockedBy, "TODO");
   assert.equal(p.docs.plans, "TODO");
   assert.equal(p.parallelism.waveSize, "TODO");
 });
@@ -62,6 +64,8 @@ test("maps an observed GitHub remote onto Tracker.kind and Tracker.repo", () => 
   const p = parseProfile(md);
   assert.equal(p.tracker.kind, "github");
   assert.equal(p.tracker.repo, "acme/widgets");
+  assert.equal(p.tracker.epicLink, "TODO");
+  assert.equal(p.tracker.blockedBy, "TODO");
 });
 
 test("does not treat a bare test script as the quality gate", () => {
