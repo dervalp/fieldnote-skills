@@ -183,6 +183,48 @@ Facts about this repository's branch protection and merge mechanics — never
 - **adminMerge** — false
 ```
 
+### Localization
+
+Whether this repository translates its UI at all, and if so, which locale is
+canonical and where each locale's strings live. Absent entirely in an
+English-only (or otherwise single-locale) repository — skills treat a missing
+`Localization` section as "no localization requirement here," not as a gap to
+ask about.
+
+- **`Localization.canonicalLocale`** — the locale reviewed first and treated
+  as the source of truth for wording (e.g. `fr`).
+- **`Localization.locales`** — every locale that must stay in parity with the
+  canonical one.
+- **`Localization.catalogs`** — where each locale's strings live: one or more
+  path patterns, with `<locale>` (and `<namespace>` where relevant) as
+  placeholders.
+
+```markdown
+## Localization
+
+- **canonicalLocale** — fr
+- **locales** — fr, en
+- **catalogs** — src/i18n/<namespace>.<locale>.json (shared libs); messages/<locale>.json (app chrome)
+```
+
+### Git
+
+The remote and branch a skill should treat as the integration target — the
+ordinary single-remote case by default, so a skill never hardcodes a
+fork-workflow remote name that only some repositories use.
+
+- **`Git.baseRemote`** — the remote PRs are opened against and branches are
+  based on (usually `origin`).
+- **`Git.baseBranch`** — the branch PRs target (usually `main`, sometimes
+  `master` or `develop`).
+
+```markdown
+## Git
+
+- **baseRemote** — origin
+- **baseBranch** — main
+```
+
 ## If a key isn't being picked up
 
 `parseProfile` is intentionally forgiving: it never throws on content it
@@ -191,18 +233,23 @@ silently rather than with an error message, so check these first before
 assuming a skill or the parser is broken:
 
 - **The heading must be `##` followed by a space, and spelled exactly as
-  one of the seven section names** — `Tracker`, `Labels`, `Commands`,
-  `Docs`, `Architecture`, `Parallelism`, `Merge policy` (case doesn't
-  matter, but the words and their order do). `##Labels` (no space after
-  `##`), `### Labels` (three hashes), and `## Label` (wrong word) all fail
-  to be recognized as one of the seven sections. A heading the parser
-  doesn't recognize is not an error: every bullet under it is silently
-  dropped, and nothing under it becomes available to any skill.
+  one of the nine section names** — `Tracker`, `Labels`, `Commands`,
+  `Docs`, `Architecture`, `Parallelism`, `Merge policy`, `Localization`,
+  `Git` (case doesn't matter, but the words and their order do). `##Labels`
+  (no space after `##`), `### Labels` (three hashes), and `## Label` (wrong
+  word) all fail to be recognized as one of the nine sections. A heading the
+  parser doesn't recognize is not an error: every bullet under it is
+  silently dropped, and nothing under it becomes available to any skill.
 - **The bullet marker must be a hyphen (`-`)**, not `*` or `+`.
 - **A key/value bullet needs bold around the key**: `` - **key** — value ``.
   A bullet without the `**...**` around the key parses as an unrecognized
   line in every section except `Architecture` (where it's the expected
   shape).
+- **A bullet must not be indented.** Every line is trimmed before it's
+  parsed, so a nested bullet (e.g. a sub-point indented under another rule in
+  `Architecture`) is read as a new top-level entry, not as part of the item
+  above it — there is no nesting in this format. Keep every bullet, in every
+  section, at the left margin.
 
 There is no `validate` command for this file yet — the only check today is
 reading the parsed result back, or checking your spelling against this
@@ -253,6 +300,17 @@ document.
 
 - **strictStatusChecks** — true
 - **adminMerge** — false
+
+## Localization
+
+- **canonicalLocale** — fr
+- **locales** — fr, en
+- **catalogs** — src/i18n/<namespace>.<locale>.json (shared libs); messages/<locale>.json (app chrome)
+
+## Git
+
+- **baseRemote** — origin
+- **baseBranch** — main
 ```
 
 Copy this, delete what doesn't apply, and replace the rest with your

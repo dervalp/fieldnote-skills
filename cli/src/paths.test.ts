@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { findRepoRoot, resolveEnv } from "./paths.js";
+import { findGitRoot, findRepoRoot, resolveEnv } from "./paths.js";
 import type { Logger, ProcessRunner, Prompter } from "./types.js";
 
 /** A directory that passes findRepoRoot's repo-clone markers. */
@@ -63,5 +63,29 @@ test("the catalog follows the executing package, not the cwd clone", () => {
     assert.notEqual(env.skillsSourceDir, join(clone, "skills"));
   } finally {
     rmSync(clone, { recursive: true, force: true });
+  }
+});
+
+test("findGitRoot walks up to a .git directory from a nested path, unlike findRepoRoot", () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-plain-git-"));
+  try {
+    mkdirSync(join(repo, ".git"), { recursive: true });
+    const nested = join(repo, "src", "deep");
+    mkdirSync(nested, { recursive: true });
+    assert.equal(findGitRoot(nested), repo);
+    // Not a fieldnote-skills clone (no skills/ + cli/package.json), so the
+    // repo-specific detector correctly finds nothing here.
+    assert.equal(findRepoRoot(nested), null);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("findGitRoot returns null with no .git anywhere above", () => {
+  const plain = mkdtempSync(join(tmpdir(), "fieldnote-no-git-"));
+  try {
+    assert.equal(findGitRoot(plain), null);
+  } finally {
+    rmSync(plain, { recursive: true, force: true });
   }
 });

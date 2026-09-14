@@ -17,6 +17,8 @@ export interface Profile {
   architecture: string[];
   parallelism: Record<string, string>;
   mergePolicy: Record<string, string>;
+  localization: Record<string, string>;
+  git: Record<string, string>;
 }
 
 /** `## Merge policy` -> `mergePolicy`. */
@@ -41,6 +43,8 @@ export function parseProfile(markdown: string): Profile {
     architecture: [],
     parallelism: {},
     mergePolicy: {},
+    localization: {},
+    git: {},
   };
 
   let current = "";

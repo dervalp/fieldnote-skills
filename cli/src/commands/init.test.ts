@@ -1,7 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderProfile } from "./init.js";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { renderProfile, runInit } from "./init.js";
 import { parseProfile } from "../profile.js";
+import { FakeLogger, FakePrompter } from "../testkit.js";
+import type { Env } from "../types.js";
 
 test("maps a check script onto Commands.check", () => {
   const md = renderProfile({
@@ -11,6 +16,7 @@ test("maps a check script onto Commands.check", () => {
     strictStatusChecks: true,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "npm run check");
@@ -27,6 +33,7 @@ test("writes TODO for anything it could not read", () => {
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "TODO");
@@ -38,6 +45,11 @@ test("writes TODO for anything it could not read", () => {
   assert.equal(p.tracker.blockedBy, "TODO");
   assert.equal(p.docs.plans, "TODO");
   assert.equal(p.parallelism.waveSize, "TODO");
+  assert.equal(p.localization.canonicalLocale, "TODO");
+  assert.equal(p.localization.locales, "TODO");
+  assert.equal(p.localization.catalogs, "TODO");
+  assert.equal(p.git.baseRemote, "TODO");
+  assert.equal(p.git.baseBranch, "TODO");
 });
 
 test("never invents a label that the repository does not have", () => {
@@ -48,6 +60,7 @@ test("never invents a label that the repository does not have", () => {
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   assert.ok(!md.includes("ready-for-agent"));
 });
@@ -60,6 +73,7 @@ test("maps an observed GitHub remote onto Tracker.kind and Tracker.repo", () => 
     strictStatusChecks: null,
     tracker: { kind: "github", repo: "acme/widgets" },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.tracker.kind, "github");
@@ -76,6 +90,7 @@ test("does not treat a bare test script as the quality gate", () => {
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "TODO");
@@ -89,6 +104,7 @@ test("does not treat an epic label as needing a PRD", () => {
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.labels.needsPrd, "TODO");
@@ -102,6 +118,7 @@ test("observes a plans/ directory when present", () => {
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: true,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.docs.plans, "./plans/");
@@ -115,8 +132,81 @@ test("emits all six documented Docs keys, including verification and ciTriage", 
     strictStatusChecks: null,
     tracker: { kind: null, repo: null },
     hasPlansDir: false,
+    git: { baseRemote: null, baseBranch: null },
   });
   const p = parseProfile(md);
   assert.equal(p.docs.verification, "docs/verification.md");
   assert.equal(p.docs.ciTriage, "docs/ci-triage.md");
+});
+
+test("maps observed git facts onto Git.baseRemote and Git.baseBranch", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: false,
+    git: { baseRemote: "origin", baseBranch: "main" },
+  });
+  const p = parseProfile(md);
+  assert.equal(p.git.baseRemote, "origin");
+  assert.equal(p.git.baseBranch, "main");
+});
+
+test("never invents Localization facts — always TODO, since none is observable", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
+    hasPlansDir: false,
+    git: { baseRemote: "origin", baseBranch: "main" },
+  });
+  const p = parseProfile(md);
+  assert.equal(p.localization.canonicalLocale, "TODO");
+  assert.equal(p.localization.locales, "TODO");
+  assert.equal(p.localization.catalogs, "TODO");
+});
+
+function makeEnv(repoRoot: string | null): Env {
+  return {
+    claudeDir: "/unused",
+    catalogPath: "/unused/catalog.json",
+    skillsSourceDir: "/unused/skills",
+    repoRoot,
+    prompter: new FakePrompter(),
+    logger: new FakeLogger(),
+  };
+}
+
+test("runInit walks up to the git root from a nested cwd rather than writing under it", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-git-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  const nested = join(repo, "src", "deep");
+  mkdirSync(nested, { recursive: true });
+  const prevCwd = process.cwd();
+  process.chdir(nested);
+  try {
+    await runInit(makeEnv(null));
+    assert.equal(existsSync(join(repo, ".fieldnote", "profile.md")), true);
+    assert.equal(existsSync(join(nested, ".fieldnote")), false);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("runInit refuses with a clear message outside any git repository, rather than writing into cwd", async () => {
+  const plain = mkdtempSync(join(tmpdir(), "fieldnote-init-plain-"));
+  const prevCwd = process.cwd();
+  process.chdir(plain);
+  try {
+    await assert.rejects(() => runInit(makeEnv(null)), /git repository/);
+    assert.equal(existsSync(join(plain, ".fieldnote")), false);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(plain, { recursive: true, force: true });
+  }
 });

@@ -27,6 +27,25 @@ export function findRepoRoot(start: string): string | null {
   return null;
 }
 
+/**
+ * Walk up from `start` looking for the root of ANY git repository (a `.git`
+ * directory, or a `.git` file for a worktree/submodule). Unlike
+ * `findRepoRoot`, this recognises an arbitrary repository, not just a clone
+ * of fieldnote-skills itself — it's what commands that write into "the
+ * user's repository" (e.g. `init`) should walk up with, so running from a
+ * nested directory doesn't silently write there instead of at the root.
+ */
+export function findGitRoot(start: string): string | null {
+  let dir = start;
+  for (let i = 0; i < 40; i++) {
+    if (existsSync(join(dir, ".git"))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
 /** Resolve the runtime environment from the real filesystem. */
 export function resolveEnv(deps: {
   prompter: Prompter;
