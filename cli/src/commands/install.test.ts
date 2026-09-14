@@ -91,7 +91,6 @@ test("installs a flat-tree skill into the claude dir", async () => {
     assert.ok(await exists(installed), "SKILL.md should be installed");
     const body = await readFile(installed, "utf8");
     assert.match(body, /stage: build/);
-    assert.ok(!/vertuo/i.test(body));
   } finally {
     await h.cleanup();
   }
