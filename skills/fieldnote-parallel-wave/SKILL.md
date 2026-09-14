@@ -1,8 +1,8 @@
 ---
 name: fieldnote-parallel-wave
-description: Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a "wave") and running them one-by-one would be slow; composes fieldnote-do-work + fieldnote-pull-request. Not for dependent issues, not for merging.
+description: Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a "wave") and running them one-by-one would be slow; composes fieldnote-do-work (not yet shipped in this repository — bring your own implementation step) + fieldnote-pull-request. Not for dependent issues, not for merging.
 stage: build
-variance: universal
+variance: configured
 surface: code
 version: 0.1.0
 release: skills-v0.1.0
@@ -16,7 +16,7 @@ not one-by-one) and **bounded context** — a subagent's tool I/O never enters t
 orchestrator only ever accumulates each slice's short final result, not its full transcript. No
 `/compact` needed: the bloat never arrives.
 
-This skill **composes** [`fieldnote-do-work`](../fieldnote-do-work/SKILL.md) (implementation) and
+This skill **composes** `fieldnote-do-work` (implementation) and
 [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md) (the PR). It **never merges** — human merge is
 the only path code enters the mainline.
 
@@ -40,7 +40,8 @@ wave logic is unchanged.
 ## Inputs
 
 Issue numbers (`/fieldnote-parallel-wave 308 309`) or a label/milestone to resolve into a list. Default
-tracker is the current repository's GitHub remote; PRs target `upstream/main`.
+tracker is the current repository's GitHub remote; PRs target `Git → baseBranch` on `Git → baseRemote`
+in `.fieldnote/profile.md` (an ordinary clone with no profile Git section: `origin`/`main`).
 
 ## Process
 
@@ -62,8 +63,9 @@ For each issue, `gh issue view <n>` and read its **`Blocked by`**.
 
 ### 2. Sync the base once
 
-`git fetch upstream main` so every worktree branches off the current base. Never branch off a stale
-local `main`.
+`git fetch <Git → baseRemote> <Git → baseBranch>` (`.fieldnote/profile.md`; `git fetch origin main`
+absent a profile) so every worktree branches off the current base. Never branch off a stale local
+copy of the base branch.
 
 ### 3. Fan out — one isolated subagent per issue, in a single message
 
@@ -87,9 +89,10 @@ Give each subagent this contract:
 > using the repo's implementation skill (`fieldnote-do-work`). Verify by running the project's
 > **verification gate** — the commands in `CLAUDE.md` › Verification (typecheck, tests, lint, and any
 > layering/arch checks). The PR is gated on it passing. Open the PR
-> using the `fieldnote-pull-request` skill: branch off `upstream/main`, push to the `upstream` remote,
-> base `main`, body containing `Closes #<n>`, a Conventional-Commit title, and the `Co-Authored-By`
-> trailer. **Do not merge. Do not touch other issues' scope.**
+> using the `fieldnote-pull-request` skill: branch off `Git → baseBranch` on `Git → baseRemote` (from
+> `.fieldnote/profile.md`; `origin`/`main` absent a profile), push to that same remote,
+> base `Git → baseBranch`, body containing `Closes #<n>`, a Conventional-Commit title, and the
+> `Co-Authored-By` trailer. **Do not merge. Do not touch other issues' scope.**
 >
 > **If, after reading the ADR/PRD in full, the acceptance criteria are missing, ambiguous, or
 > contradictory, STOP — do not implement or open a PR on a guess.** Return
@@ -121,11 +124,12 @@ blockers are exactly this wave>." Recompute that from the same `Blocked by` grap
 - **Refuse unworkable issues** — if acceptance criteria are missing, ambiguous, or contradictory, STOP
   and return `needs-clarification` (orchestrator pre-flight or subagent), never a guessed PR.
 - **Subagents return concise results only** — no diffs/logs — to protect the orchestrator's context.
-- **Branch off `upstream/main`** every time; push to `upstream`.
+- **Branch off `Git → baseBranch` on `Git → baseRemote`** every time (`.fieldnote/profile.md`;
+  `origin`/`main` absent a profile); push to that same remote.
 - Worktrees are auto-cleaned by the harness when unchanged.
 
 ## References
 
-- Implementation: [`fieldnote-do-work`](../fieldnote-do-work/SKILL.md)
+- Implementation: `fieldnote-do-work`
 - PR authoring: [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
 - Human-merge-only is a house rule, not a single ADR: no subagent merges its own PR

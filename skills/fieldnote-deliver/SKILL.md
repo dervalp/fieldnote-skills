@@ -1,6 +1,6 @@
 ---
 name: fieldnote-deliver
-description: Drive a PRD/epic to completion wave by wave. Give it a PRD (or epic) issue reference; it discovers the remaining child issues, builds the dependency graph, computes which are takeable now (open, ready-for-agent, all blockers merged, no PR yet), and runs that frontier as one parallel wave — then stops at the human-merge gate. Use when you have a PRD/epic whose children are already ticketed and want to keep shipping the next takeable slices without hand-picking issue numbers. Re-run after merging to advance the next wave naturally. Composes fieldnote-parallel-wave; does not invent issues and never merges.
+description: Drive a PRD/epic to completion wave by wave. Give it a PRD (or epic) issue reference; it discovers the remaining child issues, builds the dependency graph, computes which are takeable now (open, ready-for-agent, all blockers merged, no PR yet), and runs that frontier as one parallel wave — then stops at the human-merge gate. Use when you have a PRD/epic whose children are already ticketed and want to keep shipping the next takeable slices without hand-picking issue numbers. Re-run after merging to advance the next wave naturally. Composes fieldnote-parallel-wave, which in turn hands implementation to fieldnote-do-work (not yet shipped in this repository — bring your own implementation step); does not invent issues and never merges.
 stage: build
 variance: configured
 surface: code
@@ -21,7 +21,7 @@ runner, or language. Anything stack-specific is delegated down to `fieldnote-par
 it, the repo's implementation skill and verification gate.
 
 Single responsibility: this skill **finds the next wave**; `fieldnote-parallel-wave` **runs a wave**;
-[`fieldnote-do-work`](../fieldnote-do-work/SKILL.md) + [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
+`fieldnote-do-work` + [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
 do each slice. It **does not create issues** — breaking a PRD into issues happens earlier — and **never
 merges**.
 
@@ -34,7 +34,9 @@ merges**.
 ## Input
 
 A PRD/epic issue reference (`/fieldnote-deliver 307`), or a label/prefix that identifies the family.
-Default tracker is the current repository's GitHub remote; PRs target `upstream/main`.
+Default tracker is the current repository's GitHub remote; PRs target `Git → baseBranch` on
+`Git → baseRemote` in `.fieldnote/profile.md` (an ordinary clone with no profile Git section:
+`origin`/`main`).
 
 ## Process
 
@@ -119,12 +121,13 @@ past it without a human would either stall or stack branches off un-merged work.
 - **Auto-exclude blocked issues** (a blocker not yet merged) and say what is waiting on what.
 - **Gate on acceptance criteria** — STOP and bucket an issue as `needs clarification` (do not dispatch)
   when its criteria are missing, ambiguous, or contradictory; report the specific question to resolve.
-- Each slice branches off `upstream/main` and pushes to `upstream` (via the delegated skills).
+- Each slice branches off `Git → baseBranch` on `Git → baseRemote` and pushes to that same remote (via
+  the delegated skills).
 
 ## References
 
 - Runs a wave: [`fieldnote-parallel-wave`](../fieldnote-parallel-wave/SKILL.md)
-- Implementation / PR: [`fieldnote-do-work`](../fieldnote-do-work/SKILL.md),
+- Implementation / PR: `fieldnote-do-work`,
   [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
 - Breaking a PRD into ticketed issues is a prerequisite — this skill only runs once issues already exist
 - Human-merge-only is a house rule, not a single ADR: no subagent merges its own PR

@@ -4,22 +4,22 @@
     {
       "name": "fieldnote-deliver",
       "version": "0.1.0",
-      "coreHash": "sha256:bdbcaefda9d2ded3ee94349b84a57504e1b256e0cc80cd5d70e78555a6889f46",
+      "coreHash": "sha256:5b7034c74453ab72614106a1075207571765d54531a7bd4030fd0efd7f71d338",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:801a8ab6ca9a4d20428a702361987836c45d4fee2b15e5028f663b7066fbd3c1"
+          "hash": "sha256:4b8753fce5ffd9dfefdae1a86ecd515cdc3969d3ecee238487a05f030d457183"
         }
       }
     },
     {
       "name": "fieldnote-parallel-wave",
       "version": "0.1.0",
-      "coreHash": "sha256:8811b1582a433d940347c8284d7cae707533090307912223ca3aaa4d1a4bc741",
+      "coreHash": "sha256:4051426b70f450aaa1b1d59fe878e151f9eb56d2d3981ac84d88055462d098ff",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:82e7b9daa8fbdb9af91d10cbb7fa5fae8bb28495eeb6b686f945bd73cb196de7"
+          "hash": "sha256:0c706c7723eadb678b0f324c05a46f4f9bbd406376ae7704f1eceabf7bfc57cd"
         }
       }
     },
@@ -48,11 +48,11 @@
     {
       "name": "fieldnote-pull-request",
       "version": "0.1.0",
-      "coreHash": "sha256:5d420dd728c3705fed6f92eaaebffffcc9ab39f11da7921a0bde5de99998ebcb",
+      "coreHash": "sha256:3fc57ff027ae1a20b521d075785962a8aeb4de1921005e075e9960dbec5947da",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:272c6bb918e193962d8528cbb54e745f631bdd2c4756486b6d24ca22f9a77a66"
+          "hash": "sha256:b9b23d38c65427112f36caa4b323f63ae6feb862758f0b6ff7be3a64678b3e4b"
         }
       }
     },
@@ -70,11 +70,11 @@
     {
       "name": "fieldnote-testing",
       "version": "0.1.0",
-      "coreHash": "sha256:5a2135fd12c8a4c7a9140f0cd8494051677f6894f919fff17efc9bbb9ff7d3b4",
+      "coreHash": "sha256:33a18db3ce1c706d8b514df7db10d6d67e7866b2a3a0fe11896aec016125913a",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:38437be7ed0830a7f4553f3a9ac8475ff304034196f7359f1d723593e90fcf52"
+          "hash": "sha256:2b091ebf6b4d1014353cb1a9a93830b2ff437d53995c06accae961402aa9386f"
         }
       }
     }

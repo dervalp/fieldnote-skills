@@ -34,16 +34,15 @@ Use this skill when opening or updating a PR for this repository.
   run.
 - Reviewer focus should call out the riskiest decisions, not repeat the whole summary.
 - Rollback can be simple for docs-only or no-data changes, but it should still say what to revert.
-- For any UI copy change, add a **translation checklist line**: confirm no user-facing string is
-  hardcoded (all read through `t()`), every new key landed in both `fr.json` and `en.json` (key-parity
-  passes), and the **French** wording was reviewed first (French is canonical — flag mistranslations as
-  a human check; see the rules listed under `Architecture` in `.fieldnote/profile.md`).
-- **Where does this string live?** (see `Architecture` in `.fieldnote/profile.md`) State explicitly
-  which owner holds each new key:
-  - **Shared feature-component lib** (e.g. a shared UI component library) — strings co-located in the
-    lib's `src/i18n/<namespace>.<locale>.json`.
-  - **App-exclusive chrome** — key stays in the app's `messages/fr.json` / `messages/en.json`.
-  - **`system-*` primitive** — must remain text-free; no new i18n keys in primitive libs.
+- If `.fieldnote/profile.md` has a `Localization` section, any UI copy change gets a **translation
+  checklist line**: confirm no user-facing string is hardcoded (all read through the repository's
+  translation function), every new key landed in every catalog named under `Localization → catalogs`
+  (key-parity passes across every locale under `Localization → locales`), and the canonical locale's
+  wording (`Localization → canonicalLocale`) was reviewed first — flag mistranslations as a human check.
+  When the repository has no `Localization` section, this checklist line does not apply.
+- **Where does this string live?** State explicitly which catalog under `Localization → catalogs` in
+  `.fieldnote/profile.md` holds each new key, and confirm the change adds no key to anything the
+  `Architecture` rules mark text-free (e.g. a primitive component library with a no-strings rule).
 - If this repository's preflight was skipped when the PR was opened, the Summary's last line must read
   `Preflight skipped: <reason>`. A PR without that line was preflighted; a reviewer may hold one
   with it.

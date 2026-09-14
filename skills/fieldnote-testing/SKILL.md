@@ -43,12 +43,14 @@ Use this skill when deciding what to test, where to test it, or how to prove a c
   `correlationId` plus useful bindings like `sessionId` or `feature`.
 - Never assert that prompt text, assistant output, audio, transcripts, tokens, or secrets are logged;
   metadata-only logging is the expectation.
-- For chrome i18n (see the rules listed under `Architecture` in `.fieldnote/profile.md`), keep the
-  **key-parity test** green: the `en` catalog must hold exactly the
-  canonical `fr` key set — no missing keys, no orphans, no empty values, and ICU that parses. When you
-  touch a catalog or convert a page, add the keys to both `fr.json` and `en.json`, and assert converted
-  pages render the **French** strings by default (update the existing page test rather than adding a
-  parallel one). `system-ui` primitives stay text-free and need no new tests.
+- If `.fieldnote/profile.md` has a `Localization` section, keep the **key-parity test** green: every
+  locale named under `Localization → locales` must hold exactly the canonical locale's key set
+  (`Localization → canonicalLocale`) — no missing keys, no orphans, no empty values, and ICU that
+  parses. When you touch a catalog or convert a page, add the keys to every catalog under
+  `Localization → catalogs`, and assert converted pages render the canonical locale's strings by
+  default (update the existing page test rather than adding a parallel one). A primitive the
+  `Architecture` rules mark text-free stays text-free and needs no new tests. When the repository has
+  no `Localization` section, none of this applies.
 
 ## References
 
