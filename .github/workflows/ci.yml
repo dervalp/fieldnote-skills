@@ -26,4 +26,4 @@ jobs:
       - name: Catalog drift
         run: |
           npm run catalog
-          git diff --exit-code -- catalog.json CATALOG.md
+          git diff --exit-code -- catalog.json CATALOG.md skills.lock.json
