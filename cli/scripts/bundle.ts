@@ -15,15 +15,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { shipsInSkill } from "../src/skill-model.js";
-
-interface SkillEntry {
-  name: string;
-  section: string;
-  surface: string;
-}
-interface Catalog {
-  skills: SkillEntry[];
-}
+import type { Catalog } from "../src/types.js";
 
 const cliDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = join(cliDir, "..");
@@ -38,14 +30,14 @@ async function main(): Promise<void> {
 
   const installable = catalog.skills.filter((s) => s.surface === "code" || s.surface === "both");
   for (const entry of installable) {
-    const from = join(repoRoot, "skills", entry.section, entry.name);
-    const to = join(outSkills, entry.section, entry.name);
+    const from = join(repoRoot, "skills", entry.name);
+    const to = join(outSkills, entry.name);
     await mkdir(dirname(to), { recursive: true });
     await cp(from, to, {
       recursive: true,
       filter: (src) => shipsInSkill(relative(from, src)),
     });
-    console.log(`  bundled ${entry.section}/${entry.name}`);
+    console.log(`  bundled ${entry.name}`);
   }
 
   await writeFile(join(cliDir, "catalog.json"), JSON.stringify(catalog, null, 2) + "\n", "utf8");

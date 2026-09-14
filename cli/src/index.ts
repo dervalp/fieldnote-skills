@@ -14,7 +14,7 @@ import { chalkStderr } from "chalk";
 const HELP = `fieldnote-skills — install shared Claude Code skills into ~/.claude
 
 Usage:
-  fieldnote-skills [list]            Interactive category + checkbox picker (default)
+  fieldnote-skills [list]            Interactive stage + checkbox picker (default)
   fieldnote-skills install <name…>   Install named skills (non-interactive)
                   [--yes] [--json]
   fieldnote-skills update [name…]    Update installed skills (outdated pre-checked)
@@ -23,7 +23,7 @@ Usage:
                   [--orchestrator <path>] [--strict] [--json]
 
 Flags:
-  --category    Filter list by product, engineer, qa, or all
+  --stage       Filter list by plan, build, review, or all
   --yes, -y     Skip confirmation prompts
   --json        Machine-readable output
   --help, -h    Show this help
@@ -55,7 +55,7 @@ async function main(): Promise<number> {
 
   switch (command) {
     case "list":
-      await runList(env, { category: typeof flags.category === "string" ? flags.category : undefined });
+      await runList(env, { stage: typeof flags.stage === "string" ? flags.stage : undefined });
       return 0;
     case "install":
       await runInstall(env, positionals, { yes: Boolean(flags.yes), json: Boolean(flags.json) });

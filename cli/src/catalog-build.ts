@@ -10,41 +10,39 @@
  * about a skill's surface or version.
  */
 import type { Skill } from "./skill-model.js";
-import { VARIANCE_LABELS } from "./skill-model.js";
+import { stageLabel, VARIANCE_LABELS } from "./skill-model.js";
 
-// Task 4 rewrites this to the full stage-grouped render; kept minimal here so
-// discovery's flattening (Task 3) keeps compiling and this file's own tests
-// passing without redesigning it.
-const STAGE_ORDER: ReadonlyArray<readonly [string, string]> = [
-  ["plan", "Plan"],
-  ["build", "Build"],
-  ["review", "Review"],
-];
+/**
+ * Rendering order of the delivery-loop stages. The display label for each key
+ * comes from `stageLabel()` (skill-model.ts) rather than being repeated here,
+ * so the labels have exactly one source of truth.
+ */
+const STAGE_ORDER: readonly string[] = ["plan", "build", "review"];
 
 const byCodepoint = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 export function renderMarkdown(skills: Skill[]): string {
   const byStage = new Map<string, Skill[]>();
-  for (const [key] of STAGE_ORDER) byStage.set(key, []);
+  for (const key of STAGE_ORDER) byStage.set(key, []);
   for (const skill of skills) {
     const bucket = byStage.get(skill.stage);
     if (bucket) bucket.push(skill);
   }
 
   const lines = [
-    "# Vertuo AI Playbook — Skill Catalog",
+    "# fieldnote skills — catalog",
     "",
     "> Auto-generated. Do not edit by hand — run `npm run catalog`.",
     "",
-    "These skills load automatically in Claude Desktop when your request matches.",
-    "You don't call them — just describe what you want.",
+    "Install them all with `/plugin marketplace add dervalp/fieldnote-skills`,",
+    "or pick individually with `npx github:dervalp/fieldnote-skills`.",
     "",
   ];
 
   let total = 0;
-  for (const [key, title] of STAGE_ORDER) {
+  for (const key of STAGE_ORDER) {
     const stageSkills = [...(byStage.get(key) ?? [])].sort((a, b) => byCodepoint(a.name, b.name));
-    lines.push(`## ${title}`, "");
+    lines.push(`## ${stageLabel(key) ?? key}`, "");
     if (stageSkills.length === 0) {
       lines.push("_No skills yet._", "");
       continue;
@@ -53,9 +51,9 @@ export function renderMarkdown(skills: Skill[]): string {
       total += 1;
       const name = skill.name || "(unnamed)";
       const version = skill.version || "?";
-      const variance = (VARIANCE_LABELS as Record<string, string>)[skill.variance];
       let metadata = `v${version}`;
-      if (variance !== undefined) metadata += `, ${variance}`;
+      const variance = VARIANCE_LABELS[skill.variance as keyof typeof VARIANCE_LABELS];
+      if (variance !== undefined) metadata += `, ${variance.toLowerCase()}`;
       lines.push(`- **${name}** (${metadata}) — ${skill.description}`);
     }
     lines.push("");

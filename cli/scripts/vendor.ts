@@ -99,7 +99,7 @@ function vendorOne(manifestFile: string): { count: number; dangling: Map<string,
       const name = vendoredNameFor(skill.upstreamPath, manifest.prefix);
       const { unresolved } = importSkill({
         upstreamRoot: tmp,
-        destDir: join(repoRoot, "skills", manifest.section, name),
+        destDir: join(repoRoot, "skills", name),
         name,
         release,
         skill,

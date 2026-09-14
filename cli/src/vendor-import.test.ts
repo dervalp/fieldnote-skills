@@ -9,7 +9,8 @@ import { importSkill, renderVendoredSkillMd, vendoredNameFor } from "./vendor-im
 const SKILL = {
   upstreamPath: "skills/engineering/tdd",
   surface: "both" as const,
-  category: "engineer" as const,
+  stage: "build" as const,
+  variance: "configured" as const,
   version: "1.0.0",
   supersedes: ["tdd"],
   description:
@@ -22,7 +23,6 @@ const COMMON = {
   commit: "6acc160e",
   license: "MIT",
   licenseFile: "skills/_vendor/mattpocock/LICENSE",
-  section: "engineering-standards",
 };
 
 test("derives our name from the upstream folder", () => {

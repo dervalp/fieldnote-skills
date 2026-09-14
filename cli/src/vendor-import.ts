@@ -1,8 +1,8 @@
 /**
  * Import mechanics for vendored skills (ADR-0009). Editorial choices — our
- * description, surface, category, version, supersedes — come from the tracked
- * import manifest (cli/vendor/<upstream>.json), never from this code, so a
- * re-sync never re-litigates them.
+ * description, surface, stage, variance, version, supersedes — come from the
+ * tracked import manifest (cli/vendor/<upstream>.json), never from this code,
+ * so a re-sync never re-litigates them.
  *
  * agents/ is deliberately NOT copied: Claude Code reads a skill's agents/ as
  * subagent definitions, and upstream's holds another harness's metadata.
@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { bodyOf, sha256 } from "./lock.js";
 import { rewriteReferences, type ReferenceStyle } from "./rewrite.js";
-import { fileRole, parseFrontmatter } from "./skill-model.js";
+import { fileRole, parseFrontmatter, VALID_STAGES, VALID_VARIANCES } from "./skill-model.js";
 import { vendorPrefixList, vendorPrefixOf } from "./vendor-model.js";
 
 const SKIPPED_UPSTREAM_DIRS: ReadonlySet<string> = new Set(["agents"]);
@@ -20,7 +20,10 @@ const SKIPPED_UPSTREAM_DIRS: ReadonlySet<string> = new Set(["agents"]);
 export interface VendorManifestSkill {
   upstreamPath: string;
   surface: "code" | "both";
-  category: "product" | "engineer" | "qa";
+  /** Position in the delivery loop (skill-model.ts VALID_STAGES). */
+  stage: (typeof VALID_STAGES)[number];
+  /** How much a repository must tailor the skill (skill-model.ts VALID_VARIANCES). */
+  variance: (typeof VALID_VARIANCES)[number];
   version: string;
   supersedes: string[];
   description: string;
@@ -32,7 +35,6 @@ export interface VendorCommon {
   commit: string;
   license: string;
   licenseFile: string;
-  section: string;
 }
 
 export interface VendorManifest extends VendorCommon {
@@ -92,9 +94,9 @@ function assertRoundTrips(
   if (fm["description"] !== description) return fail("description");
   if (fm["version"] !== skill.version) return fail("version");
   if (fm["release"] !== release) return fail("release");
-  if (fm["section"] !== common.section) return fail("section");
+  if (fm["stage"] !== skill.stage) return fail("stage");
   if (fm["surface"] !== skill.surface) return fail("surface");
-  if (fm["category"] !== skill.category) return fail("category");
+  if (fm["variance"] !== skill.variance) return fail("variance");
 
   const supersedes = fm["supersedes"];
   if (!Array.isArray(supersedes) || supersedes.length !== skill.supersedes.length) return fail("supersedes");
@@ -132,9 +134,9 @@ export function renderVendoredSkillMd(args: {
     `description: ${description}`,
     `version: ${skill.version}`,
     `release: ${release}`,
-    `section: ${common.section}`,
+    `stage: ${skill.stage}`,
     `surface: ${skill.surface}`,
-    `category: ${skill.category}`,
+    `variance: ${skill.variance}`,
     `supersedes: [${skill.supersedes.join(", ")}]`,
     "vendored:",
     `  upstream: ${common.upstream}`,
@@ -219,7 +221,7 @@ export function importSkill(args: {
   // Everything below hinges on a full `rmSync(destDir)`. If the computed name
   // is not a vendored name — an empty `prefix`, or an `upstreamPath` whose
   // basename collapses — destDir is not a skill folder at all but its parent
-  // section directory, and the wipe would take every skill in it. Refuse
+  // skills/ directory, and the wipe would take every skill in it. Refuse
   // before touching the filesystem rather than trusting the caller's arithmetic.
   // The prefix is read back off the name rather than taken as an argument:
   // a name that carries no known vendor prefix is exactly the case this guard
@@ -228,7 +230,7 @@ export function importSkill(args: {
   if (prefix === undefined) {
     throw new Error(
       `refusing to vendor into "${name}": not one of ${vendorPrefixList()}. ` +
-        `Check the import manifest's prefix — the destination wipe would hit a section directory.`,
+        `Check the import manifest's prefix — the destination wipe would hit the skills/ directory.`,
     );
   }
   if (basename(destDir) !== name) {

@@ -113,7 +113,7 @@ test("ticking a skill in the picker installs it into ~/.claude", async () => {
     { name: "vertuo-run-agent", stage: "build" },
   ]);
   try {
-    h.prompter.selectAnswers = ["universal"];
+    h.prompter.selectAnswers = ["build"];
     h.prompter.checkboxAnswers = [["vertuo-do-work"]];
     await runList(h.env);
 
@@ -125,20 +125,20 @@ test("ticking a skill in the picker installs it into ~/.claude", async () => {
   }
 });
 
-test("default list asks for a category and filters the checkbox picker", async () => {
+test("default list asks for a stage and filters the checkbox picker", async () => {
   const h = await makeHarness([
-    { name: "vertuo-plan-roadmap", stage: "build", variance: "universal" },
-    { name: "vertuo-do-work", stage: "build", variance: "configured" },
-    { name: "vertuo-validate-ticket", stage: "build", variance: "templated" },
+    { name: "vertuo-plan-roadmap", stage: "plan" },
+    { name: "vertuo-do-work", stage: "build" },
+    { name: "vertuo-validate-ticket", stage: "review" },
   ]);
   try {
-    h.prompter.selectAnswers = ["universal"];
+    h.prompter.selectAnswers = ["plan"];
     h.prompter.checkboxAnswers = [[]];
     await runList(h.env);
 
     assert.deepEqual(
       h.prompter.lastSelectChoices.map((c) => c.value),
-      ["all", "universal", "configured", "templated"],
+      ["all", "plan", "build", "review"],
     );
     const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
     assert.ok(values.includes("vertuo-plan-roadmap"));
@@ -149,15 +149,15 @@ test("default list asks for a category and filters the checkbox picker", async (
   }
 });
 
-test("category flag skips category prompt and filters directly", async () => {
+test("stage flag skips stage prompt and filters directly", async () => {
   const h = await makeHarness([
-    { name: "vertuo-plan-roadmap", stage: "build", variance: "universal" },
-    { name: "vertuo-do-work", stage: "build", variance: "configured" },
+    { name: "vertuo-plan-roadmap", stage: "plan" },
+    { name: "vertuo-do-work", stage: "build" },
   ]);
   try {
-    h.prompter.selectAnswers = ["configured"];
+    h.prompter.selectAnswers = ["build"];
     h.prompter.checkboxAnswers = [[]];
-    await runList(h.env, { category: "universal" });
+    await runList(h.env, { stage: "plan" });
 
     assert.deepEqual(h.prompter.lastSelectChoices, []);
     const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
@@ -168,32 +168,30 @@ test("category flag skips category prompt and filters directly", async () => {
   }
 });
 
-test("category picker hides empty categories", async () => {
-  const h = await makeHarness([
-    { name: "vertuo-plan-roadmap", stage: "build", variance: "universal" },
-  ]);
+test("stage picker hides empty stages", async () => {
+  const h = await makeHarness([{ name: "vertuo-plan-roadmap", stage: "plan" }]);
   try {
-    h.prompter.selectAnswers = ["universal"];
+    h.prompter.selectAnswers = ["plan"];
     h.prompter.checkboxAnswers = [[]];
     await runList(h.env);
 
     assert.deepEqual(
       h.prompter.lastSelectChoices.map((c) => c.value),
-      ["all", "universal"],
+      ["all", "plan"],
     );
   } finally {
     await h.cleanup();
   }
 });
 
-test("category all keeps the full grouped picker", async () => {
+test("stage all keeps the full grouped picker", async () => {
   const h = await makeHarness([
-    { name: "vertuo-plan-roadmap", stage: "build", variance: "universal" },
-    { name: "vertuo-do-work", stage: "build", variance: "configured" },
+    { name: "vertuo-plan-roadmap", stage: "plan" },
+    { name: "vertuo-do-work", stage: "build" },
   ]);
   try {
     h.prompter.checkboxAnswers = [[]];
-    await runList(h.env, { category: "all" });
+    await runList(h.env, { stage: "all" });
 
     const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
     assert.ok(values.includes("vertuo-plan-roadmap"));
@@ -203,10 +201,10 @@ test("category all keeps the full grouped picker", async () => {
   }
 });
 
-test("unknown category gives a user-facing error", async () => {
+test("unknown stage gives a user-facing error", async () => {
   const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
-    await assert.rejects(() => runList(h.env, { category: "sales" }), /Unknown category "sales"/);
+    await assert.rejects(() => runList(h.env, { stage: "sales" }), /Unknown stage "sales"/);
   } finally {
     await h.cleanup();
   }

@@ -102,6 +102,45 @@ test("invalid variance value is rejected", () => {
   });
 });
 
+test("an unknown variance is rejected, naming the allowed values", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "code", variance: "bespoke" }));
+    const errors = collectErrors(d);
+    assert.ok(
+      errors.some((e) => e.includes("universal") && e.includes("templated")),
+      errors.join("\n"),
+    );
+  });
+});
+
+test("a missing stage is rejected", () => {
+  withSkillsDir((d) => {
+    const fm = baseFm("fieldnote-do-thing");
+    delete fm["stage"];
+    writeSkill(d, "fieldnote-do-thing", fm);
+    const errors = collectErrors(d);
+    assert.ok(errors.some((e) => e.includes("stage")), errors.join("\n"));
+  });
+});
+
+test("an unknown stage is rejected, naming the allowed values", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { stage: "deploy" }));
+    const errors = collectErrors(d);
+    assert.ok(
+      errors.some((e) => e.includes("plan") && e.includes("build") && e.includes("review")),
+      errors.join("\n"),
+    );
+  });
+});
+
+test("a skill with a valid stage and variance has no errors", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { stage: "build", variance: "universal" }));
+    assert.deepEqual(collectErrors(d), []);
+  });
+});
+
 test("mcp inline list is accepted and parsed", () => {
   withSkillsDir((d) => {
     writeSkill(

@@ -1,18 +1,14 @@
 import { computeRows } from "../state.js";
 import { installEntries } from "../installer.js";
-import { STAGE_LABELS, VALID_VARIANCES, VARIANCE_LABELS } from "../skill-rules.js";
-import type { Env, SkillRow, SkillVariance } from "../types.js";
+import { STAGE_LABELS, VALID_STAGES } from "../skill-rules.js";
+import type { Env, SkillRow, SkillStage } from "../types.js";
 import { UserError } from "../types.js";
 
 function stageTitle(stage: string): string {
   return (STAGE_LABELS as Record<string, string>)[stage] ?? stage;
 }
 
-type VarianceFilter = SkillVariance | "all";
-
-function varianceTitle(variance: SkillVariance): string {
-  return VARIANCE_LABELS[variance];
-}
+type StageFilter = SkillStage | "all";
 
 /** Longest description shown in the picker before it is truncated. */
 const MAX_DESCRIPTION = 400;
@@ -111,61 +107,59 @@ export function buildChoices(
   return choices;
 }
 
-export function normalizeCategoryFilter(value: string): VarianceFilter {
+export function normalizeStageFilter(value: string): StageFilter {
   if (value === "all") return "all";
-  if (VALID_VARIANCES.includes(value as SkillVariance)) return value as SkillVariance;
-  throw new UserError(
-    `Unknown category "${value}". Valid categories: ${["all", ...VALID_VARIANCES].join(", ")}.`,
-  );
+  if (VALID_STAGES.includes(value as SkillStage)) return value as SkillStage;
+  throw new UserError(`Unknown stage "${value}". Valid stages: ${["all", ...VALID_STAGES].join(", ")}.`);
 }
 
-export function filterRowsByCategory(rows: SkillRow[], variance: VarianceFilter): SkillRow[] {
-  if (variance === "all") return rows;
-  return rows.filter((row) => row.entry.variance === variance);
+export function filterRowsByStage(rows: SkillRow[], stage: StageFilter): SkillRow[] {
+  if (stage === "all") return rows;
+  return rows.filter((row) => row.entry.stage === stage);
 }
 
-export function buildCategoryChoices(rows: SkillRow[]): { name: string; value: string }[] {
-  const counts = new Map<SkillVariance, number>();
+export function buildStageChoices(rows: SkillRow[]): { name: string; value: string }[] {
+  const counts = new Map<SkillStage, number>();
   for (const row of rows) {
-    if (row.entry.variance && VALID_VARIANCES.includes(row.entry.variance)) {
-      counts.set(row.entry.variance, (counts.get(row.entry.variance) ?? 0) + 1);
+    if (row.entry.stage && VALID_STAGES.includes(row.entry.stage)) {
+      counts.set(row.entry.stage, (counts.get(row.entry.stage) ?? 0) + 1);
     }
   }
 
   return [
-    { name: `All categories (${rows.length})`, value: "all" },
-    ...VALID_VARIANCES.filter((variance) => (counts.get(variance) ?? 0) > 0).map((variance) => ({
-      name: `${varianceTitle(variance)} (${counts.get(variance) ?? 0})`,
-      value: variance,
+    { name: `All stages (${rows.length})`, value: "all" },
+    ...VALID_STAGES.filter((stage) => (counts.get(stage) ?? 0) > 0).map((stage) => ({
+      name: `${stageTitle(stage)} (${counts.get(stage) ?? 0})`,
+      value: stage,
     })),
   ];
 }
 
-async function resolveCategory(env: Env, rows: SkillRow[], requested?: string): Promise<VarianceFilter> {
-  if (requested !== undefined) return normalizeCategoryFilter(requested);
+async function resolveStage(env: Env, rows: SkillRow[], requested?: string): Promise<StageFilter> {
+  if (requested !== undefined) return normalizeStageFilter(requested);
 
   const selected = await env.prompter.select({
-    message: "Which category do you want to browse?",
-    choices: buildCategoryChoices(rows),
+    message: "Which stage do you want to browse?",
+    choices: buildStageChoices(rows),
   });
-  return normalizeCategoryFilter(selected);
+  return normalizeStageFilter(selected);
 }
 
 /**
  * The interactive `list` command (also the default no-arg command): render the
  * installable catalog as a grouped checkbox picker, then install the ticks.
  */
-export async function runList(env: Env, opts: { category?: string } = {}): Promise<void> {
+export async function runList(env: Env, opts: { stage?: string } = {}): Promise<void> {
   const rows = await computeRows(env);
   if (rows.length === 0) {
     env.logger.info("No installable skills in the catalog yet.");
     return;
   }
 
-  const category = await resolveCategory(env, rows, opts.category);
-  const filteredRows = filterRowsByCategory(rows, category);
+  const stage = await resolveStage(env, rows, opts.stage);
+  const filteredRows = filterRowsByStage(rows, stage);
   if (filteredRows.length === 0) {
-    env.logger.info(`No installable skills in ${category === "all" ? "all categories" : varianceTitle(category)}.`);
+    env.logger.info(`No installable skills in ${stage === "all" ? "all stages" : stageTitle(stage)}.`);
     return;
   }
 
