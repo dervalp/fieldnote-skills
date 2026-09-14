@@ -22,14 +22,14 @@ it, the repo's implementation skill and verification gate.
 
 Single responsibility: this skill **finds the next wave**; `fieldnote-parallel-wave` **runs a wave**;
 [`fieldnote-do-work`](../fieldnote-do-work/SKILL.md) + [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
-do each slice. It **does not create issues** (that is `/to-issues`) and **never merges**.
+do each slice. It **does not create issues** — breaking a PRD into issues happens earlier — and **never
+merges**.
 
 ## When to use / not use
 
 - **Use** when you have a PRD/epic whose children are already ticketed and you want to keep shipping the
   next takeable slices without hand-picking issue numbers.
-- **Do not use** to break a PRD into issues (use `/to-issues`), to merge, or when nothing is ticketed
-  yet.
+- **Do not use** to break a PRD into issues, to merge, or when nothing is ticketed yet.
 
 ## Input
 
@@ -124,5 +124,5 @@ past it without a human would either stall or stack branches off un-merged work.
 - Runs a wave: [`fieldnote-parallel-wave`](../fieldnote-parallel-wave/SKILL.md)
 - Implementation / PR: [`fieldnote-do-work`](../fieldnote-do-work/SKILL.md),
   [`fieldnote-pull-request`](../fieldnote-pull-request/SKILL.md)
-- Breaks a PRD into issues (prerequisite): `/to-issues`
+- Breaking a PRD into ticketed issues is a prerequisite — this skill only runs once issues already exist
 - Human-merge-only is a house rule, not a single ADR: no subagent merges its own PR

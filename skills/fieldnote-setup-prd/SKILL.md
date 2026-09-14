@@ -30,8 +30,9 @@ review, instead of as two separate checkpoints.
 
 ## When to use / not use
 
-- **Use** when a design is **settled** (typically straight out of a `grill-with-docs` / brainstorm, or
-  an approved plan) and the user wants it ticketed in one go — "set up the PRD", "PRD it", "PRD + issues".
+- **Use** when a design is **settled** (typically straight out of a design-discussion / brainstorm
+  session, or an approved plan) and the user wants it ticketed in one go — "set up the PRD", "PRD it",
+  "PRD + issues".
 - **Do not use** when the design is still fuzzy (grill/brainstorm first), when you only want the PRD with
   no issues yet, when issues already exist and you just want to ticket more, or to implement/merge
   (`/fieldnote-deliver`).
