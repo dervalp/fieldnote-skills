@@ -21,7 +21,7 @@ Usage:
   fieldnote-skills update [name…]    Update installed skills (outdated pre-checked)
   fieldnote-skills sync [--json]     Update outdated + report newly available
   fieldnote-skills doctor            Report release drift across all surfaces
-                  [--orchestrator <path>] [--strict] [--json]
+                  [--strict] [--json]
   fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
 
 Flags:
@@ -70,7 +70,6 @@ async function main(): Promise<number> {
       return 0;
     case "doctor":
       return await runDoctor(env, {
-        orchestrator: typeof flags.orchestrator === "string" ? flags.orchestrator : undefined,
         strict: Boolean(flags.strict),
         json: Boolean(flags.json),
       });
