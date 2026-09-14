@@ -17,7 +17,7 @@ async function exists(p: string): Promise<boolean> {
 
 const CODE_SKILL = {
   name: "vertuo-do-work",
-  section: "engineering-standards",
+  stage: "build" as const,
   surface: "both" as const,
   files: {
     "commands/do-work.md": "# /do-work command",
@@ -60,7 +60,7 @@ test("atomic rollback holds for a multi-folder skill", async () => {
     await installSkill(h.env, toEntry(CODE_SKILL));
 
     // A broken update (missing source) must leave the full multi-folder install intact.
-    const broken = toEntry({ name: "vertuo-do-work", section: "nope", version: "2.0.0" });
+    const broken = toEntry({ name: "vertuo-nonexistent", stage: "build", version: "2.0.0" });
     await assert.rejects(() => installSkill(h.env, broken), /not found/);
 
     const target = targetDirFor(h.env, "vertuo-do-work");

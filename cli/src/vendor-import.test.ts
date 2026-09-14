@@ -26,20 +26,20 @@ const COMMON = {
 };
 
 test("derives our name from the upstream folder", () => {
-  assert.equal(vendoredNameFor("skills/engineering/to-tickets", "vertuo-matt-"), "vertuo-matt-to-tickets");
+  assert.equal(vendoredNameFor("skills/engineering/to-tickets", "fieldnote-matt-"), "fieldnote-matt-to-tickets");
 });
 
 test("renders our frontmatter over the upstream body", () => {
   const md = renderVendoredSkillMd({
-    name: "vertuo-matt-tdd",
+    name: "fieldnote-matt-tdd",
     release: "unreleased",
     skill: SKILL,
     common: COMMON,
-    body: "\n# TDD\n\nRun /vertuo-matt-code-review after.\n",
+    body: "\n# TDD\n\nRun /fieldnote-matt-code-review after.\n",
     upstreamBodyHash: "sha256:deadbeef",
   });
   const fm = parseFrontmatter(md)!;
-  assert.equal(fm["name"], "vertuo-matt-tdd");
+  assert.equal(fm["name"], "fieldnote-matt-tdd");
   assert.equal(fm["surface"], "both");
   assert.equal(fm["release"], "unreleased");
   assert.deepEqual(fm["supersedes"], ["tdd"]);
@@ -51,7 +51,7 @@ test("renders our frontmatter over the upstream body", () => {
 
 test("the rendered description is exactly one line", () => {
   const md = renderVendoredSkillMd({
-    name: "vertuo-matt-tdd",
+    name: "fieldnote-matt-tdd",
     release: "unreleased",
     skill: { ...SKILL, description: "Use when an engineer\n  wants it\n  on one line despite this." },
     common: COMMON,
@@ -66,14 +66,14 @@ test("a description containing --- throws instead of silently truncating the fro
   assert.throws(
     () =>
       renderVendoredSkillMd({
-        name: "vertuo-matt-tdd",
+        name: "fieldnote-matt-tdd",
         release: "unreleased",
         skill: { ...SKILL, description: "Use when the plan needs --- review before merging." },
         common: COMMON,
         body: "\n# TDD\n",
         upstreamBodyHash: "sha256:x",
       }),
-    (err: unknown) => err instanceof Error && err.message.includes("vertuo-matt-tdd") && err.message.includes("---"),
+    (err: unknown) => err instanceof Error && err.message.includes("fieldnote-matt-tdd") && err.message.includes("---"),
   );
 });
 
@@ -81,20 +81,20 @@ test("a description wrapped in [ ] throws instead of being misparsed as a list",
   assert.throws(
     () =>
       renderVendoredSkillMd({
-        name: "vertuo-matt-tdd",
+        name: "fieldnote-matt-tdd",
         release: "unreleased",
         skill: { ...SKILL, description: "[Use when the description looks like a list]" },
         common: COMMON,
         body: "\n# TDD\n",
         upstreamBodyHash: "sha256:x",
       }),
-    (err: unknown) => err instanceof Error && err.message.includes("vertuo-matt-tdd"),
+    (err: unknown) => err instanceof Error && err.message.includes("fieldnote-matt-tdd"),
   );
 });
 
 test("a description with an ordinary colon and normal punctuation still round-trips", () => {
   const md = renderVendoredSkillMd({
-    name: "vertuo-matt-tdd",
+    name: "fieldnote-matt-tdd",
     release: "unreleased",
     skill: { ...SKILL, description: "Use when: the engineer wants tests first, red-green-refactor style." },
     common: COMMON,
@@ -116,12 +116,12 @@ test("copies siblings, skips agents/, rewrites refs and reports unresolved ones"
     writeFileSync(join(src, "agents", "openai.yaml"), "nope\n", "utf8");
     writeFileSync(join(src, "scripts", "run.sh"), "echo hi\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     const result = importSkill({
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -131,7 +131,7 @@ test("copies siblings, skips agents/, rewrites refs and reports unresolved ones"
 
     assert.deepEqual(result.unresolved, ["wizard"]);
     const md = readFileSync(join(dest, "SKILL.md"), "utf8");
-    assert.ok(md.includes("/vertuo-matt-code-review"));
+    assert.ok(md.includes("/fieldnote-matt-code-review"));
     assert.ok(md.includes("/wizard"), "an unvendored reference is left alone, not broken");
     assert.equal(readFileSync(join(dest, "tests.md"), "utf8"), "test guidance\n");
     assert.equal(readFileSync(join(dest, "scripts", "run.sh"), "utf8"), "echo hi\n");
@@ -149,12 +149,12 @@ test("rewrites a top-level sibling .md file, not just SKILL.md", () => {
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "notes.md"), "See /code-review for the follow-up.\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     importSkill({
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -162,7 +162,7 @@ test("rewrites a top-level sibling .md file, not just SKILL.md", () => {
       allUpstreamNames: new Set(["tdd", "code-review"]),
     });
 
-    assert.equal(readFileSync(join(dest, "notes.md"), "utf8"), "See /vertuo-matt-code-review for the follow-up.\n");
+    assert.equal(readFileSync(join(dest, "notes.md"), "utf8"), "See /fieldnote-matt-code-review for the follow-up.\n");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -176,12 +176,12 @@ test("rewrites a .md file nested in a subdirectory", () => {
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "references", "deep.md"), "Deep guidance: see /code-review.\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     importSkill({
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -191,7 +191,7 @@ test("rewrites a .md file nested in a subdirectory", () => {
 
     assert.equal(
       readFileSync(join(dest, "references", "deep.md"), "utf8"),
-      "Deep guidance: see /vertuo-matt-code-review.\n",
+      "Deep guidance: see /fieldnote-matt-code-review.\n",
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -206,12 +206,12 @@ test("never rewrites scripts/ content, even a slash token that matches a vendore
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "scripts", "run.sh"), "echo /tdd\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     importSkill({
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -233,12 +233,12 @@ test("unions unresolved references from siblings, not just SKILL.md", () => {
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "notes.md"), "See /wayfinder for routing.\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     const result = importSkill({
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -259,7 +259,7 @@ test("preserves an existing references/ directory across the destination wipe", 
     mkdirSync(src, { recursive: true });
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     mkdirSync(join(dest, "references"), { recursive: true });
     writeFileSync(join(dest, "references", "fieldnote-context.md"), "Our own fieldnote context.\n", "utf8");
 
@@ -267,7 +267,7 @@ test("preserves an existing references/ directory across the destination wipe", 
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -292,7 +292,7 @@ test("upstream's references/ file wins over our preserved snapshot of the same n
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "references", "fieldnote-context.md"), "Upstream now ships this file too.\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     mkdirSync(join(dest, "references"), { recursive: true });
     writeFileSync(join(dest, "references", "fieldnote-context.md"), "Our stale local copy.\n", "utf8");
 
@@ -300,7 +300,7 @@ test("upstream's references/ file wins over our preserved snapshot of the same n
       refStyle: { kind: "slash" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -324,13 +324,13 @@ test("importing with no existing references/ directory does not crash", () => {
     mkdirSync(src, { recursive: true });
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     assert.doesNotThrow(() =>
       importSkill({
       refStyle: { kind: "slash" },
         upstreamRoot: join(root, "up"),
         destDir: dest,
-        name: "vertuo-matt-tdd",
+        name: "fieldnote-matt-tdd",
         release: "unreleased",
         skill: SKILL,
         common: COMMON,
@@ -351,11 +351,11 @@ test("a re-import drops a file upstream no longer ships", () => {
     mkdirSync(src, { recursive: true });
     writeFileSync(join(src, "SKILL.md"), "---\nname: tdd\n---\n\n# TDD\n", "utf8");
     writeFileSync(join(src, "gone.md"), "old\n", "utf8");
-    const dest = join(root, "out", "vertuo-matt-tdd");
+    const dest = join(root, "out", "fieldnote-matt-tdd");
     const args = {
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-matt-tdd",
+      name: "fieldnote-matt-tdd",
       release: "unreleased",
       skill: SKILL,
       common: COMMON,
@@ -391,7 +391,7 @@ test("refuses to import under a name that is not a vendored name, before wiping 
 
     for (const [name, destDir] of [
       ["tdd", join(section, "tdd")], // prefix: "" — an unprefixed name
-      ["vertuo-matt-tdd", section], // destDir collapsed to the section dir
+      ["fieldnote-matt-tdd", section], // destDir collapsed to the section dir
     ] as const) {
       assert.throws(
         () =>
@@ -436,12 +436,12 @@ test("imports a flat-layout upstream with namespaced references", () => {
     );
     writeFileSync(join(src, "visual-companion.md"), "Hand off to superpowers:writing-plans.\n", "utf8");
 
-    const dest = join(root, "out", "vertuo-superpowers-brainstorming");
+    const dest = join(root, "out", "fieldnote-superpowers-brainstorming");
     const result = importSkill({
       refStyle: { kind: "namespace", namespace: "superpowers" },
       upstreamRoot: join(root, "up"),
       destDir: dest,
-      name: "vertuo-superpowers-brainstorming",
+      name: "fieldnote-superpowers-brainstorming",
       release: "unreleased",
       skill: { ...SKILL, upstreamPath: "skills/brainstorming", supersedes: ["brainstorming"] },
       common: { ...COMMON, upstream: "https://github.com/obra/superpowers" },
@@ -451,12 +451,12 @@ test("imports a flat-layout upstream with namespaced references", () => {
 
     assert.deepEqual(result.unresolved, ["using-git-worktrees"]);
     const md = readFileSync(join(dest, "SKILL.md"), "utf8");
-    assert.ok(md.includes("use vertuo-superpowers-writing-plans"));
+    assert.ok(md.includes("use fieldnote-superpowers-writing-plans"));
     assert.ok(md.includes("superpowers:using-git-worktrees"), "an unvendored sibling is left alone");
-    assert.ok(md.includes("`../vertuo-superpowers-brainstorming/visual-companion.md`"));
+    assert.ok(md.includes("`../fieldnote-superpowers-brainstorming/visual-companion.md`"));
     assert.equal(
       readFileSync(join(dest, "visual-companion.md"), "utf8"),
-      "Hand off to vertuo-superpowers-writing-plans.\n",
+      "Hand off to fieldnote-superpowers-writing-plans.\n",
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -482,7 +482,7 @@ test("refuses a destination whose name carries no known vendor prefix", () => {
           vendoredNames: new Set(["brainstorming"]),
           allUpstreamNames: new Set(["brainstorming"]),
         }),
-      (err: unknown) => err instanceof Error && err.message.includes("vertuo-matt-*, vertuo-superpowers-*"),
+      (err: unknown) => err instanceof Error && err.message.includes("fieldnote-matt-*, fieldnote-superpowers-*"),
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

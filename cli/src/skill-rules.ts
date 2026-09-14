@@ -4,19 +4,20 @@
  * rules can never drift.
  */
 export {
-  CATEGORY_LABELS,
   MIN_DESCRIPTION_WORDS,
   NAME_RE,
-  VALID_CATEGORIES,
-  VALID_SECTIONS,
+  STAGE_LABELS,
+  VALID_STAGES,
   VALID_SURFACES,
+  VALID_VARIANCES,
+  VARIANCE_LABELS,
 } from "./skill-model.js";
 import { MIN_DESCRIPTION_WORDS, NAME_RE } from "./skill-model.js";
 
 /** Validate a folder/skill name. Returns true or a human-readable reason. */
 export function validateName(name: string): true | string {
   if (!NAME_RE.test(name)) {
-    return "Name must look like vertuo-<verb>-<noun> (lowercase kebab-case), e.g. vertuo-review-proposal.";
+    return "Name must look like fieldnote-<name> (lowercase kebab-case), e.g. fieldnote-review-proposal.";
   }
   return true;
 }

@@ -1,26 +1,17 @@
 import { computeRows } from "../state.js";
 import { installEntries } from "../installer.js";
-import { CATEGORY_LABELS, VALID_CATEGORIES } from "../skill-rules.js";
-import type { Env, SkillCategory, SkillRow } from "../types.js";
+import { STAGE_LABELS, VALID_VARIANCES, VARIANCE_LABELS } from "../skill-rules.js";
+import type { Env, SkillRow, SkillVariance } from "../types.js";
 import { UserError } from "../types.js";
 
-const SECTION_TITLES: Record<string, string> = {
-  brand: "Brand",
-  "product-knowledge": "Product Knowledge",
-  "construction-knowledge": "Construction Knowledge",
-  "engineering-standards": "Engineering Standards",
-  "sales-messaging": "Sales Messaging",
-  "customer-success": "Customer Success",
-};
-
-function sectionTitle(section: string): string {
-  return SECTION_TITLES[section] ?? section;
+function stageTitle(stage: string): string {
+  return (STAGE_LABELS as Record<string, string>)[stage] ?? stage;
 }
 
-type CategoryFilter = SkillCategory | "all";
+type VarianceFilter = SkillVariance | "all";
 
-function categoryTitle(category: SkillCategory): string {
-  return CATEGORY_LABELS[category];
+function varianceTitle(variance: SkillVariance): string {
+  return VARIANCE_LABELS[variance];
 }
 
 /** Longest description shown in the picker before it is truncated. */
@@ -99,58 +90,58 @@ export function rowLabel(row: SkillRow, columns?: number): string {
   return `${heading}\n${description}\n`;
 }
 
-/** Build checkbox choices grouped by section, with non-selectable headers. */
+/** Build checkbox choices grouped by stage, with non-selectable headers. */
 export function buildChoices(
   rows: SkillRow[],
 ): { name: string; value: string; checked?: boolean; disabled?: boolean }[] {
-  const bySection = new Map<string, SkillRow[]>();
+  const byStage = new Map<string, SkillRow[]>();
   for (const row of rows) {
-    const list = bySection.get(row.entry.section) ?? [];
+    const list = byStage.get(row.entry.stage) ?? [];
     list.push(row);
-    bySection.set(row.entry.section, list);
+    byStage.set(row.entry.stage, list);
   }
 
   const choices: { name: string; value: string; checked?: boolean; disabled?: boolean }[] = [];
-  for (const [section, sectionRows] of [...bySection.entries()].sort()) {
-    choices.push({ name: `── ${sectionTitle(section)} ──`, value: `__section:${section}`, disabled: true });
-    for (const row of sectionRows.sort((a, b) => a.entry.name.localeCompare(b.entry.name))) {
+  for (const [stage, stageRows] of [...byStage.entries()].sort()) {
+    choices.push({ name: `── ${stageTitle(stage)} ──`, value: `__stage:${stage}`, disabled: true });
+    for (const row of stageRows.sort((a, b) => a.entry.name.localeCompare(b.entry.name))) {
       choices.push({ name: rowLabel(row), value: row.entry.name });
     }
   }
   return choices;
 }
 
-export function normalizeCategoryFilter(value: string): CategoryFilter {
+export function normalizeCategoryFilter(value: string): VarianceFilter {
   if (value === "all") return "all";
-  if (VALID_CATEGORIES.includes(value as SkillCategory)) return value as SkillCategory;
+  if (VALID_VARIANCES.includes(value as SkillVariance)) return value as SkillVariance;
   throw new UserError(
-    `Unknown category "${value}". Valid categories: ${["all", ...VALID_CATEGORIES].join(", ")}.`,
+    `Unknown category "${value}". Valid categories: ${["all", ...VALID_VARIANCES].join(", ")}.`,
   );
 }
 
-export function filterRowsByCategory(rows: SkillRow[], category: CategoryFilter): SkillRow[] {
-  if (category === "all") return rows;
-  return rows.filter((row) => row.entry.category === category);
+export function filterRowsByCategory(rows: SkillRow[], variance: VarianceFilter): SkillRow[] {
+  if (variance === "all") return rows;
+  return rows.filter((row) => row.entry.variance === variance);
 }
 
 export function buildCategoryChoices(rows: SkillRow[]): { name: string; value: string }[] {
-  const counts = new Map<SkillCategory, number>();
+  const counts = new Map<SkillVariance, number>();
   for (const row of rows) {
-    if (row.entry.category && VALID_CATEGORIES.includes(row.entry.category)) {
-      counts.set(row.entry.category, (counts.get(row.entry.category) ?? 0) + 1);
+    if (row.entry.variance && VALID_VARIANCES.includes(row.entry.variance)) {
+      counts.set(row.entry.variance, (counts.get(row.entry.variance) ?? 0) + 1);
     }
   }
 
   return [
     { name: `All categories (${rows.length})`, value: "all" },
-    ...VALID_CATEGORIES.filter((category) => (counts.get(category) ?? 0) > 0).map((category) => ({
-      name: `${categoryTitle(category)} (${counts.get(category) ?? 0})`,
-      value: category,
+    ...VALID_VARIANCES.filter((variance) => (counts.get(variance) ?? 0) > 0).map((variance) => ({
+      name: `${varianceTitle(variance)} (${counts.get(variance) ?? 0})`,
+      value: variance,
     })),
   ];
 }
 
-async function resolveCategory(env: Env, rows: SkillRow[], requested?: string): Promise<CategoryFilter> {
+async function resolveCategory(env: Env, rows: SkillRow[], requested?: string): Promise<VarianceFilter> {
   if (requested !== undefined) return normalizeCategoryFilter(requested);
 
   const selected = await env.prompter.select({
@@ -174,7 +165,7 @@ export async function runList(env: Env, opts: { category?: string } = {}): Promi
   const category = await resolveCategory(env, rows, opts.category);
   const filteredRows = filterRowsByCategory(rows, category);
   if (filteredRows.length === 0) {
-    env.logger.info(`No installable skills in ${category === "all" ? "all categories" : categoryTitle(category)}.`);
+    env.logger.info(`No installable skills in ${category === "all" ? "all categories" : varianceTitle(category)}.`);
     return;
   }
 
@@ -184,8 +175,8 @@ export async function runList(env: Env, opts: { category?: string } = {}): Promi
     choices,
   });
 
-  // Section header pseudo-rows are filtered out.
-  const names = picked.filter((value) => !value.startsWith("__section:"));
+  // Stage header pseudo-rows are filtered out.
+  const names = picked.filter((value) => !value.startsWith("__stage:"));
   if (names.length === 0) {
     env.logger.info("Nothing selected.");
     return;

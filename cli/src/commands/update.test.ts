@@ -12,7 +12,7 @@ import { readManifest } from "../manifest.js";
 import { makeHarness, bumpVersion } from "../testkit.js";
 
 test("list flags a skill whose bundled version is newer than installed", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build", version: "1.0.0" }]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], {});
     await bumpVersion(h, "vertuo-do-work", "1.1.0");
@@ -28,7 +28,7 @@ test("list flags a skill whose bundled version is newer than installed", async (
 });
 
 test("update <name> updates a specific skill and refreshes the manifest", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build", version: "1.0.0" }]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], {});
     await bumpVersion(h, "vertuo-do-work", "2.0.0");
@@ -46,8 +46,8 @@ test("update <name> updates a specific skill and refreshes the manifest", async 
 
 test("interactive update pre-checks outdated skills", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" },
-    { name: "vertuo-run-agent", section: "engineering-standards", version: "1.0.0" },
+    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
+    { name: "vertuo-run-agent", stage: "build", version: "1.0.0" },
   ]);
   try {
     await runInstall(h.env, ["vertuo-do-work", "vertuo-run-agent"], {});
@@ -70,7 +70,7 @@ test("interactive update pre-checks outdated skills", async () => {
 });
 
 test("update with nothing installed guides the user", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await runUpdate(h.env, []);
     assert.ok(h.logger.infos.some((l) => /No skills installed/.test(l)));
@@ -81,8 +81,8 @@ test("update with nothing installed guides the user", async () => {
 
 test("sync updates outdated installed skills and reports newly available ones", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" },
-    { name: "vertuo-run-agent", section: "engineering-standards", version: "1.0.0" },
+    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
+    { name: "vertuo-run-agent", stage: "build", version: "1.0.0" },
   ]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], {}); // only do-work installed
@@ -107,7 +107,7 @@ test("sync updates outdated installed skills and reports newly available ones", 
 });
 
 test("sync with everything current reports up to date", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], {});
     await runSync(h.env, {});
@@ -118,42 +118,42 @@ test("sync with everything current reports up to date", async () => {
 });
 
 test("sync reports an orphan and names its replacement", async () => {
-  const h = await makeHarness([{ name: "vertuo-matt-tdd", section: "engineering-standards", surface: "both" }]);
+  const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
     await mkdir(join(h.claudeDir, "skills"), { recursive: true });
     await writeFile(
       join(h.claudeDir, "skills", ".fieldnote-skills.json"),
-      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
+      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
     await writeFile(
       join(h.repoRoot, "skills.lock.json"),
-      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "vertuo-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
+      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "fieldnote-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
       "utf8",
     );
     h.prompter.confirmAnswers = [false];
     await runSync(h.env, {});
     const out = h.logger.infos.join("\n");
     assert.match(out, /tdd/);
-    assert.match(out, /superseded by vertuo-matt-tdd/);
+    assert.match(out, /superseded by fieldnote-matt-tdd/);
   } finally {
     await h.cleanup();
   }
 });
 
 test("sync removes an orphan when confirmed", async () => {
-  const h = await makeHarness([{ name: "vertuo-matt-tdd", section: "engineering-standards", surface: "both" }]);
+  const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
     await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
     await writeFile(join(h.claudeDir, "skills", "tdd", "SKILL.md"), "---\nname: tdd\n---\n", "utf8");
     await writeFile(
       join(h.claudeDir, "skills", ".fieldnote-skills.json"),
-      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
+      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
     await writeFile(
       join(h.repoRoot, "skills.lock.json"),
-      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "vertuo-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
+      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "fieldnote-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
       "utf8",
     );
     h.prompter.confirmAnswers = [true];
@@ -166,17 +166,17 @@ test("sync removes an orphan when confirmed", async () => {
 });
 
 test("sync --json lists orphans without prompting", async () => {
-  const h = await makeHarness([{ name: "vertuo-matt-tdd", section: "engineering-standards", surface: "both" }]);
+  const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
     await mkdir(join(h.claudeDir, "skills"), { recursive: true });
     await writeFile(
       join(h.claudeDir, "skills", ".fieldnote-skills.json"),
-      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
+      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
     await writeFile(
       join(h.repoRoot, "skills.lock.json"),
-      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "vertuo-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
+      JSON.stringify({ release: "skills-v1.0.0", skills: [{ name: "fieldnote-matt-tdd", version: "1.0.0", coreHash: "x", files: {}, supersedes: ["tdd"] }] }),
       "utf8",
     );
     // Seed a confirm answer: if the --json path ever prompts, .shift() would
@@ -186,7 +186,7 @@ test("sync --json lists orphans without prompting", async () => {
     h.prompter.confirmAnswers = [true];
     await runSync(h.env, { json: true });
     const payload = JSON.parse(h.logger.outputs.at(-1)!) as { orphaned: { name: string; supersededBy?: string }[] };
-    assert.deepEqual(payload.orphaned, [{ name: "tdd", supersededBy: "vertuo-matt-tdd" }]);
+    assert.deepEqual(payload.orphaned, [{ name: "tdd", supersededBy: "fieldnote-matt-tdd" }]);
     assert.equal(h.prompter.confirmAnswers.length, 1, "confirm() must not be called on the --json path");
 
     // If it HAD prompted, the seeded `true` would also have triggered
@@ -211,18 +211,18 @@ test("sync --json lists orphans without prompting", async () => {
 async function writeReleaseAndLock(
   h: Awaited<ReturnType<typeof makeHarness>>,
   release: string,
-  skills: { name: string; section: string; version?: string }[],
+  skills: { name: string; stage: string; version?: string }[],
   extra: LockEntry[] = [],
 ): Promise<void> {
   const entries: LockEntry[] = skills.map((s) => {
-    const { coreHash, files } = hashSkillDir(join(h.sourceDir, s.section, s.name));
+    const { coreHash, files } = hashSkillDir(join(h.sourceDir, s.name));
     return { name: s.name, version: s.version ?? "1.0.0", coreHash, files };
   });
   await writeFile(join(h.repoRoot, "release.json"), JSON.stringify({ release }) + "\n", "utf8");
   await writeFile(join(h.repoRoot, "skills.lock.json"), renderLock({ release, skills: [...entries, ...extra] }), "utf8");
 }
 
-const TDD = { name: "vertuo-matt-tdd", section: "engineering-standards", surface: "both" as const };
+const TDD = { name: "fieldnote-matt-tdd", stage: "build" as const, surface: "both" as const };
 
 test("sync reinstalls a skill left behind by a new release even though its version never changed", async () => {
   const h = await makeHarness([TDD]);

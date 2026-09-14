@@ -9,34 +9,38 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-export const VALID_SECTIONS = [
-  "brand",
-  "product-knowledge",
-  "construction-knowledge",
-  "engineering-standards",
-  "sales-messaging",
-  "customer-success",
-] as const;
+/** Position in the delivery loop. Read from frontmatter — the skills tree is flat. */
+export const VALID_STAGES = ["plan", "build", "review"] as const;
 
-// A skill's distribution surface. Absent -> "desktop" for back-compat: every
-// existing Desktop skill keeps working with no frontmatter change.
-export const VALID_SURFACES = ["desktop", "code", "both"] as const;
-export const DEFAULT_SURFACE = "desktop";
-
-// Audience-facing category used by the Claude Code installer picker. This is
-// intentionally separate from the repo section, which remains the authoring
-// and CODEOWNERS taxonomy.
-export const VALID_CATEGORIES = ["product", "engineer", "qa"] as const;
-export const CATEGORY_LABELS: Record<(typeof VALID_CATEGORIES)[number], string> = {
-  product: "Product",
-  engineer: "Engineer",
-  qa: "QA",
+export const STAGE_LABELS: Record<(typeof VALID_STAGES)[number], string> = {
+  plan: "Plan",
+  build: "Build",
+  review: "Review",
 };
 
-/** Human label for a category, or undefined when absent/unknown. */
-export function categoryLabel(category: string): string | undefined {
-  return (CATEGORY_LABELS as Record<string, string>)[category];
+/** Human label for a stage, or undefined when absent/unknown. */
+export function stageLabel(stage: string): string | undefined {
+  return (STAGE_LABELS as Record<string, string>)[stage];
 }
+
+// A skill's distribution surface. Every skill here is a Claude Code skill —
+// absent -> "code".
+export const VALID_SURFACES = ["desktop", "code", "both"] as const;
+export const DEFAULT_SURFACE = "code";
+
+/**
+ * How much a repository must tailor the skill.
+ * - universal:  no repository facts at all
+ * - configured: one procedure, facts injected from .fieldnote/profile.md
+ * - templated:  a generic spine plus repository-authored sections
+ */
+export const VALID_VARIANCES = ["universal", "configured", "templated"] as const;
+
+export const VARIANCE_LABELS: Record<(typeof VALID_VARIANCES)[number], string> = {
+  universal: "Universal",
+  configured: "Configured",
+  templated: "Templated",
+};
 
 // Richer Claude Code capabilities only make sense for code-bound surfaces.
 export const CODE_SUBDIRS = ["commands", "agents", "hooks"] as const;
@@ -61,7 +65,7 @@ export function shipsInSkill(relPath: string): boolean {
  */
 export const VALID_ARTIFACTS = ["prd"] as const;
 
-export const NAME_RE = /^vertuo-[a-z0-9]+-[a-z0-9-]+$/;
+export const NAME_RE = /^fieldnote-[a-z0-9][a-z0-9-]*$/;
 export const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 export const MIN_DESCRIPTION_WORDS = 15;
 
@@ -93,12 +97,12 @@ export function fileRole(relPath: string): FileRole {
 /** A skill entry as written into catalog.json. */
 export interface CatalogEntry {
   name: string;
-  section: string;
+  stage: string;
   description: string;
   surface: string;
   version: string;
   mcp: string[];
-  category?: string;
+  variance: string;
   produces?: string[];
   consumes?: string[];
 }
@@ -188,8 +192,6 @@ export class Skill {
     /** Absolute path to the skill's SKILL.md. */
     public readonly path: string,
     public readonly folderName: string,
-    /** Parent folder name (the repo section). */
-    public readonly section: string,
     public readonly frontmatter: Frontmatter,
     /** The text between the `---` fences, for line-level checks. */
     public readonly rawFrontmatter: string = "",
@@ -225,8 +227,13 @@ export class Skill {
   get description(): string {
     return this.stringField("description");
   }
-  get category(): string {
-    return this.stringField("category");
+  /** Position in the delivery loop, read from frontmatter — the tree is flat. */
+  get stage(): string {
+    return this.stringField("stage");
+  }
+  /** How much a repository must tailor the skill, read from frontmatter. */
+  get variance(): string {
+    return this.stringField("variance");
   }
 
   get surface(): string {
@@ -270,13 +277,13 @@ export class Skill {
   toCatalogEntry(): CatalogEntry {
     const entry: CatalogEntry = {
       name: this.name,
-      section: this.section,
+      stage: this.stage,
       description: this.description,
       surface: this.surface,
       version: this.version,
       mcp: this.mcp,
+      variance: this.variance,
     };
-    if (this.category !== "") entry.category = this.category;
     // Emitted only when declared, so entries without artifacts stay byte-stable.
     if (this.produces.length > 0) entry.produces = this.produces;
     if (this.consumes.length > 0) entry.consumes = this.consumes;
@@ -295,22 +302,20 @@ function listDirs(dir: string): string[] {
   }
 }
 
-/** Load every skills/<section>/<name>/SKILL.md into a Skill record. */
+/** Load every skills/<name>/SKILL.md into a Skill record. */
 export function discover(skillsDir: string): Skill[] {
   const skills: Skill[] = [];
-  for (const section of listDirs(skillsDir)) {
-    for (const folder of listDirs(join(skillsDir, section))) {
-      const skillMd = join(skillsDir, section, folder, "SKILL.md");
-      let text: string;
-      try {
-        text = readFileSync(skillMd, "utf8");
-      } catch {
-        continue; // folder without a SKILL.md (e.g. _shared/ content) is not a skill
-      }
-      const end = text.indexOf("---", 3);
-      const rawFm = text.startsWith("---") && end !== -1 ? text.slice(3, end) : "";
-      skills.push(new Skill(skillMd, folder, section, parseFrontmatter(text) ?? {}, rawFm));
+  for (const folder of listDirs(skillsDir)) {
+    const skillMd = join(skillsDir, folder, "SKILL.md");
+    let text: string;
+    try {
+      text = readFileSync(skillMd, "utf8");
+    } catch {
+      continue; // folder without a SKILL.md (e.g. _shared/ content) is not a skill
     }
+    const end = text.indexOf("---", 3);
+    const rawFm = text.startsWith("---") && end !== -1 ? text.slice(3, end) : "";
+    skills.push(new Skill(skillMd, folder, parseFrontmatter(text) ?? {}, rawFm));
   }
   return skills;
 }

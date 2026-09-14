@@ -1,17 +1,20 @@
 /** Core data model shared across the CLI. */
 
 export type Surface = "desktop" | "code" | "both";
-export type SkillCategory = "product" | "engineer" | "qa";
+/** Position in the delivery loop. */
+export type SkillStage = "plan" | "build" | "review";
+/** How much a repository must tailor the skill. */
+export type SkillVariance = "universal" | "configured" | "templated";
 
 /** A skill entry as recorded in catalog.json (built by scripts/build-catalog.py). */
 export interface SkillEntry {
   name: string;
-  section: string;
+  stage: SkillStage;
   description: string;
   surface: Surface;
   version: string;
   mcp: string[];
-  category?: SkillCategory;
+  variance: SkillVariance;
   /** Artifact types this skill emits / reads (ADR-0006); absent when none. */
   produces?: string[];
   consumes?: string[];
@@ -25,7 +28,7 @@ export interface Catalog {
 /** One installed skill, as recorded in the manifest under ~/.claude. */
 export interface ManifestEntry {
   version: string;
-  section: string;
+  stage: SkillStage;
   surface: Surface;
   /** Catalog release this copy came from (ADR-0010); absent for pre-0.3 installs. */
   release?: string;
@@ -83,7 +86,7 @@ export interface Env {
   claudeDir: string;
   /** Path to catalog.json (repo clone or bundled in the package). */
   catalogPath: string;
-  /** Directory holding skill source folders (skills/<section>/<name>/). */
+  /** Directory holding skill source folders (skills/<name>/). */
   skillsSourceDir: string;
   /** Root of this repo when run inside a clone, else null — how paths.ts chose the two paths above. */
   repoRoot: string | null;

@@ -15,12 +15,10 @@ function withSkillsDir(fn: (skillsDir: string) => void): void {
   }
 }
 
-const ENG = "engineering-standards";
-
 test("catalog.json contains required fields and surface defaulting", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", mcp: "[jira]" }));
+    writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "vertuo-do-work", baseFm("vertuo-do-work", { surface: "code", variance: "configured", mcp: "[jira]" }));
 
     const catalog = JSON.parse(renderCatalogJson(discover(d)));
     assert.equal(catalog.version, 1);
@@ -29,37 +27,37 @@ test("catalog.json contains required fields and surface defaulting", () => {
     assert.deepEqual(Object.keys(byName).sort(), ["vertuo-do-thing", "vertuo-do-work"]);
     assert.deepEqual(
       Object.keys(byName["vertuo-do-thing"]).sort(),
-      ["description", "mcp", "name", "section", "surface", "version"],
+      ["description", "mcp", "name", "stage", "surface", "variance", "version"],
     );
     assert.deepEqual(
       Object.keys(byName["vertuo-do-work"]).sort(),
-      ["category", "description", "mcp", "name", "section", "surface", "version"],
+      ["description", "mcp", "name", "stage", "surface", "variance", "version"],
     );
-    assert.equal(byName["vertuo-do-thing"].surface, "desktop");
+    assert.equal(byName["vertuo-do-thing"].surface, "code");
     assert.equal(byName["vertuo-do-work"].surface, "code");
-    assert.equal(byName["vertuo-do-work"].category, "engineer");
+    assert.equal(byName["vertuo-do-work"].variance, "configured");
     assert.deepEqual(byName["vertuo-do-work"].mcp, ["jira"]);
   });
 });
 
-test("markdown lists every skill with version and category metadata", () => {
+test("markdown lists every skill with version and variance metadata", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer" }));
+    writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "vertuo-do-work", baseFm("vertuo-do-work", { surface: "code", variance: "configured" }));
 
     const md = renderMarkdown(discover(d));
     assert.ok(md.includes("vertuo-do-thing"));
     assert.ok(md.includes("vertuo-do-work"));
-    assert.ok(md.includes("(v1.0.0, Engineer)"));
+    assert.ok(md.includes("(v1.0.0, Configured)"));
     assert.ok(md.includes("_Total: 2 skill(s)._"));
-    assert.ok(md.includes("_No skills yet._")); // empty sections still render
+    assert.ok(md.includes("_No skills yet._")); // empty stages still render
   });
 });
 
 test("catalog.json carries produces/consumes and markdown renders the artifact flow", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-to-prd", baseFm("vertuo-to-prd", ENG, { surface: "code", category: "product", produces: "[prd]" }));
-    writeSkill(d, ENG, "vertuo-to-issues", baseFm("vertuo-to-issues", ENG, { surface: "code", category: "product", consumes: "[prd]" }));
+    writeSkill(d, "vertuo-to-prd", baseFm("vertuo-to-prd", { surface: "code", produces: "[prd]" }));
+    writeSkill(d, "vertuo-to-issues", baseFm("vertuo-to-issues", { surface: "code", consumes: "[prd]" }));
 
     const catalog = JSON.parse(renderCatalogJson(discover(d)));
     const byName = Object.fromEntries(catalog.skills.map((s: { name: string }) => [s.name, s]));
@@ -74,7 +72,7 @@ test("catalog.json carries produces/consumes and markdown renders the artifact f
 
 test("markdown omits the artifact flow section when nothing is declared", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing"));
     const md = renderMarkdown(discover(d));
     assert.ok(!md.includes("## Artifact flow"), md);
   });

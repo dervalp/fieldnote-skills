@@ -19,8 +19,8 @@ async function exists(p: string): Promise<boolean> {
 
 test("install <names> installs named skills without prompting and records versions", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" },
-    { name: "vertuo-run-agent", section: "engineering-standards", version: "2.0.0" },
+    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
+    { name: "vertuo-run-agent", stage: "build", version: "2.0.0" },
   ]);
   try {
     await runInstall(h.env, ["vertuo-do-work", "vertuo-run-agent"], {});
@@ -39,7 +39,7 @@ test("install <names> installs named skills without prompting and records versio
 });
 
 test("--json emits machine-readable output and nothing decorative", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], { json: true });
     assert.equal(h.logger.infos.length, 0, "no decorative info lines in --json mode");
@@ -54,7 +54,7 @@ test("--json emits machine-readable output and nothing decorative", async () => 
 });
 
 test("reinstalling an existing skill reports action=updated", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await runInstall(h.env, ["vertuo-do-work"], {});
     await runInstall(h.env, ["vertuo-do-work"], { json: true });
@@ -66,7 +66,7 @@ test("reinstalling an existing skill reports action=updated", async () => {
 });
 
 test("installing an unknown skill fails with a clear error", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await assert.rejects(() => runInstall(h.env, ["vertuo-nope"], {}), UserError);
   } finally {
@@ -75,7 +75,7 @@ test("installing an unknown skill fails with a clear error", async () => {
 });
 
 test("install with no names is a user error", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
     await assert.rejects(() => runInstall(h.env, [], {}), /requires at least one skill name/);
   } finally {

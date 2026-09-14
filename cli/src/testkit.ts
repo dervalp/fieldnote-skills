@@ -5,9 +5,10 @@ import type {
   Catalog,
   Env,
   Logger,
-  SkillCategory,
+  SkillVariance,
   Prompter,
   SkillEntry,
+  SkillStage,
   Surface,
 } from "./types.js";
 
@@ -61,12 +62,12 @@ export class FakeLogger implements Logger {
 
 export interface FixtureSkill {
   name: string;
-  section: string;
+  stage: SkillStage;
   surface?: Surface;
   version?: string;
   description?: string;
   mcp?: string[];
-  category?: SkillCategory;
+  variance?: SkillVariance;
   /** Extra files keyed by repo-relative path within the skill folder. */
   files?: Record<string, string>;
 }
@@ -77,12 +78,12 @@ const DEFAULT_DESC =
 export function toEntry(skill: FixtureSkill): SkillEntry {
   return {
     name: skill.name,
-    section: skill.section,
+    stage: skill.stage,
     surface: skill.surface ?? "code",
     version: skill.version ?? "1.0.0",
     description: skill.description ?? DEFAULT_DESC,
     mcp: skill.mcp ?? [],
-    category: skill.category ?? (skill.surface === "desktop" ? undefined : "engineer"),
+    variance: skill.variance ?? "universal",
   };
 }
 
@@ -115,16 +116,16 @@ export async function makeHarness(skills: FixtureSkill[]): Promise<Harness> {
   for (const skill of skills) {
     const entry = toEntry(skill);
     entries.push(entry);
-    const folder = join(sourceDir, entry.section, entry.name);
+    const folder = join(sourceDir, entry.name);
     await mkdir(folder, { recursive: true });
     const fm = [
       "---",
       `name: ${entry.name}`,
       `description: ${entry.description}`,
       `version: ${entry.version}`,
-      `section: ${entry.section}`,
+      `stage: ${entry.stage}`,
       `surface: ${entry.surface}`,
-      ...(entry.category ? [`category: ${entry.category}`] : []),
+      `variance: ${entry.variance}`,
       "---",
       "",
       `# ${entry.name}`,
@@ -176,7 +177,7 @@ export async function bumpVersion(h: Harness, name: string, version: string): Pr
   entry.version = version;
   await writeFile(h.env.catalogPath, JSON.stringify(catalog, null, 2), "utf8");
 
-  const folder = join(h.sourceDir, entry.section, name);
+  const folder = join(h.sourceDir, name);
   const md = await readFile(join(folder, "SKILL.md"), "utf8");
   await writeFile(join(folder, "SKILL.md"), md.replace(/version: .*/g, `version: ${version}`), "utf8");
 }

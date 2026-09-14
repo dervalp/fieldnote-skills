@@ -7,7 +7,7 @@ import { installEntries, targetDirFor } from "../installer.js";
 import { hashSkillDir, renderLock, type LockEntry } from "../lock.js";
 import { makeHarness, toEntry, type FixtureSkill } from "../testkit.js";
 
-const SKILL = { name: "vertuo-matt-tdd", section: "engineering-standards", surface: "both" as const };
+const SKILL = { name: "fieldnote-matt-tdd", stage: "build" as const, surface: "both" as const };
 
 const VENDORED = {
   upstream: "https://github.com/mattpocock/skills",
@@ -26,7 +26,7 @@ async function writeLockFor(
   opts: { coreHash?: string; vendored?: Record<string, string>; extra?: LockEntry[]; skills?: FixtureSkill[] } = {},
 ): Promise<void> {
   const skills = (opts.skills ?? [SKILL]).map((skill) => {
-    const { coreHash, files } = hashSkillDir(join(h.sourceDir, skill.section, skill.name));
+    const { coreHash, files } = hashSkillDir(join(h.sourceDir, skill.name));
     const entry: LockEntry = {
       name: skill.name,
       version: "1.0.0",
@@ -72,7 +72,7 @@ test("reports ok for a freshly installed skill and exits 0", async () => {
     assert.equal(code, 0);
     const out = h.logger.infos.join("\n");
     assert.match(out, /skills-v1\.0\.0/);
-    assert.match(out, /vertuo-matt-tdd/);
+    assert.match(out, /fieldnote-matt-tdd/);
     assert.ok(!/behind|modified|orphaned/.test(out), out);
   } finally {
     await h.cleanup();
@@ -100,11 +100,11 @@ test("reports an orphan and names its replacement", async () => {
     await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
     await writeFile(
       join(h.claudeDir, "skills", ".fieldnote-skills.json"),
-      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", section: "engineering-standards", surface: "code" } } }),
+      JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
     await runDoctor(h.env, {});
-    assert.match(h.logger.infos.join("\n"), /orphaned .*vertuo-matt-tdd/);
+    assert.match(h.logger.infos.join("\n"), /orphaned .*fieldnote-matt-tdd/);
   } finally {
     await h.cleanup();
   }
@@ -119,7 +119,7 @@ test("reports an unmanaged directory as orphaned and names its replacement", asy
     await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
     await runDoctor(h.env, {});
     const out = h.logger.infos.join("\n");
-    assert.match(out, /⚠ tdd\s+—\s+—\s+orphaned — superseded by vertuo-matt-tdd/);
+    assert.match(out, /⚠ tdd\s+—\s+—\s+orphaned — superseded by fieldnote-matt-tdd/);
   } finally {
     await h.cleanup();
   }
@@ -132,7 +132,7 @@ test("says claude.ai cannot be inspected, and never claims it is fine", async ()
     await runDoctor(h.env, {});
     const out = h.logger.infos.join("\n");
     assert.match(out, /cannot be inspected/);
-    assert.match(out, /vertuo-matt-tdd-skills-v1\.0\.0\.zip/);
+    assert.match(out, /fieldnote-matt-tdd-skills-v1\.0\.0\.zip/);
   } finally {
     await h.cleanup();
   }
@@ -250,7 +250,7 @@ test("names the Mastra skills whose hashes differ from the lock", async () => {
     await runDoctor(h.env, { orchestrator: orch });
     const mastra = h.logger.infos.filter((l) => /manifest/.test(l)).join("\n");
     assert.ok(!mastra.includes("✔"));
-    assert.match(mastra, /vertuo-matt-tdd/);
+    assert.match(mastra, /fieldnote-matt-tdd/);
   } finally {
     await h.cleanup();
   }
@@ -260,7 +260,7 @@ test("verifies hashes and says so when the Mastra bundle really matches", async 
   const h = await makeHarness([SKILL]);
   try {
     await writeLockFor(h, "skills-v1.0.0");
-    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.section, SKILL.name));
+    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.name));
     const orch = await writeOrchestrator(
       h,
       { release: "skills-v1.0.0", skills: [{ name: SKILL.name, version: "1.0.0", coreHash }] },
@@ -277,7 +277,7 @@ test("reports a Mastra pin that disagrees with the release", async () => {
   const h = await makeHarness([SKILL]);
   try {
     await writeLockFor(h, "skills-v1.0.0");
-    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.section, SKILL.name));
+    const { coreHash } = hashSkillDir(join(h.sourceDir, SKILL.name));
     const orch = await writeOrchestrator(
       h,
       { release: "skills-v1.0.0", skills: [{ name: SKILL.name, version: "1.0.0", coreHash }] },
@@ -315,7 +315,7 @@ test("flags vendored skills that disagree on the upstream pin", async () => {
       vendored: VENDORED,
       extra: [
         {
-          name: "vertuo-matt-triage",
+          name: "fieldnote-matt-triage",
           version: "1.0.0",
           coreHash: "sha256:x",
           files: {},
@@ -336,8 +336,8 @@ test("flags vendored skills that disagree on the upstream pin", async () => {
 
 test("sizes the name column to the longest name printed", async () => {
   const long = {
-    name: "vertuo-matt-improve-codebase-architecture",
-    section: "engineering-standards",
+    name: "fieldnote-matt-improve-codebase-architecture",
+    stage: "build" as const,
     surface: "both" as const,
   };
   const h = await makeHarness([SKILL, long]);
@@ -345,7 +345,7 @@ test("sizes the name column to the longest name printed", async () => {
     await writeLockFor(h, "skills-v1.0.0", { skills: [SKILL, long] });
     await installEntries(h.env, [toEntry(SKILL), toEntry(long)]);
     await runDoctor(h.env, {});
-    const rows = h.logger.infos.filter((l) => /^ {2}[✔⚠] vertuo-matt-/.test(l));
+    const rows = h.logger.infos.filter((l) => /^ {2}[✔⚠] fieldnote-matt-/.test(l));
     assert.equal(rows.length, 2);
     const columns = rows.map((l) => l.indexOf("1.0.0"));
     assert.equal(columns[0], columns[1], `version column must align:\n${rows.join("\n")}`);
@@ -373,7 +373,7 @@ test("--json reports every surface, with claude.ai marked uninspectable", async 
     assert.deepEqual(payload.claudeCode.map((r) => r.state), ["ok"]);
     assert.equal(payload.mastra.checked, false);
     assert.equal(payload.claudeAi.inspectable, false);
-    assert.deepEqual(payload.claudeAi.expected, ["vertuo-matt-tdd-skills-v1.0.0.zip"]);
+    assert.deepEqual(payload.claudeAi.expected, ["fieldnote-matt-tdd-skills-v1.0.0.zip"]);
     assert.deepEqual(payload.upstream.pins, [{ repo: "mattpocock/skills", ref: "v1.2.3", skills: 1 }]);
     assert.equal(payload.upstream.latestChecked, false);
   } finally {
@@ -400,7 +400,7 @@ test("names both upstreams in the header without calling two of them a disagreem
   try {
     await writeLockFor(h, "skills-v1.0.0", {
       vendored: VENDORED,
-      extra: [vendoredEntry("vertuo-superpowers-brainstorming", SUPERPOWERS)],
+      extra: [vendoredEntry("fieldnote-superpowers-brainstorming", SUPERPOWERS)],
     });
     await runDoctor(h.env, {});
     const out = h.logger.infos.join("\n");
@@ -417,8 +417,8 @@ test("the header cries disagreement only for the upstream that carries two refs"
     await writeLockFor(h, "skills-v1.0.0", {
       vendored: VENDORED,
       extra: [
-        vendoredEntry("vertuo-matt-triage", { ...VENDORED, ref: "v1.3.0" }),
-        vendoredEntry("vertuo-superpowers-brainstorming", SUPERPOWERS),
+        vendoredEntry("fieldnote-matt-triage", { ...VENDORED, ref: "v1.3.0" }),
+        vendoredEntry("fieldnote-superpowers-brainstorming", SUPERPOWERS),
       ],
     });
     await runDoctor(h.env, {});
@@ -445,7 +445,7 @@ test("tells the truth about a locally modified skill: sync holds it, update over
     const out = h.logger.infos.join("\n");
     assert.match(out, /modified on disk/);
     assert.match(out, /`sync` leaves it/);
-    assert.match(out, /`update vertuo-matt-tdd` overwrites/);
+    assert.match(out, /`update fieldnote-matt-tdd` overwrites/);
     assert.ok(!/would overwrite your edit/.test(out), `sync holds modified skills — it does not overwrite them:\n${out}`);
   } finally {
     await h.cleanup();

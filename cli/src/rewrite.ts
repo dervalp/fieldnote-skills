@@ -12,9 +12,9 @@
 
 /**
  * How an upstream names its sibling skills.
- * - `slash` — `/code-review`, rewritten to `/vertuo-matt-code-review`.
+ * - `slash` — `/code-review`, rewritten to `/fieldnote-matt-code-review`.
  * - `namespace` — `superpowers:executing-plans`, rewritten to the bare skill
- *   name `vertuo-superpowers-executing-plans`: the upstream namespace is a
+ *   name `fieldnote-superpowers-executing-plans`: the upstream namespace is a
  *   plugin's, and it does not exist once we install the skill under our own.
  *   This style also rewrites `skills/<name>/<file>` paths, which are how obra's
  *   skills point at their own bundled files, into paths that resolve from an

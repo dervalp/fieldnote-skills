@@ -9,7 +9,7 @@
  * read back out of `cli/vendor/*.json`, so a typo'd manifest prefix fails at
  * import instead of quietly minting a new namespace nobody reviewed.
  */
-export const VENDOR_PREFIXES = ["vertuo-matt-", "vertuo-superpowers-"] as const;
+export const VENDOR_PREFIXES = ["fieldnote-matt-", "fieldnote-superpowers-"] as const;
 export type VendorPrefix = (typeof VENDOR_PREFIXES)[number];
 
 export const REQUIRED_VENDOR_FIELDS = [
@@ -22,7 +22,7 @@ export const REQUIRED_VENDOR_FIELDS = [
   "upstreamBodyHash",
 ] as const;
 
-/** `vertuo-matt-*`, `vertuo-superpowers-*`, … — a printable list for errors. */
+/** `fieldnote-matt-*`, `fieldnote-superpowers-*`, … — a printable list for errors. */
 export const vendorPrefixList = (): string => VENDOR_PREFIXES.map((p) => `${p}*`).join(", ");
 
 /** The prefix this name is vendored under, or undefined when first-party. */

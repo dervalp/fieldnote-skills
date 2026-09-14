@@ -9,8 +9,8 @@ import {
   NAME_RE,
   SEMVER_RE,
   VALID_ARTIFACTS,
-  VALID_CATEGORIES,
-  VALID_SECTIONS,
+  VALID_STAGES,
+  VALID_VARIANCES,
   VALID_SURFACES,
   Skill,
   discover,
@@ -32,12 +32,12 @@ export function validateSkill(
     errors.push(`${rel}: ${msg}`);
   };
 
-  if (!(VALID_SECTIONS as readonly string[]).includes(skill.section)) {
-    err(`unknown section '${skill.section}' (allowed: ${sortedJoin(VALID_SECTIONS)})`);
+  if (!(VALID_STAGES as readonly string[]).includes(skill.stage)) {
+    err(`unknown stage '${skill.stage}' (allowed: ${sortedJoin(VALID_STAGES)})`);
   }
 
   if (!NAME_RE.test(skill.folderName)) {
-    err(`folder name '${skill.folderName}' must match vertuo-<verb>-<noun> (kebab-case)`);
+    err(`folder name '${skill.folderName}' must match fieldnote-<name> (kebab-case)`);
   }
 
   if (Object.keys(fm).length === 0) {
@@ -45,7 +45,7 @@ export function validateSkill(
     return;
   }
 
-  for (const field of ["name", "description", "version", "section"]) {
+  for (const field of ["name", "description", "version", "stage"]) {
     const value = fm[field];
     if (value === undefined || value.length === 0) {
       err(`frontmatter missing required field '${field}'`);
@@ -54,11 +54,6 @@ export function validateSkill(
 
   if (skill.name !== "" && skill.name !== skill.folderName) {
     err(`frontmatter name '${skill.name}' must equal folder name '${skill.folderName}'`);
-  }
-
-  const fmSection = fm["section"];
-  if (fmSection !== undefined && fmSection.length !== 0 && fmSection !== skill.section) {
-    err(`frontmatter section '${fmSection}' must equal parent folder '${skill.section}'`);
   }
 
   const desc = skill.description;
@@ -116,17 +111,17 @@ export function validateSkill(
     );
   }
 
-  const declaredCategory = fm["category"];
+  const declaredVariance = fm["variance"];
   if (
-    declaredCategory !== undefined &&
-    !(typeof declaredCategory === "string" && (VALID_CATEGORIES as readonly string[]).includes(declaredCategory))
+    declaredVariance !== undefined &&
+    !(typeof declaredVariance === "string" && (VALID_VARIANCES as readonly string[]).includes(declaredVariance))
   ) {
-    err(`category '${declaredCategory}' is invalid (allowed: ${sortedJoin(VALID_CATEGORIES)})`);
+    err(`variance '${declaredVariance}' is invalid (allowed: ${sortedJoin(VALID_VARIANCES)})`);
   }
-  if ((skill.surface === "code" || skill.surface === "both") && (declaredCategory === undefined || declaredCategory.length === 0)) {
+  if ((skill.surface === "code" || skill.surface === "both") && (declaredVariance === undefined || declaredVariance.length === 0)) {
     err(
-      "frontmatter missing required field 'category' for code|both skill " +
-        `(allowed: ${sortedJoin(VALID_CATEGORIES)})`,
+      "frontmatter missing required field 'variance' for code|both skill " +
+        `(allowed: ${sortedJoin(VALID_VARIANCES)})`,
     );
   }
 

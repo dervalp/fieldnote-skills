@@ -15,8 +15,6 @@ function withSkillsDir(fn: (skillsDir: string) => void): void {
   }
 }
 
-const ENG = "engineering-standards";
-
 const VENDOR_FM = [
   "vendored:",
   "  upstream: https://github.com/mattpocock/skills",
@@ -35,17 +33,17 @@ function addFrontmatter(md: string, block: string): void {
   writeFileSync(md, `${text.slice(0, end)}${block}\n${text.slice(end)}`, "utf8");
 }
 
-test("absent surface defaults to desktop and validates clean", () => {
+test("absent surface defaults to code and validates clean", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
     assert.deepEqual(collectErrors(d), []);
-    assert.equal(discover(d)[0].surface, "desktop");
+    assert.equal(discover(d)[0].surface, "code");
   });
 });
 
 test("code skill may ship commands/agents/hooks", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer" }), [
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "code", variance: "configured" }), [
       "commands",
       "agents",
       "hooks",
@@ -56,7 +54,7 @@ test("code skill may ship commands/agents/hooks", () => {
 
 test("desktop skill with commands/ is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"), ["commands"]);
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { surface: "desktop" }), ["commands"]);
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("commands")), errors.join("\n"));
   });
@@ -64,7 +62,7 @@ test("desktop skill with commands/ is rejected", () => {
 
 test("invalid surface value is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing", "brand", { surface: "mobile" }));
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { surface: "mobile" }));
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("surface 'mobile' is invalid")), errors.join("\n"));
   });
@@ -72,39 +70,45 @@ test("invalid surface value is rejected", () => {
 
 test("both surface is valid", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "both", category: "engineer" }), [
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "both", variance: "configured" }), [
       "hooks",
     ]);
     assert.deepEqual(collectErrors(d), []);
   });
 });
 
-test("code skill requires category", () => {
+test("code skill requires variance", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code" }));
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "code", variance: "" }));
     const errors = collectErrors(d);
-    assert.ok(errors.some((e) => e.includes("missing required field 'category'")), errors.join("\n"));
+    assert.ok(errors.some((e) => e.includes("missing required field 'variance'")), errors.join("\n"));
   });
 });
 
-test("desktop skill may omit category", () => {
+test("desktop skill may omit variance", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    const fm = baseFm("fieldnote-do-thing", { surface: "desktop" });
+    delete fm["variance"];
+    writeSkill(d, "fieldnote-do-thing", fm);
     assert.deepEqual(collectErrors(d), []);
   });
 });
 
-test("invalid category value is rejected", () => {
+test("invalid variance value is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "operations" }));
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "code", variance: "operations" }));
     const errors = collectErrors(d);
-    assert.ok(errors.some((e) => e.includes("category 'operations' is invalid")), errors.join("\n"));
+    assert.ok(errors.some((e) => e.includes("variance 'operations' is invalid")), errors.join("\n"));
   });
 });
 
 test("mcp inline list is accepted and parsed", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", mcp: "[jira, slack]" }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", mcp: "[jira, slack]" }),
+    );
     assert.deepEqual(collectErrors(d), []);
     assert.deepEqual(discover(d)[0].mcp, ["jira", "slack"]);
   });
@@ -112,7 +116,7 @@ test("mcp inline list is accepted and parsed", () => {
 
 test("mcp scalar is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", mcp: "jira" }));
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { surface: "code", variance: "configured", mcp: "jira" }));
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("mcp must be an inline list")), errors.join("\n"));
   });
@@ -120,7 +124,11 @@ test("mcp scalar is rejected", () => {
 
 test("short description is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", description: "Use when too short." }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", description: "Use when too short." }),
+    );
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("words")), errors.join("\n"));
   });
@@ -131,7 +139,11 @@ test("missing use-when trigger is rejected", () => {
     const noTrigger =
       "This rewrites things with plenty of words and several synonyms but it is " +
       "missing the required trigger clause entirely so it should fail validation.";
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", description: noTrigger }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", description: noTrigger }),
+    );
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("use when")), errors.join("\n"));
   });
@@ -139,14 +151,22 @@ test("missing use-when trigger is rejected", () => {
 
 test("produces/consumes inline lists with known artifacts validate clean", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", produces: "[prd]", consumes: "[prd]" }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", produces: "[prd]", consumes: "[prd]" }),
+    );
     assert.deepEqual(collectErrors(d), []);
   });
 });
 
 test("produces scalar is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", produces: "prd" }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", produces: "prd" }),
+    );
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("produces must be an inline list")), errors.join("\n"));
   });
@@ -154,7 +174,11 @@ test("produces scalar is rejected", () => {
 
 test("consumes entry outside VALID_ARTIFACTS is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-do-work", baseFm("vertuo-do-work", ENG, { surface: "code", category: "engineer", consumes: "[nonsense]" }));
+    writeSkill(
+      d,
+      "fieldnote-do-work",
+      baseFm("fieldnote-do-work", { surface: "code", variance: "configured", consumes: "[nonsense]" }),
+    );
     const errors = collectErrors(d);
     assert.ok(
       errors.some((e) => e.includes("consumes entry 'nonsense' is not a known artifact type")),
@@ -165,15 +189,19 @@ test("consumes entry outside VALID_ARTIFACTS is rejected", () => {
 
 test("a complete vendored skill validates clean", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, ENG, "vertuo-matt-tdd", baseFm("vertuo-matt-tdd", ENG, { surface: "both", category: "engineer" }));
+    const md = writeSkill(
+      d,
+      "fieldnote-matt-tdd",
+      baseFm("fieldnote-matt-tdd", { surface: "both", variance: "configured" }),
+    );
     addFrontmatter(md, `supersedes: [tdd]\n${VENDOR_FM}`);
     assert.deepEqual(collectErrors(d), []);
   });
 });
 
-test("a vertuo-matt-* skill without a vendored block is rejected", () => {
+test("a fieldnote-matt-* skill without a vendored block is rejected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, ENG, "vertuo-matt-tdd", baseFm("vertuo-matt-tdd", ENG, { surface: "code", category: "engineer" }));
+    writeSkill(d, "fieldnote-matt-tdd", baseFm("fieldnote-matt-tdd", { surface: "code", variance: "configured" }));
     const errors = collectErrors(d);
     assert.ok(
       errors.some((e) => e.includes("must declare a 'vendored:' block")),
@@ -184,7 +212,11 @@ test("a vertuo-matt-* skill without a vendored block is rejected", () => {
 
 test("an explicitly empty supersedes: [] is accepted on a vendored skill", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, ENG, "vertuo-matt-tdd", baseFm("vertuo-matt-tdd", ENG, { surface: "both", category: "engineer" }));
+    const md = writeSkill(
+      d,
+      "fieldnote-matt-tdd",
+      baseFm("fieldnote-matt-tdd", { surface: "both", variance: "configured" }),
+    );
     addFrontmatter(md, `supersedes: []\n${VENDOR_FM}`);
     assert.deepEqual(collectErrors(d), []);
   });
@@ -192,7 +224,7 @@ test("an explicitly empty supersedes: [] is accepted on a vendored skill", () =>
 
 test("an incomplete vendored block names the missing fields", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, ENG, "vertuo-matt-tdd", baseFm("vertuo-matt-tdd", ENG, { surface: "code", category: "engineer" }));
+    const md = writeSkill(d, "fieldnote-matt-tdd", baseFm("fieldnote-matt-tdd", { surface: "code", variance: "configured" }));
     addFrontmatter(md, "supersedes: [tdd]\nvendored:\n  ref: v1.2.3");
     const errors = collectErrors(d);
     assert.ok(errors.some((e) => e.includes("upstreamBodyHash")), errors.join("\n"));
@@ -201,7 +233,7 @@ test("an incomplete vendored block names the missing fields", () => {
 
 test("a vendored skill without supersedes is rejected", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, ENG, "vertuo-matt-tdd", baseFm("vertuo-matt-tdd", ENG, { surface: "code", category: "engineer" }));
+    const md = writeSkill(d, "fieldnote-matt-tdd", baseFm("fieldnote-matt-tdd", { surface: "code", variance: "configured" }));
     addFrontmatter(md, VENDOR_FM);
     assert.ok(collectErrors(d).some((e) => e.includes("supersedes")));
   });
@@ -209,7 +241,7 @@ test("a vendored skill without supersedes is rejected", () => {
 
 test("a first-party skill with a vendored block is rejected", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, ENG, "vertuo-do-thing", baseFm("vertuo-do-thing", ENG, { surface: "code", category: "engineer" }));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { surface: "code", variance: "configured" }));
     addFrontmatter(md, VENDOR_FM);
     assert.ok(collectErrors(d).some((e) => e.includes("only valid on")));
   });
@@ -217,7 +249,7 @@ test("a first-party skill with a vendored block is rejected", () => {
 
 test("a wrapped description is rejected", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
     addFrontmatter(md, "  a wrapped tail with no key");
     assert.ok(collectErrors(d).some((e) => e.includes("block key")));
   });
@@ -225,7 +257,7 @@ test("a wrapped description is rejected", () => {
 
 test("a release: disagreeing with the expected release is rejected", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
     addFrontmatter(md, "release: skills-v0.9.0");
     const errors = collectErrors(d, "skills-v1.0.0");
     assert.ok(errors.some((e) => e.includes("skills-v1.0.0")), errors.join("\n"));
@@ -234,22 +266,22 @@ test("a release: disagreeing with the expected release is rejected", () => {
 
 test("a missing release: is rejected once a release is expected", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
     assert.ok(collectErrors(d, "skills-v1.0.0").some((e) => e.includes("release")));
   });
 });
 
 test("release is not checked before the first release", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
     assert.deepEqual(collectErrors(d, "unreleased"), []);
   });
 });
 
 test("two skills claiming the same superseded name is rejected", () => {
   withSkillsDir((d) => {
-    for (const name of ["vertuo-matt-tdd", "vertuo-matt-implement"]) {
-      const md = writeSkill(d, ENG, name, baseFm(name, ENG, { surface: "code", category: "engineer" }));
+    for (const name of ["fieldnote-matt-tdd", "fieldnote-matt-implement"]) {
+      const md = writeSkill(d, name, baseFm(name, { surface: "code", variance: "configured" }));
       addFrontmatter(md, `supersedes: [tdd]\n${VENDOR_FM}`);
     }
     assert.ok(collectErrors(d).some((e) => e.includes("supersedes 'tdd'")));

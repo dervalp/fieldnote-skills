@@ -17,21 +17,19 @@ export function makeSkillsDir(): string {
 
 export function baseFm(
   name: string,
-  section = "brand",
   overrides: Record<string, string> = {},
 ): Record<string, string> {
-  return { name, description: GOOD_DESC, version: "1.0.0", section, ...overrides };
+  return { name, description: GOOD_DESC, version: "1.0.0", stage: "build", variance: "universal", ...overrides };
 }
 
 /** Materialize a fixture skill folder; returns the SKILL.md path. */
 export function writeSkill(
   skillsDir: string,
-  section: string,
   name: string,
   frontmatter: Record<string, string>,
   subdirs: string[] = [],
 ): string {
-  const folder = join(skillsDir, section, name);
+  const folder = join(skillsDir, name);
   mkdirSync(folder, { recursive: true });
   const lines = ["---"];
   for (const [key, value] of Object.entries(frontmatter)) lines.push(`${key}: ${value}`);

@@ -9,7 +9,7 @@ import { zipSkillDir } from "./skill-package.js";
 test("zips the skill with its folder as archive root, excluding .gitkeep", () => {
   const skillsDir = makeSkillsDir();
   try {
-    const skillMd = writeSkill(skillsDir, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    const skillMd = writeSkill(skillsDir, "vertuo-do-thing", baseFm("vertuo-do-thing"));
     const skillDir = dirname(skillMd);
     mkdirSync(join(skillDir, "references"), { recursive: true });
     writeFileSync(join(skillDir, "references", "notes.md"), "# notes\n", "utf8");
@@ -29,7 +29,7 @@ test("zips the skill with its folder as archive root, excluding .gitkeep", () =>
 test("dev-only tests/ folders are excluded from the Desktop zip", () => {
   const skillsDir = makeSkillsDir();
   try {
-    const skillMd = writeSkill(skillsDir, "brand", "vertuo-do-thing", baseFm("vertuo-do-thing"));
+    const skillMd = writeSkill(skillsDir, "vertuo-do-thing", baseFm("vertuo-do-thing"));
     const skillDir = dirname(skillMd);
     mkdirSync(join(skillDir, "tests", "fixtures"), { recursive: true });
     writeFileSync(join(skillDir, "tests", "fake-runner.ts"), "export const x = 1;\n", "utf8");

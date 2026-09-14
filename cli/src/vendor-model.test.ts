@@ -9,28 +9,28 @@ import {
 } from "./vendor-model.js";
 
 test("recognises every vendored prefix", () => {
-  assert.equal(isVendoredName("vertuo-matt-tdd"), true);
-  assert.equal(isVendoredName("vertuo-matt-setup-matt-pocock-skills"), true);
-  assert.equal(isVendoredName("vertuo-superpowers-brainstorming"), true);
+  assert.equal(isVendoredName("fieldnote-matt-tdd"), true);
+  assert.equal(isVendoredName("fieldnote-matt-setup-matt-pocock-skills"), true);
+  assert.equal(isVendoredName("fieldnote-superpowers-brainstorming"), true);
   assert.equal(isVendoredName("vertuo-validate-ticket"), false);
   assert.equal(isVendoredName("vertuo-product-write-user-story"), false);
 });
 
 test("a bare prefix with nothing after it is not a vendored name", () => {
-  // The destination-wipe guard in importSkill leans on this: "vertuo-matt-"
+  // The destination-wipe guard in importSkill leans on this: "fieldnote-matt-"
   // alone would resolve to the section directory, not a skill folder.
-  assert.equal(isVendoredName("vertuo-matt-"), false);
-  assert.equal(isVendoredName("vertuo-superpowers-"), false);
+  assert.equal(isVendoredName("fieldnote-matt-"), false);
+  assert.equal(isVendoredName("fieldnote-superpowers-"), false);
 });
 
 test("names which upstream a vendored skill came from", () => {
-  assert.equal(vendorPrefixOf("vertuo-matt-tdd"), "vertuo-matt-");
-  assert.equal(vendorPrefixOf("vertuo-superpowers-writing-plans"), "vertuo-superpowers-");
+  assert.equal(vendorPrefixOf("fieldnote-matt-tdd"), "fieldnote-matt-");
+  assert.equal(vendorPrefixOf("fieldnote-superpowers-writing-plans"), "fieldnote-superpowers-");
   assert.equal(vendorPrefixOf("vertuo-validate-ticket"), undefined);
 });
 
 test("the printable prefix list names every upstream", () => {
-  assert.equal(vendorPrefixList(), "vertuo-matt-*, vertuo-superpowers-*");
+  assert.equal(vendorPrefixList(), "fieldnote-matt-*, fieldnote-superpowers-*");
 });
 
 test("lists every missing provenance field", () => {

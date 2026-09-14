@@ -10,24 +10,24 @@
  * about a skill's surface or version.
  */
 import type { Skill } from "./skill-model.js";
-import { categoryLabel } from "./skill-model.js";
+import { VARIANCE_LABELS } from "./skill-model.js";
 
-const SECTION_ORDER: ReadonlyArray<readonly [string, string]> = [
-  ["brand", "Brand"],
-  ["product-knowledge", "Product Knowledge"],
-  ["construction-knowledge", "Construction Knowledge"],
-  ["engineering-standards", "Engineering Standards"],
-  ["sales-messaging", "Sales Messaging"],
-  ["customer-success", "Customer Success"],
+// Task 4 rewrites this to the full stage-grouped render; kept minimal here so
+// discovery's flattening (Task 3) keeps compiling and this file's own tests
+// passing without redesigning it.
+const STAGE_ORDER: ReadonlyArray<readonly [string, string]> = [
+  ["plan", "Plan"],
+  ["build", "Build"],
+  ["review", "Review"],
 ];
 
 const byCodepoint = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 export function renderMarkdown(skills: Skill[]): string {
-  const bySection = new Map<string, Skill[]>();
-  for (const [key] of SECTION_ORDER) bySection.set(key, []);
+  const byStage = new Map<string, Skill[]>();
+  for (const [key] of STAGE_ORDER) byStage.set(key, []);
   for (const skill of skills) {
-    const bucket = bySection.get(skill.section);
+    const bucket = byStage.get(skill.stage);
     if (bucket) bucket.push(skill);
   }
 
@@ -42,20 +42,20 @@ export function renderMarkdown(skills: Skill[]): string {
   ];
 
   let total = 0;
-  for (const [key, title] of SECTION_ORDER) {
-    const sectionSkills = [...(bySection.get(key) ?? [])].sort((a, b) => byCodepoint(a.name, b.name));
+  for (const [key, title] of STAGE_ORDER) {
+    const stageSkills = [...(byStage.get(key) ?? [])].sort((a, b) => byCodepoint(a.name, b.name));
     lines.push(`## ${title}`, "");
-    if (sectionSkills.length === 0) {
+    if (stageSkills.length === 0) {
       lines.push("_No skills yet._", "");
       continue;
     }
-    for (const skill of sectionSkills) {
+    for (const skill of stageSkills) {
       total += 1;
       const name = skill.name || "(unnamed)";
       const version = skill.version || "?";
-      const category = categoryLabel(skill.category);
+      const variance = (VARIANCE_LABELS as Record<string, string>)[skill.variance];
       let metadata = `v${version}`;
-      if (category !== undefined) metadata += `, ${category}`;
+      if (variance !== undefined) metadata += `, ${variance}`;
       lines.push(`- **${name}** (${metadata}) — ${skill.description}`);
     }
     lines.push("");
@@ -109,7 +109,7 @@ function renderArtifactFlow(skills: Skill[]): string[] {
 
 export function renderCatalogJson(skills: Skill[]): string {
   const entries = [...skills]
-    .sort((a, b) => byCodepoint(a.section, b.section) || byCodepoint(a.name, b.name))
+    .sort((a, b) => byCodepoint(a.stage, b.stage) || byCodepoint(a.name, b.name))
     .map((skill) => skill.toCatalogEntry());
   return JSON.stringify({ version: 1, skills: entries }, null, 2) + "\n";
 }

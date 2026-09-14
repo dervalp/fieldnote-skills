@@ -15,14 +15,14 @@ test("an absent manifest reads back as empty", async () => {
   }
 });
 
-test("recording a skill persists its name, version, section and surface", async () => {
+test("recording a skill persists its name, version, stage and surface", async () => {
   const h = await makeHarness([]);
   try {
-    await recordInstalled(h.env, toEntry({ name: "vertuo-do-work", section: "engineering-standards" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-do-work", stage: "build" }));
     const manifest = await readManifest(h.env);
     assert.deepEqual(manifest.skills["vertuo-do-work"], {
       version: "1.0.0",
-      section: "engineering-standards",
+      stage: "build",
       surface: "code",
     });
   } finally {
@@ -33,9 +33,9 @@ test("recording a skill persists its name, version, section and surface", async 
 test("the manifest survives multiple installs and version bumps", async () => {
   const h = await makeHarness([]);
   try {
-    await recordInstalled(h.env, toEntry({ name: "vertuo-a", section: "engineering-standards", version: "1.0.0" }));
-    await recordInstalled(h.env, toEntry({ name: "vertuo-b", section: "engineering-standards", version: "2.1.0" }));
-    await recordInstalled(h.env, toEntry({ name: "vertuo-a", section: "engineering-standards", version: "1.2.0" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-a", stage: "build", version: "1.0.0" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-b", stage: "build", version: "2.1.0" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-a", stage: "build", version: "1.2.0" }));
 
     const manifest = await readManifest(h.env);
     assert.equal(manifest.skills["vertuo-a"]?.version, "1.2.0");
@@ -48,7 +48,7 @@ test("the manifest survives multiple installs and version bumps", async () => {
 test("forgetting a skill removes it from the manifest", async () => {
   const h = await makeHarness([]);
   try {
-    await recordInstalled(h.env, toEntry({ name: "vertuo-a", section: "engineering-standards" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-a", stage: "build" }));
     await forgetInstalled(h.env, "vertuo-a");
     const manifest = await readManifest(h.env);
     assert.equal(manifest.skills["vertuo-a"], undefined);
@@ -60,7 +60,7 @@ test("forgetting a skill removes it from the manifest", async () => {
 test("a corrupt manifest does not crash reads (starts fresh)", async () => {
   const h = await makeHarness([]);
   try {
-    await recordInstalled(h.env, toEntry({ name: "vertuo-a", section: "engineering-standards" }));
+    await recordInstalled(h.env, toEntry({ name: "vertuo-a", stage: "build" }));
     await writeFile(manifestPath(h.env), "{ not json", "utf8");
     const manifest = await readManifest(h.env);
     assert.deepEqual(manifest.skills, {});
@@ -79,7 +79,7 @@ test("a manifest written by an older CLI (no release/coreHash) reads back cleanl
       JSON.stringify({
         version: 1,
         skills: {
-          "vertuo-old-skill": { version: "1.0.0", section: "engineering-standards", surface: "code" },
+          "vertuo-old-skill": { version: "1.0.0", stage: "build", surface: "code" },
         },
       }),
       "utf8",
@@ -88,7 +88,7 @@ test("a manifest written by an older CLI (no release/coreHash) reads back cleanl
     const manifest = await readManifest(h.env);
     assert.deepEqual(manifest.skills["vertuo-old-skill"], {
       version: "1.0.0",
-      section: "engineering-standards",
+      stage: "build",
       surface: "code",
     });
     assert.equal(manifest.skills["vertuo-old-skill"]?.release, undefined);
@@ -99,9 +99,9 @@ test("a manifest written by an older CLI (no release/coreHash) reads back cleanl
 });
 
 test("records the release and core hash alongside the version", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-thing", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-thing", stage: "build" }]);
   try {
-    await recordInstalled(h.env, toEntry({ name: "vertuo-do-thing", section: "engineering-standards" }), {
+    await recordInstalled(h.env, toEntry({ name: "vertuo-do-thing", stage: "build" }), {
       release: "skills-v1.0.0",
       coreHash: "sha256:abc",
     });

@@ -44,7 +44,7 @@ export async function recordInstalled(
   const manifest = await readManifest(env);
   const record: ManifestEntry = {
     version: entry.version,
-    section: entry.section,
+    stage: entry.stage,
     surface: entry.surface,
   };
   if (extra.release !== undefined) record.release = extra.release;

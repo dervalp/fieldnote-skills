@@ -17,9 +17,9 @@ async function exists(p: string): Promise<boolean> {
 }
 
 test("install copies the skill into ~/.claude and creates the skills dir", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
-    const entry = toEntry({ name: "vertuo-do-work", section: "engineering-standards" });
+    const entry = toEntry({ name: "vertuo-do-work", stage: "build" });
     await installSkill(h.env, entry);
 
     const skillMd = join(targetDirFor(h.env, "vertuo-do-work"), "SKILL.md");
@@ -32,13 +32,13 @@ test("install copies the skill into ~/.claude and creates the skills dir", async
 });
 
 test("install is atomic: a missing source leaves the prior version untouched", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
   try {
-    const good = toEntry({ name: "vertuo-do-work", section: "engineering-standards", version: "1.0.0" });
+    const good = toEntry({ name: "vertuo-do-work", stage: "build", version: "1.0.0" });
     await installSkill(h.env, good);
 
-    // An entry whose section points nowhere has no source folder.
-    const broken = toEntry({ name: "vertuo-do-work", section: "nonexistent-section", version: "2.0.0" });
+    // An entry whose name points nowhere has no source folder.
+    const broken = toEntry({ name: "vertuo-nonexistent", stage: "build", version: "2.0.0" });
     await assert.rejects(() => installSkill(h.env, broken), /not found/);
 
     // Prior install intact, manifest still v1, and no temp residue left behind.
@@ -59,19 +59,19 @@ test("install is atomic: a missing source leaves the prior version untouched", a
 
 test("reinstalling replaces content cleanly (no stale files from the old version)", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", section: "engineering-standards", files: { "OLD.md": "old" } },
+    { name: "vertuo-do-work", stage: "build", files: { "OLD.md": "old" } },
   ]);
   try {
-    const entry = toEntry({ name: "vertuo-do-work", section: "engineering-standards" });
+    const entry = toEntry({ name: "vertuo-do-work", stage: "build" });
     await installSkill(h.env, entry);
     const target = targetDirFor(h.env, "vertuo-do-work");
     assert.ok(await exists(join(target, "OLD.md")));
 
     // Remove OLD.md from the source, then reinstall.
     const { rm } = await import("node:fs/promises");
-    await rm(join(h.sourceDir, "engineering-standards", "vertuo-do-work", "OLD.md"));
+    await rm(join(h.sourceDir, "vertuo-do-work", "OLD.md"));
     await writeFile(
-      join(h.sourceDir, "engineering-standards", "vertuo-do-work", "NEW.md"),
+      join(h.sourceDir, "vertuo-do-work", "NEW.md"),
       "new",
       "utf8",
     );
@@ -85,9 +85,9 @@ test("reinstalling replaces content cleanly (no stale files from the old version
 });
 
 test("install records a core hash matching the files on disk", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-thing", section: "engineering-standards" }]);
+  const h = await makeHarness([{ name: "vertuo-do-thing", stage: "build" }]);
   try {
-    await installEntries(h.env, [toEntry({ name: "vertuo-do-thing", section: "engineering-standards" })]);
+    await installEntries(h.env, [toEntry({ name: "vertuo-do-thing", stage: "build" })]);
     const manifest = await readManifest(h.env);
     const recorded = manifest.skills["vertuo-do-thing"]!.coreHash;
     const { coreHash } = hashSkillDir(targetDirFor(h.env, "vertuo-do-thing"));

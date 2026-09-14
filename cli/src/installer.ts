@@ -6,9 +6,9 @@ import { readManifest, recordInstalled } from "./manifest.js";
 import { shipsInSkill } from "./skill-model.js";
 import { hashSkillDir, readRelease } from "./lock.js";
 
-/** Where a skill's source files live: skills/<section>/<name>/. */
+/** Where a skill's source files live: skills/<name>/. */
 export function sourceDirFor(env: Env, entry: SkillEntry): string {
-  return join(env.skillsSourceDir, entry.section, entry.name);
+  return join(env.skillsSourceDir, entry.name);
 }
 
 /** Where a skill is installed: ~/.claude/skills/<name>/. */
