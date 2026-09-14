@@ -13,8 +13,8 @@ release: skills-v0.1.0
 Hand this skill a **PRD/epic** and it takes the next takeable work automatically — no listing issue
 numbers. It reads the epic's children, figures out the dependency frontier, and runs it as a parallel
 wave by delegating to [`fieldnote-parallel-wave`](../fieldnote-parallel-wave/SKILL.md). Each run advances the
-front; you merge between runs — the human-merge gate is the only path code enters the mainline (see
-References).
+front; you merge between runs — human merge is the only path code enters the mainline, a house rule of
+this skill rather than any one repository's fact.
 
 The dependency/frontier logic here is **tooling-agnostic** — it never names a package manager, test
 runner, or language. Anything stack-specific is delegated down to `fieldnote-parallel-wave` and, through
@@ -40,14 +40,16 @@ Default tracker is the current repository's GitHub remote; PRs target `upstream/
 
 ### 1. Discover the children (try several signals, then report)
 
-GitHub has no single parent link, so resolve the child set by combining, in priority order:
+GitHub has no single parent link, so resolve the child set by combining, in priority order — check
+`Tracker → epicLink` in `.fieldnote/profile.md` for how this repository's child issues actually
+reference their parent (a sub-issue relation, a project field, or a body reference), and use whichever
+of these signals matches:
 
 1. **Sub-issues / task list** on the epic body (`- [ ] #NNN`) — if present, authoritative.
 2. **Shared label** (e.g. an epic label) across issues.
 3. **Title prefix** convention (e.g. `[EVAL-UI-V1]`) — read it from the epic if it names one.
-4. **Body back-reference** — however this repository's child issues reference their parent per
-   `Tracker → epicLink` in `.fieldnote/profile.md` (a sub-issue relation, a project field, or a body
-   reference such as `Parent … #<epic>`) (`gh issue list --search "#<epic> in:body"`).
+4. **Body back-reference** — issues whose body contains a parent reference (e.g. `Parent … #<epic>`)
+   (`gh issue list --search "#<epic> in:body"`).
 
 **Print what you found** — the resolved child set and which signal matched — so the human can catch a
 miss before any work starts. If the set is empty or ambiguous, stop and ask.

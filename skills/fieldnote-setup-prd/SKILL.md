@@ -53,7 +53,7 @@ implementation + testing decisions, the seams — see Step 3). Use the domain gl
 
 ### 2. Sketch the seams + the slices together
 
-In one pass, work out **both** halves separately:
+In one pass, work out **both** halves together:
 
 - the **test seams** (prefer existing seams, highest available, propose new ones at the highest point),
   and
