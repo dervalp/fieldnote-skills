@@ -201,7 +201,7 @@ export interface MastraReport {
 /** The Mastra rows: opt-in by path, honest about not having looked. */
 async function mastraReport(orchestrator: string | undefined, lock: Lock): Promise<MastraReport> {
   if (orchestrator === undefined) {
-    return { checked: false, lines: ["  not checked — pass --orchestrator <path to vertuo-orchestrator>"] };
+    return { checked: false, lines: ["  not checked — pass --orchestrator <path to orchestrator repo>"] };
   }
   const appDir = join(orchestrator, "apps", "orchestrator");
   const manifestPath = join(appDir, "src", "mastra", "public", "knowledge", "manifest.json");

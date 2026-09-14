@@ -1,18 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Chalk } from "chalk";
-import { renderBanner } from "./banner.js";
+import { renderBanner, BRAND_PINE } from "./banner.js";
 
-test("renderBanner with color off emits the wordmark and no ANSI escapes", () => {
-  const banner = renderBanner(new Chalk({ level: 0 }));
-  // A distinctive slice of the VERTUOZA block art.
-  assert.ok(banner.includes("╚════"), "expected the block-letter wordmark");
-  assert.ok(banner.includes("shared Claude Code skills"), "expected the tagline");
-  assert.ok(!banner.includes("\x1b"), "expected no ANSI escape sequences when color is off");
+test("the banner carries the lowercase wordmark", () => {
+  const out = renderBanner(new Chalk({ level: 0 }));
+  assert.match(out, /fieldnote/);
+  assert.ok(!out.includes("Fieldnote"), "brand name is always lowercase");
+  assert.ok(!/vertuo/i.test(out));
 });
 
-test("renderBanner with truecolor emits the exact Vertuoza blue (#0050e9)", () => {
-  const banner = renderBanner(new Chalk({ level: 3 }));
-  // #0050e9 === rgb(0, 80, 233) → 24-bit foreground escape.
-  assert.ok(banner.includes("\x1b[38;2;0;80;233m"), "expected the brand-blue truecolor escape");
+test("the banner colours the mark in brand pine", () => {
+  const out = renderBanner(new Chalk({ level: 3 }));
+  assert.ok(out.includes("["), "expected ANSI colour output");
+  assert.equal(BRAND_PINE, "#315b4d");
 });
