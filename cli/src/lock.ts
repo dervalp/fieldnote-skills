@@ -1,5 +1,5 @@
 /**
- * skills.lock.json — the machine half of the parity contract (ADR-0010).
+ * skills.lock.json — the machine half of the parity contract.
  *
  * Per skill: its version, its provenance when vendored, a per-file hash map
  * tagged with the file's role, and a coreHash over the `prompt` files only.
@@ -28,7 +28,7 @@ export interface LockEntry {
   bodyHash?: string;
   coreHash: string;
   files: Record<string, FileHash>;
-  /** Unmanaged skill folder names this skill replaces (ADR-0009). */
+  /** Unmanaged skill folder names this skill replaces. */
   supersedes?: string[];
 }
 

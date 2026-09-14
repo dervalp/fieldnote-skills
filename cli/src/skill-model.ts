@@ -60,7 +60,7 @@ export function shipsInSkill(relPath: string): boolean {
 
 /**
  * Typed artifacts that may flow between skills via `produces:`/`consumes:`
- * frontmatter (ADR-0006). A skill that reintroduces one ships its Zod source
+ * frontmatter. A skill that reintroduces one ships its Zod source
  * and generated JSON Schema under schemas/.
  */
 export const VALID_ARTIFACTS = ["prd"] as const;
@@ -206,7 +206,7 @@ export class Skill {
     return this.stringField("release");
   }
 
-  /** The `vendored:` provenance block (ADR-0009), or null when first-party. */
+  /** The `vendored:` provenance block, or null when first-party. */
   get vendored(): Record<string, string> | null {
     const value = this.frontmatter["vendored"];
     if (value === undefined || typeof value !== "object" || Array.isArray(value)) return null;
@@ -245,12 +245,12 @@ export class Skill {
     return this.listField("mcp");
   }
 
-  /** Artifact types this skill emits (ADR-0006). */
+  /** Artifact types this skill emits. */
   get produces(): string[] {
     return this.listField("produces");
   }
 
-  /** Artifact types this skill reads (ADR-0006). */
+  /** Artifact types this skill reads. */
   get consumes(): string[] {
     return this.listField("consumes");
   }

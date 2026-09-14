@@ -2,7 +2,7 @@
  * Upstream suites wire themselves together by name — Pocock's `implement`
  * hands off to `/code-review`, obra's `writing-plans` defers to
  * `superpowers:executing-plans`. Prefixing the folders would point those at
- * nothing, so the vendor script rewrites them mechanically (ADR-0009). The
+ * nothing, so the vendor script rewrites them mechanically. The
  * pre-rewrite body hash in the lock is what keeps this auditable rather than
  * "we edited their prose".
  *
