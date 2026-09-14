@@ -26,11 +26,11 @@
     {
       "name": "fieldnote-pr-monitor",
       "version": "0.1.0",
-      "coreHash": "sha256:f37f2f16fc9771bfd2f153e761c875ce93b386a92c63c6d88699bd819eb8b2c9",
+      "coreHash": "sha256:f980ec16deac57a49d4752200788d8bb0038c021853258db1fd482144f439799",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:193037dd9cf72b1900bdff4d53b80937ce9a8fa66245c5d109d0f5b2b381e365"
+          "hash": "sha256:35491ec798d46fc0b6235f6f042493dc06322744a1bf1c113edcaf4b7ca916af"
         }
       }
     },
@@ -59,11 +59,11 @@
     {
       "name": "fieldnote-setup-prd",
       "version": "0.1.0",
-      "coreHash": "sha256:71d0971d039f9c8b4679efea59ff1742ede8a199f43d4b77ba7c6f7a6efe92f7",
+      "coreHash": "sha256:981ab15fbcb22ec18fbf26a1a57567c202fc72debd52b71aef59a6c8be04beb6",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:a1ea6b43f40cdcdafc76e4967b53d09df12181b42ded365737b5f220daaa3991"
+          "hash": "sha256:bb4f005a0a62031f6f34bfd40d7a2a9a6d12ba0ac05b8003326e1d19141d4d42"
         }
       }
     },

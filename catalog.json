@@ -31,7 +31,7 @@
     {
       "name": "fieldnote-setup-prd",
       "stage": "plan",
-      "description": "Take a settled design straight to a ticketed epic in one pass — synthesize the PRD, then decompose it into tracer-bullet child issues with a wired-up dependency graph, publishing both. Use when a design is settled (straight out of a brainstorm/grill) and the user says \"set up the PRD\", \"PRD it\", or otherwise wants the PRD + to-issues phases done together rather than as two separate steps. Composes the to-prd and to-issues skills; presents ONE consolidated review and pauses only when a seam, slice, or dependency decision is genuinely ambiguous.",
+      "description": "Take a settled design straight to a ticketed epic in one pass — synthesize the PRD, then decompose it into tracer-bullet child issues with a wired-up dependency graph, publishing both. Use when a design is settled (straight out of a brainstorm/grill) and the user says \"set up the PRD\", \"PRD it\", or otherwise wants the PRD and the issue breakdown done together rather than as two separate steps. Presents ONE consolidated review and pauses only when a seam, slice, or dependency decision is genuinely ambiguous.",
       "surface": "code",
       "version": "0.1.0",
       "mcp": [],
@@ -40,11 +40,11 @@
     {
       "name": "fieldnote-pr-monitor",
       "stage": "review",
-      "description": "Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Use when the board has stalled behind Update-branch turns, or when asked to \"monitor the PRs\", \"drain the board\", \"merge what is safe\". Needs a Turbo monorepo and its package-graph evidence script (see Runs Here Only). `--dry-run` prints every verdict and merges nothing.",
+      "description": "Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Requires a Turbo monorepo and a package-graph evidence script this skill does not ship (see \"Runs Here Only\" below) — it will not work as-is outside that setup. Use when the board has stalled behind Update-branch turns, or when asked to \"monitor the PRs\", \"drain the board\", \"merge what is safe\". `--dry-run` prints every verdict and merges nothing.",
       "surface": "code",
       "version": "0.1.0",
       "mcp": [],
-      "variance": "configured"
+      "variance": "templated"
     },
     {
       "name": "fieldnote-pull-request",
