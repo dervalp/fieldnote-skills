@@ -107,7 +107,7 @@ export function validateSkill(
   ) {
     err(
       `surface '${declaredSurface}' is invalid ` +
-        `(allowed: ${sortedJoin(VALID_SURFACES)}; omit to default to desktop)`,
+        `(allowed: ${sortedJoin(VALID_SURFACES)}; omit to default to code)`,
     );
   }
 
