@@ -7,7 +7,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Plan
 
-_No skills yet._
+- **fieldnote-prd-to-plan** (v0.1.0, universal) — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions "tracer bullets".
 
 ## Build
 
@@ -17,4 +17,4 @@ _No skills yet._
 
 _No skills yet._
 
-_Total: 1 skill(s)._
+_Total: 2 skill(s)._

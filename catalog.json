@@ -9,6 +9,15 @@
       "version": "0.1.0",
       "mcp": [],
       "variance": "universal"
+    },
+    {
+      "name": "fieldnote-prd-to-plan",
+      "stage": "plan",
+      "description": "Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions \"tracer bullets\".",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "universal"
     }
   ]
 }

@@ -11,6 +11,17 @@
           "hash": "sha256:82e7b9daa8fbdb9af91d10cbb7fa5fae8bb28495eeb6b686f945bd73cb196de7"
         }
       }
+    },
+    {
+      "name": "fieldnote-prd-to-plan",
+      "version": "0.1.0",
+      "coreHash": "sha256:761b3c2ae8233ee3098e05b75d302da1651ec0b749f51dc894e948dab0a3b042",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:a7a5cdec0878692eab9e4136b1818c4716338c5d2f52d9796e23302aa8a14e4b"
+        }
+      }
     }
   ]
 }
