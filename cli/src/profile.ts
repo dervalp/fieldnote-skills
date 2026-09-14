@@ -30,7 +30,7 @@ function sectionKey(heading: string): string {
 /** `- **key** — value` (em dash, en dash or hyphen separator). */
 const PAIR_RE = /^-\s+\*\*(.+?)\*\*\s*[—–-]\s*(.*)$/;
 /** A bare `- value` bullet. */
-const ITEM_RE = /^-\s+(?!\*\*)(.*)$/;
+const ITEM_RE = /^-\s+(.*)$/;
 
 export function parseProfile(markdown: string): Profile {
   const profile: Profile = {
@@ -56,6 +56,7 @@ export function parseProfile(markdown: string): Profile {
 
     if (current === "architecture") {
       const item = ITEM_RE.exec(line);
+      // Capture group 1 always exists when the regex matches.
       if (item) profile.architecture.push(item[1]!.trim());
       continue;
     }
@@ -64,6 +65,7 @@ export function parseProfile(markdown: string): Profile {
     if (!pair) continue;
     const bucket = (profile as unknown as Record<string, Record<string, string>>)[current];
     if (bucket && typeof bucket === "object" && !Array.isArray(bucket)) {
+      // Capture groups 1 and 2 always exist when the regex matches.
       bucket[pair[1]!.trim()] = pair[2]!.trim();
     }
   }

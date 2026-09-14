@@ -29,9 +29,12 @@ lowercased and title-cased into a camelCase key ("Merge policy" becomes
 ```
 
 The separator between the bold key and the value may be an em dash (—), an en
-dash (–), or a plain hyphen (-) — use whichever your editor produces. The
-`Architecture` section is the one exception: it holds a bare, ordered list of
-rules instead of key/value pairs:
+dash (–), or a plain hyphen (-) — use whichever your editor produces. Every
+bullet, in every section, must be marked with a plain hyphen (`-`); `*` and
+`+` bullets (both valid Markdown, and what some editors auto-convert to) are
+not recognized and are silently ignored. The `Architecture` section is the
+one exception to the key/value shape: it holds a bare, ordered list of rules
+instead:
 
 ```markdown
 - A rule, stated as a sentence.
@@ -170,6 +173,31 @@ Facts about this repository's branch protection and merge mechanics — never
 - **strictStatusChecks** — true
 - **adminMerge** — false
 ```
+
+## If a key isn't being picked up
+
+`parseProfile` is intentionally forgiving: it never throws on content it
+doesn't recognize, it just ignores it. That means a mistake here fails
+silently rather than with an error message, so check these first before
+assuming a skill or the parser is broken:
+
+- **The heading must be `##` followed by a space, and spelled exactly as
+  one of the seven section names** — `Tracker`, `Labels`, `Commands`,
+  `Docs`, `Architecture`, `Parallelism`, `Merge policy` (case doesn't
+  matter, but the words and their order do). `##Labels` (no space after
+  `##`), `### Labels` (three hashes), and `## Label` (wrong word) all fail
+  to be recognized as one of the seven sections. A heading the parser
+  doesn't recognize is not an error: every bullet under it is silently
+  dropped, and nothing under it becomes available to any skill.
+- **The bullet marker must be a hyphen (`-`)**, not `*` or `+`.
+- **A key/value bullet needs bold around the key**: `` - **key** — value ``.
+  A bullet without the `**...**` around the key parses as an unrecognized
+  line in every section except `Architecture` (where it's the expected
+  shape).
+
+There is no `validate` command for this file yet — the only check today is
+reading the parsed result back, or checking your spelling against this
+document.
 
 ## A complete example
 

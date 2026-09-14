@@ -52,3 +52,31 @@ test("a TODO value is preserved verbatim so init's gaps stay visible", () => {
   const p = parseProfile("## Commands\n\n- **mutation** — TODO\n");
   assert.equal(p.commands.mutation, "TODO");
 });
+
+test("an architecture rule that starts with a bold word is not silently dropped", () => {
+  const p = parseProfile("## Architecture\n\n- **Never** log secrets to stdout.\n");
+  assert.equal(p.architecture.length, 1);
+  assert.match(p.architecture[0], /\*\*Never\*\* log secrets to stdout\./);
+});
+
+test("bullets under an unrecognised heading are dropped, known sections around them still parse", () => {
+  const p = parseProfile(
+    [
+      "## Labels",
+      "",
+      "- **ready** — ready-for-agent",
+      "",
+      "## Colors",
+      "",
+      "- **primary** — blue",
+      "",
+      "## Commands",
+      "",
+      "- **check** — pnpm check",
+      "",
+    ].join("\n"),
+  );
+  assert.equal(p.labels.ready, "ready-for-agent");
+  assert.equal(p.commands.check, "pnpm check");
+  assert.equal((p as unknown as Record<string, unknown>).colors, undefined);
+});
