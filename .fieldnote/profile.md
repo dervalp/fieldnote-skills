@@ -11,6 +11,8 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 - **kind** — github
 - **repo** — dervalp/fieldnote-skills
+- **epicLink** — TODO
+- **blockedBy** — TODO
 
 ## Labels
 
@@ -26,7 +28,7 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 ## Docs
 
 - **definitionOfDone** — TODO
-- **pullRequest** — TODO
+- **pullRequest** — CONTRIBUTING.md
 - **testing** — TODO
 - **verification** — TODO
 - **ciTriage** — TODO
@@ -44,3 +46,14 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 - **strictStatusChecks** — TODO
 - **adminMerge** — TODO
+
+## Localization
+
+- **canonicalLocale** — TODO
+- **locales** — TODO
+- **catalogs** — TODO
+
+## Git
+
+- **baseRemote** — origin
+- **baseBranch** — TODO
