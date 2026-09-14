@@ -341,7 +341,7 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
 
   const pinLabel = headerPin(pins);
   env.logger.info(
-    `Vertuo AI OS · latest release ${lock.release}${pinLabel === null ? "" : ` · ${pinLabel}`}`,
+    `fieldnote skills · latest release ${lock.release}${pinLabel === null ? "" : ` · ${pinLabel}`}`,
   );
   env.logger.info("");
   env.logger.info(`Claude Code  ${tree.root}`);
