@@ -7,6 +7,11 @@ a skill that meets one will stop and ask rather than guess.
 This file carries FACTS, never PROCEDURE. See
 https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
+## Tracker
+
+- **kind** — github
+- **repo** — dervalp/fieldnote-skills
+
 ## Labels
 
 - **ready** — TODO

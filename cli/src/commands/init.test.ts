@@ -9,6 +9,7 @@ test("maps a check script onto Commands.check", () => {
     labels: ["ready-for-agent", "bug"],
     docs: ["docs/definition-of-done.md"],
     strictStatusChecks: true,
+    tracker: { kind: null, repo: null },
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "npm run check");
@@ -23,11 +24,14 @@ test("writes TODO for anything it could not read", () => {
     labels: [],
     docs: [],
     strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
   });
   const p = parseProfile(md);
   assert.equal(p.commands.check, "TODO");
   assert.equal(p.labels.ready, "TODO");
   assert.equal(p.mergePolicy.strictStatusChecks, "TODO");
+  assert.equal(p.tracker.kind, "TODO");
+  assert.equal(p.tracker.repo, "TODO");
 });
 
 test("never invents a label that the repository does not have", () => {
@@ -36,6 +40,20 @@ test("never invents a label that the repository does not have", () => {
     labels: ["bug", "chore"],
     docs: [],
     strictStatusChecks: null,
+    tracker: { kind: null, repo: null },
   });
   assert.ok(!md.includes("ready-for-agent"));
+});
+
+test("maps an observed GitHub remote onto Tracker.kind and Tracker.repo", () => {
+  const md = renderProfile({
+    scripts: {},
+    labels: [],
+    docs: [],
+    strictStatusChecks: null,
+    tracker: { kind: "github", repo: "acme/widgets" },
+  });
+  const p = parseProfile(md);
+  assert.equal(p.tracker.kind, "github");
+  assert.equal(p.tracker.repo, "acme/widgets");
 });

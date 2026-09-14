@@ -18,6 +18,7 @@ export interface ProbeResult {
   labels: string[];
   docs: string[];
   strictStatusChecks: boolean | null;
+  tracker: { kind: string | null; repo: string | null };
 }
 
 const TODO = "TODO";
@@ -45,6 +46,9 @@ function pickDoc(docs: string[], re: RegExp): string | null {
 }
 
 export function renderProfile(probe: ProbeResult): string {
+  const trackerKind = probe.tracker.kind ?? TODO;
+  const trackerRepo = probe.tracker.repo ?? TODO;
+
   const check = pickScript(probe.scripts, ["check", "verify", "ci", "test"]) ?? TODO;
   const preflight = pickScript(probe.scripts, ["preflight", "quality:preflight", "lint"]) ?? TODO;
   const mutation = pickScript(probe.scripts, ["mutation", "mutation:changed", "stryker"]) ?? TODO;
@@ -66,6 +70,11 @@ a skill that meets one will stop and ask rather than guess.
 
 This file carries FACTS, never PROCEDURE. See
 https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
+
+## Tracker
+
+- **kind** — ${trackerKind}
+- **repo** — ${trackerRepo}
 
 ## Labels
 
@@ -139,6 +148,38 @@ function readDocs(repoRoot: string): string[] {
   return found;
 }
 
+/**
+ * `owner/repo` from the `origin` git remote when it points at github.com,
+ * falling back to `gh repo view` (which only ever answers for GitHub).
+ * Never guesses at a non-GitHub tracker kind.
+ */
+function readTracker(repoRoot: string): { kind: string | null; repo: string | null } {
+  try {
+    const url = execFileSync("git", ["remote", "get-url", "origin"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    const match = /github\.com[:/]([^/]+\/[^/]+?)(\.git)?$/.exec(url);
+    if (match) return { kind: "github", repo: match[1]! };
+  } catch {
+    // fall through to the gh-backed probe below
+  }
+
+  try {
+    const nameWithOwner = execFileSync(
+      "gh",
+      ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"],
+      { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+    if (nameWithOwner) return { kind: "github", repo: nameWithOwner };
+  } catch {
+    // no remote, an unrecognisable remote, and no usable `gh` — TODO it is
+  }
+
+  return { kind: null, repo: null };
+}
+
 function readStrictChecks(): boolean | null {
   try {
     const out = execFileSync(
@@ -160,6 +201,7 @@ export function probeRepo(repoRoot: string): ProbeResult {
     labels: readLabels(),
     docs: readDocs(repoRoot),
     strictStatusChecks: readStrictChecks(),
+    tracker: readTracker(repoRoot),
   };
 }
 
