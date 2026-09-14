@@ -16,7 +16,7 @@ async function exists(p: string): Promise<boolean> {
 }
 
 const CODE_SKILL = {
-  name: "vertuo-do-work",
+  name: "fieldnote-do-work",
   stage: "build" as const,
   surface: "both" as const,
   files: {
@@ -32,7 +32,7 @@ test("a code skill with commands/agents/hooks installs all subfolders under ~/.c
   const h = await makeHarness([CODE_SKILL]);
   try {
     await installSkill(h.env, toEntry(CODE_SKILL));
-    const target = targetDirFor(h.env, "vertuo-do-work");
+    const target = targetDirFor(h.env, "fieldnote-do-work");
 
     for (const rel of [
       "SKILL.md",
@@ -48,7 +48,7 @@ test("a code skill with commands/agents/hooks installs all subfolders under ~/.c
 
     // Tracked in the manifest like any other skill.
     const manifest = await readManifest(h.env);
-    assert.equal(manifest.skills["vertuo-do-work"]?.surface, "both");
+    assert.equal(manifest.skills["fieldnote-do-work"]?.surface, "both");
   } finally {
     await h.cleanup();
   }
@@ -60,10 +60,10 @@ test("atomic rollback holds for a multi-folder skill", async () => {
     await installSkill(h.env, toEntry(CODE_SKILL));
 
     // A broken update (missing source) must leave the full multi-folder install intact.
-    const broken = toEntry({ name: "vertuo-nonexistent", stage: "build", version: "2.0.0" });
+    const broken = toEntry({ name: "fieldnote-nonexistent", stage: "build", version: "2.0.0" });
     await assert.rejects(() => installSkill(h.env, broken), /not found/);
 
-    const target = targetDirFor(h.env, "vertuo-do-work");
+    const target = targetDirFor(h.env, "fieldnote-do-work");
     assert.ok(await exists(join(target, "hooks/pre-commit.sh")));
     assert.ok(await exists(join(target, "agents/reviewer.md")));
 
@@ -89,7 +89,7 @@ test("dev-only tests/ folders never install into ~/.claude", async () => {
   const h = await makeHarness([skillWithTests]);
   try {
     await installSkill(h.env, toEntry(skillWithTests));
-    const target = targetDirFor(h.env, "vertuo-do-work");
+    const target = targetDirFor(h.env, "fieldnote-do-work");
 
     assert.ok(await exists(join(target, "SKILL.md")));
     assert.ok(await exists(join(target, "scripts/helper.py")));

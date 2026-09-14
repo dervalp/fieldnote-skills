@@ -19,18 +19,18 @@ async function exists(p: string): Promise<boolean> {
 
 test("install <names> installs named skills without prompting and records versions", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
-    { name: "vertuo-run-agent", stage: "build", version: "2.0.0" },
+    { name: "fieldnote-do-work", stage: "build", version: "1.0.0" },
+    { name: "fieldnote-run-agent", stage: "build", version: "2.0.0" },
   ]);
   try {
-    await runInstall(h.env, ["vertuo-do-work", "vertuo-run-agent"], {});
+    await runInstall(h.env, ["fieldnote-do-work", "fieldnote-run-agent"], {});
 
-    assert.ok(await exists(join(targetDirFor(h.env, "vertuo-do-work"), "SKILL.md")));
-    assert.ok(await exists(join(targetDirFor(h.env, "vertuo-run-agent"), "SKILL.md")));
+    assert.ok(await exists(join(targetDirFor(h.env, "fieldnote-do-work"), "SKILL.md")));
+    assert.ok(await exists(join(targetDirFor(h.env, "fieldnote-run-agent"), "SKILL.md")));
 
     const manifest = await readManifest(h.env);
-    assert.equal(manifest.skills["vertuo-do-work"]?.version, "1.0.0");
-    assert.equal(manifest.skills["vertuo-run-agent"]?.version, "2.0.0");
+    assert.equal(manifest.skills["fieldnote-do-work"]?.version, "1.0.0");
+    assert.equal(manifest.skills["fieldnote-run-agent"]?.version, "2.0.0");
     // The fake prompter was never consulted.
     assert.deepEqual(h.prompter.checkboxAnswers, []);
   } finally {
@@ -39,14 +39,14 @@ test("install <names> installs named skills without prompting and records versio
 });
 
 test("--json emits machine-readable output and nothing decorative", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], { json: true });
+    await runInstall(h.env, ["fieldnote-do-work"], { json: true });
     assert.equal(h.logger.infos.length, 0, "no decorative info lines in --json mode");
     assert.equal(h.logger.outputs.length, 1);
     const payload = JSON.parse(h.logger.outputs[0]!);
     assert.deepEqual(payload.installed, [
-      { name: "vertuo-do-work", version: "1.0.0", action: "installed" },
+      { name: "fieldnote-do-work", version: "1.0.0", action: "installed" },
     ]);
   } finally {
     await h.cleanup();
@@ -54,10 +54,10 @@ test("--json emits machine-readable output and nothing decorative", async () => 
 });
 
 test("reinstalling an existing skill reports action=updated", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], {});
-    await runInstall(h.env, ["vertuo-do-work"], { json: true });
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+    await runInstall(h.env, ["fieldnote-do-work"], { json: true });
     const payload = JSON.parse(h.logger.outputs.at(-1)!);
     assert.equal(payload.installed[0].action, "updated");
   } finally {
@@ -66,16 +66,16 @@ test("reinstalling an existing skill reports action=updated", async () => {
 });
 
 test("installing an unknown skill fails with a clear error", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
-    await assert.rejects(() => runInstall(h.env, ["vertuo-nope"], {}), UserError);
+    await assert.rejects(() => runInstall(h.env, ["fieldnote-nope"], {}), UserError);
   } finally {
     await h.cleanup();
   }
 });
 
 test("install with no names is a user error", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
     await assert.rejects(() => runInstall(h.env, [], {}), /requires at least one skill name/);
   } finally {

@@ -12,13 +12,13 @@ import { readManifest } from "../manifest.js";
 import { makeHarness, bumpVersion } from "../testkit.js";
 
 test("list flags a skill whose bundled version is newer than installed", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build", version: "1.0.0" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build", version: "1.0.0" }]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], {});
-    await bumpVersion(h, "vertuo-do-work", "1.1.0");
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+    await bumpVersion(h, "fieldnote-do-work", "1.1.0");
 
     const rows = await computeRows(h.env);
-    const row = rows.find((r) => r.entry.name === "vertuo-do-work")!;
+    const row = rows.find((r) => r.entry.name === "fieldnote-do-work")!;
     assert.equal(row.installed, true);
     assert.equal(row.installedVersion, "1.0.0");
     assert.equal(row.outdated, true);
@@ -28,16 +28,16 @@ test("list flags a skill whose bundled version is newer than installed", async (
 });
 
 test("update <name> updates a specific skill and refreshes the manifest", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build", version: "1.0.0" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build", version: "1.0.0" }]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], {});
-    await bumpVersion(h, "vertuo-do-work", "2.0.0");
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+    await bumpVersion(h, "fieldnote-do-work", "2.0.0");
 
-    await runUpdate(h.env, ["vertuo-do-work"]);
+    await runUpdate(h.env, ["fieldnote-do-work"]);
 
     const manifest = await readManifest(h.env);
-    assert.equal(manifest.skills["vertuo-do-work"]?.version, "2.0.0");
-    const md = await readFile(join(targetDirFor(h.env, "vertuo-do-work"), "SKILL.md"), "utf8");
+    assert.equal(manifest.skills["fieldnote-do-work"]?.version, "2.0.0");
+    const md = await readFile(join(targetDirFor(h.env, "fieldnote-do-work"), "SKILL.md"), "utf8");
     assert.match(md, /version: 2\.0\.0/);
   } finally {
     await h.cleanup();
@@ -46,31 +46,31 @@ test("update <name> updates a specific skill and refreshes the manifest", async 
 
 test("interactive update pre-checks outdated skills", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
-    { name: "vertuo-run-agent", stage: "build", version: "1.0.0" },
+    { name: "fieldnote-do-work", stage: "build", version: "1.0.0" },
+    { name: "fieldnote-run-agent", stage: "build", version: "1.0.0" },
   ]);
   try {
-    await runInstall(h.env, ["vertuo-do-work", "vertuo-run-agent"], {});
-    await bumpVersion(h, "vertuo-do-work", "1.1.0"); // only this one is outdated
+    await runInstall(h.env, ["fieldnote-do-work", "fieldnote-run-agent"], {});
+    await bumpVersion(h, "fieldnote-do-work", "1.1.0"); // only this one is outdated
 
     // Accept the pre-selection: the picker should default-check the outdated one.
-    h.prompter.checkboxAnswers = [["vertuo-do-work"]];
+    h.prompter.checkboxAnswers = [["fieldnote-do-work"]];
     await runUpdate(h.env, []);
 
     const checked = h.prompter.lastCheckboxChoices.filter(
       (c): c is { name: string; value: string; checked?: boolean } => "checked" in c && Boolean(c.checked),
     );
-    assert.deepEqual(checked.map((c) => c.value), ["vertuo-do-work"]);
+    assert.deepEqual(checked.map((c) => c.value), ["fieldnote-do-work"]);
 
     const manifest = await readManifest(h.env);
-    assert.equal(manifest.skills["vertuo-do-work"]?.version, "1.1.0");
+    assert.equal(manifest.skills["fieldnote-do-work"]?.version, "1.1.0");
   } finally {
     await h.cleanup();
   }
 });
 
 test("update with nothing installed guides the user", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
     await runUpdate(h.env, []);
     assert.ok(h.logger.infos.some((l) => /No skills installed/.test(l)));
@@ -81,35 +81,35 @@ test("update with nothing installed guides the user", async () => {
 
 test("sync updates outdated installed skills and reports newly available ones", async () => {
   const h = await makeHarness([
-    { name: "vertuo-do-work", stage: "build", version: "1.0.0" },
-    { name: "vertuo-run-agent", stage: "build", version: "1.0.0" },
+    { name: "fieldnote-do-work", stage: "build", version: "1.0.0" },
+    { name: "fieldnote-run-agent", stage: "build", version: "1.0.0" },
   ]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], {}); // only do-work installed
-    await bumpVersion(h, "vertuo-do-work", "1.2.0"); // and it is now outdated
+    await runInstall(h.env, ["fieldnote-do-work"], {}); // only do-work installed
+    await bumpVersion(h, "fieldnote-do-work", "1.2.0"); // and it is now outdated
 
     await runSync(h.env, { json: true });
     const payload = JSON.parse(h.logger.outputs.at(-1)!);
 
     assert.deepEqual(payload.updated, [
-      { name: "vertuo-do-work", version: "1.2.0", action: "updated" },
+      { name: "fieldnote-do-work", version: "1.2.0", action: "updated" },
     ]);
     assert.deepEqual(
       payload.available.map((s: { name: string }) => s.name),
-      ["vertuo-run-agent"],
+      ["fieldnote-run-agent"],
     );
 
     const manifest = await readManifest(h.env);
-    assert.equal(manifest.skills["vertuo-do-work"]?.version, "1.2.0");
+    assert.equal(manifest.skills["fieldnote-do-work"]?.version, "1.2.0");
   } finally {
     await h.cleanup();
   }
 });
 
 test("sync with everything current reports up to date", async () => {
-  const h = await makeHarness([{ name: "vertuo-do-work", stage: "build" }]);
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
-    await runInstall(h.env, ["vertuo-do-work"], {});
+    await runInstall(h.env, ["fieldnote-do-work"], {});
     await runSync(h.env, {});
     assert.ok(h.logger.infos.some((l) => /up to date/.test(l)));
   } finally {

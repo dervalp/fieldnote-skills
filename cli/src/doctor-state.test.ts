@@ -8,7 +8,7 @@ const LOCK: Lock = {
   release: "skills-v1.0.0",
   skills: [
     { name: "fieldnote-matt-tdd", version: "1.0.0", coreHash: "sha256:aaa", files: {}, supersedes: ["tdd"] },
-    { name: "vertuo-validate-ticket", version: "2.4.2", coreHash: "sha256:bbb", files: {} },
+    { name: "fieldnote-validate-ticket", version: "2.4.2", coreHash: "sha256:bbb", files: {} },
   ],
 };
 
@@ -67,9 +67,9 @@ test("a pre-release install with no recorded release counts as behind, not modif
   const rows = classifyInstalled({
     lock: LOCK,
     manifest: manifestOf({
-      "vertuo-validate-ticket": { version: "2.4.2", stage: "build", surface: "code" },
+      "fieldnote-validate-ticket": { version: "2.4.2", stage: "build", surface: "code" },
     }),
-    onDiskCoreHash: new Map([["vertuo-validate-ticket", "sha256:bbb"]]),
+    onDiskCoreHash: new Map([["fieldnote-validate-ticket", "sha256:bbb"]]),
     supersedes: new Map(),
   });
   assert.equal(rows[0]!.state, "behind");
@@ -79,13 +79,13 @@ test("rows come back sorted by name", () => {
   const rows = classifyInstalled({
     lock: LOCK,
     manifest: manifestOf({
-      "vertuo-validate-ticket": { version: "2.4.2", stage: "build", surface: "code", release: "skills-v1.0.0", coreHash: "sha256:bbb" },
+      "fieldnote-validate-ticket": { version: "2.4.2", stage: "build", surface: "code", release: "skills-v1.0.0", coreHash: "sha256:bbb" },
       "fieldnote-matt-tdd": { version: "1.0.0", stage: "build", surface: "both", release: "skills-v1.0.0", coreHash: "sha256:aaa" },
     }),
-    onDiskCoreHash: new Map([["fieldnote-matt-tdd", "sha256:aaa"], ["vertuo-validate-ticket", "sha256:bbb"]]),
+    onDiskCoreHash: new Map([["fieldnote-matt-tdd", "sha256:aaa"], ["fieldnote-validate-ticket", "sha256:bbb"]]),
     supersedes: new Map(),
   });
-  assert.deepEqual(rows.map((r) => r.name), ["fieldnote-matt-tdd", "vertuo-validate-ticket"]);
+  assert.deepEqual(rows.map((r) => r.name), ["fieldnote-matt-tdd", "fieldnote-validate-ticket"]);
 });
 
 test("an unmanaged directory absent from both manifest and lock is orphaned with no known version or release", () => {
@@ -206,7 +206,7 @@ test("a skill whose tree could not be read is unreadable, not modified", () => {
 test("findOrphans reports manifest-tracked and unmanaged directories alike", () => {
   const orphans = findOrphans({
     manifest: manifestOf({
-      "vertuo-do-work": { version: "2.1.0", stage: "build", surface: "code" },
+      "fieldnote-do-work": { version: "2.1.0", stage: "build", surface: "code" },
     }),
     known: new Set(["fieldnote-matt-tdd"]),
     supersedes: new Map([["tdd", "fieldnote-matt-tdd"]]),
@@ -214,7 +214,7 @@ test("findOrphans reports manifest-tracked and unmanaged directories alike", () 
   });
   assert.deepEqual(
     orphans.map((o) => [o.name, o.removable]),
-    [["my-own-experiment", false], ["tdd", true], ["vertuo-do-work", true]],
+    [["fieldnote-do-work", true], ["my-own-experiment", false], ["tdd", true]],
   );
 });
 
@@ -231,8 +231,8 @@ test("only a manifest-tracked or superseded orphan is removable", () => {
 });
 
 test("knownSkillNames unions the lock with the catalog", () => {
-  const known = knownSkillNames(LOCK, ["vertuo-brand-new"]);
+  const known = knownSkillNames(LOCK, ["fieldnote-brand-new"]);
   assert.ok(known.has("fieldnote-matt-tdd"));
-  assert.ok(known.has("vertuo-brand-new"));
+  assert.ok(known.has("fieldnote-brand-new"));
   assert.equal(known.has("tdd"), false);
 });

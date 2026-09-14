@@ -63,7 +63,7 @@ test("bodyOf returns everything after the closing fence", () => {
 
 test("roles are assigned and coreHash is stable across runs", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     const skillDir = dirname(md);
     writeFileSync(join(skillDir, "b.md"), "bee\n", "utf8");
     writeFileSync(join(skillDir, "a.md"), "ay\n", "utf8");
@@ -80,7 +80,7 @@ test("roles are assigned and coreHash is stable across runs", () => {
 
 test("a tooling-only change leaves coreHash alone but changes its file hash", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     mkdirSync(join(dirname(md), "scripts"), { recursive: true });
     writeFileSync(join(dirname(md), "scripts", "run.sh"), "one\n", "utf8");
     const before = computeLockEntry(discover(d)[0]!);
@@ -93,7 +93,7 @@ test("a tooling-only change leaves coreHash alone but changes its file hash", ()
 
 test("a prompt-file change does change coreHash", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     writeFileSync(join(dirname(md), "a.md"), "one\n", "utf8");
     const before = computeLockEntry(discover(d)[0]!);
     writeFileSync(join(dirname(md), "a.md"), "two\n", "utf8");
@@ -103,7 +103,7 @@ test("a prompt-file change does change coreHash", () => {
 
 test("tests/ is excluded from the lock, as it never ships", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE), ["tests"]);
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE), ["tests"]);
     const entry = computeLockEntry(discover(d)[0]!);
     assert.ok(!Object.keys(entry.files).some((f) => f.startsWith("tests/")), Object.keys(entry.files).join(","));
   });
@@ -111,11 +111,11 @@ test("tests/ is excluded from the lock, as it never ships", () => {
 
 test("buildLock stamps the release and covers every discovered skill", () => {
   withSkillsDir((d) => {
-    writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
-    writeSkill(d, "vertuo-make-deck", baseFm("vertuo-make-deck"));
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
+    writeSkill(d, "fieldnote-make-deck", baseFm("fieldnote-make-deck"));
     const lock = buildLock(discover(d), "skills-v1.0.0");
     assert.equal(lock.release, "skills-v1.0.0");
-    assert.deepEqual(lock.skills.map((s) => s.name).sort(), ["vertuo-do-thing", "vertuo-make-deck"]);
+    assert.deepEqual(lock.skills.map((s) => s.name).sort(), ["fieldnote-do-thing", "fieldnote-make-deck"]);
   });
 });
 
@@ -147,11 +147,11 @@ test("a vendored skill's lock entry carries vendored, upstreamBodyHash, and a di
 
 test("computeLockEntry falls back to folderName when name is absent from frontmatter", () => {
   withSkillsDir((d) => {
-    const fm = baseFm("vertuo-do-thing", CODE);
+    const fm = baseFm("fieldnote-do-thing", CODE);
     delete fm["name"];
-    writeSkill(d, "vertuo-do-thing", fm);
+    writeSkill(d, "fieldnote-do-thing", fm);
     const entry = computeLockEntry(discover(d)[0]!);
-    assert.equal(entry.name, "vertuo-do-thing");
+    assert.equal(entry.name, "fieldnote-do-thing");
   });
 });
 
@@ -221,7 +221,7 @@ test("readLock returns null when skills is not an array", () => {
 
 test("hashSkillDir stays strict for a repo skill, so npm run catalog fails loudly", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     const skillDir = dirname(md);
     // The everyday breakage: a symlink into a repo that has since moved.
     symlinkSync(join(skillDir, "nowhere", "gone.md"), join(skillDir, "dangling.md"));
@@ -231,7 +231,7 @@ test("hashSkillDir stays strict for a repo skill, so npm run catalog fails loudl
 
 test("hashSkillDirSafe reports the unreadable entry instead of aborting the run", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     const skillDir = dirname(md);
     symlinkSync(join(skillDir, "nowhere", "gone.md"), join(skillDir, "dangling.md"));
 
@@ -245,7 +245,7 @@ test("hashSkillDirSafe reports the unreadable entry instead of aborting the run"
 
 test("hashSkillDirSafe survives an unreadable subdirectory", () => {
   withSkillsDir((d) => {
-    const md = writeSkill(d, "vertuo-do-thing", baseFm("vertuo-do-thing", CODE));
+    const md = writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", CODE));
     const skillDir = dirname(md);
     symlinkSync(join(skillDir, "nowhere"), join(skillDir, "references"));
     const result = hashSkillDirSafe(skillDir);

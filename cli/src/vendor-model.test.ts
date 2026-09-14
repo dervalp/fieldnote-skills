@@ -12,8 +12,8 @@ test("recognises every vendored prefix", () => {
   assert.equal(isVendoredName("fieldnote-matt-tdd"), true);
   assert.equal(isVendoredName("fieldnote-matt-setup-matt-pocock-skills"), true);
   assert.equal(isVendoredName("fieldnote-superpowers-brainstorming"), true);
-  assert.equal(isVendoredName("vertuo-validate-ticket"), false);
-  assert.equal(isVendoredName("vertuo-product-write-user-story"), false);
+  assert.equal(isVendoredName("fieldnote-validate-ticket"), false);
+  assert.equal(isVendoredName("fieldnote-product-write-user-story"), false);
 });
 
 test("a bare prefix with nothing after it is not a vendored name", () => {
@@ -26,7 +26,7 @@ test("a bare prefix with nothing after it is not a vendored name", () => {
 test("names which upstream a vendored skill came from", () => {
   assert.equal(vendorPrefixOf("fieldnote-matt-tdd"), "fieldnote-matt-");
   assert.equal(vendorPrefixOf("fieldnote-superpowers-writing-plans"), "fieldnote-superpowers-");
-  assert.equal(vendorPrefixOf("vertuo-validate-ticket"), undefined);
+  assert.equal(vendorPrefixOf("fieldnote-validate-ticket"), undefined);
 });
 
 test("the printable prefix list names every upstream", () => {

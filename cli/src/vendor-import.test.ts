@@ -386,8 +386,8 @@ test("refuses to import under a name that is not a vendored name, before wiping 
 
     // The section directory, holding an unrelated skill that must survive.
     const section = join(root, "out", "engineering-standards");
-    mkdirSync(join(section, "vertuo-do-work"), { recursive: true });
-    writeFileSync(join(section, "vertuo-do-work", "SKILL.md"), "---\nname: vertuo-do-work\n---\n", "utf8");
+    mkdirSync(join(section, "fieldnote-do-work"), { recursive: true });
+    writeFileSync(join(section, "fieldnote-do-work", "SKILL.md"), "---\nname: fieldnote-do-work\n---\n", "utf8");
 
     for (const [name, destDir] of [
       ["tdd", join(section, "tdd")], // prefix: "" — an unprefixed name
@@ -411,8 +411,8 @@ test("refuses to import under a name that is not a vendored name, before wiping 
     }
 
     assert.equal(
-      readFileSync(join(section, "vertuo-do-work", "SKILL.md"), "utf8"),
-      "---\nname: vertuo-do-work\n---\n",
+      readFileSync(join(section, "fieldnote-do-work", "SKILL.md"), "utf8"),
+      "---\nname: fieldnote-do-work\n---\n",
       "the section directory and its skills must survive a refused import",
     );
   } finally {
@@ -474,8 +474,8 @@ test("refuses a destination whose name carries no known vendor prefix", () => {
         importSkill({
           refStyle: { kind: "namespace", namespace: "superpowers" },
           upstreamRoot: join(root, "up"),
-          destDir: join(root, "out", "vertuo-obra-brainstorming"),
-          name: "vertuo-obra-brainstorming",
+          destDir: join(root, "out", "fieldnote-obra-brainstorming"),
+          name: "fieldnote-obra-brainstorming",
           release: "unreleased",
           skill: { ...SKILL, upstreamPath: "skills/brainstorming" },
           common: COMMON,
