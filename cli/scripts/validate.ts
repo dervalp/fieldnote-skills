@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Validate every skill in skills/ against the Vertuo AI Playbook conventions.
+ * Validate every skill in skills/ against this repository's frontmatter
+ * conventions — required fields, the name pattern, semver, and the closed
+ * sets for stage/variance/surface.
  * Runs in CI on every PR; exits non-zero (failing the PR) on any violation.
  * Run from the repo root: npm run validate
  */
