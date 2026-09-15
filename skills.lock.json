@@ -80,12 +80,12 @@
     },
     {
       "name": "fieldnote-setup-profile",
-      "version": "0.1.0",
-      "coreHash": "sha256:ca2dc2951dfcb2d5559886c3b72bf590db6108260db06598d2f07e15f37375d0",
+      "version": "0.2.0",
+      "coreHash": "sha256:021d4c77f578ccd1ea089b882d6198fd0671bbfb4196eb58e61051839be33e69",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:e89ec1b3f2b42c155901dd9a0468ebb4eb509b44fca4082c9d2f417c28730771"
+          "hash": "sha256:2010d308c4547bce8e966ec56ea57716cd1089c8c15b8972d53d86c505415f01"
         }
       }
     },

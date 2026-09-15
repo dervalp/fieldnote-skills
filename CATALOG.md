@@ -7,7 +7,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Setup
 
-- **fieldnote-setup-profile** (v0.1.0, universal) — Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says "set up the profile", "fill in the profile", "onboard this repo", or asks why a fieldnote skill keeps asking the same question.
+- **fieldnote-setup-profile** (v0.2.0, universal) — Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says "set up the profile", "fill in the profile", "onboard this repo", or asks why a fieldnote skill keeps asking the same question.
 
 ## Plan
 
