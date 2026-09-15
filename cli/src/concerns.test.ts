@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -12,6 +12,8 @@ import {
   missingConcerns,
   sortConcerns,
 } from "./concerns.js";
+
+const repoRoot = join(import.meta.dirname, "..", "..");
 
 /** A temp repo root with the given concern files present, removed afterwards. */
 function withRepo(files: string[], fn: (root: string) => void): void {
@@ -76,4 +78,18 @@ test("findConcerns keeps a repository's own concern name", () => {
 test("missingConcerns names declared files the repository does not have", () => {
   assert.deepEqual(missingConcerns(["shared", "qa", "ci"], ["shared"]), ["qa", "ci"]);
   assert.deepEqual(missingConcerns(["shared"], ["shared", "ci"]), []);
+});
+
+test("a starter ships for every advised concern", () => {
+  for (const name of ADVISED_CONCERNS) {
+    const path = join(repoRoot, "templates", "concerns", `${name}.md`);
+    assert.ok(existsSync(path), `templates/concerns/${name}.md must exist`);
+  }
+});
+
+test("the convention document shows every advised concern, so the copies cannot drift", () => {
+  const md = readFileSync(join(repoRoot, "docs", "concerns.md"), "utf8");
+  for (const name of ADVISED_CONCERNS) {
+    assert.ok(md.includes(concernPath(name)), `docs/concerns.md must show ${concernPath(name)}`);
+  }
 });
