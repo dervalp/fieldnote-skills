@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Chalk } from "chalk";
 import { renderBanner, BRAND_EMBER } from "./banner.js";
 
-const ESC = "";
+const ESC = "\x1b";
 
 test("the banner carries the lowercase wordmark", () => {
   const out = renderBanner(new Chalk({ level: 0 }));

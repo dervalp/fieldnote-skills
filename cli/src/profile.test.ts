@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseProfile } from "./profile.js";
+import { parseProfile, isDeclaredAbsent } from "./profile.js";
 
 const SAMPLE = `# fieldnote profile
 
@@ -79,4 +79,52 @@ test("bullets under an unrecognised heading are dropped, known sections around t
   assert.equal(p.labels.ready, "ready-for-agent");
   assert.equal(p.commands.check, "pnpm check");
   assert.equal((p as unknown as Record<string, unknown>).colors, undefined);
+});
+
+test("a (none) value is omitted from the record, so nothing can run it as a command", () => {
+  const p = parseProfile("## Commands\n\n- **check** — pnpm check\n- **mutation** — (none)\n");
+  assert.equal(p.commands.check, "pnpm check");
+  assert.equal(p.commands.mutation, undefined);
+});
+
+test("a (none) value is recorded as declared-absent, distinct from never answered", () => {
+  const p = parseProfile("## Commands\n\n- **mutation** — (none)\n- **preflight** — TODO\n");
+  assert.ok(p.declaredAbsent.has("commands.mutation"));
+  assert.ok(!p.declaredAbsent.has("commands.preflight"));
+  assert.equal(p.commands.preflight, "TODO", "TODO still parses verbatim");
+});
+
+test("isDeclaredAbsent answers for a key that was never mentioned at all", () => {
+  const p = parseProfile("## Commands\n\n- **mutation** — (none)\n");
+  assert.equal(isDeclaredAbsent(p, "commands.mutation"), true);
+  assert.equal(isDeclaredAbsent(p, "commands.check"), false);
+});
+
+test("a whole section can be declared absent with a bare (none) bullet", () => {
+  const p = parseProfile("## Localization\n\n- (none)\n");
+  assert.ok(p.declaredAbsent.has("localization"));
+  assert.deepEqual(p.localization, {});
+});
+
+test("the marker is matched case-insensitively and ignores surrounding space", () => {
+  const p = parseProfile("## Commands\n\n- **mutation** —   (None)  \n");
+  assert.ok(p.declaredAbsent.has("commands.mutation"));
+  assert.equal(p.commands.mutation, undefined);
+});
+
+test("a (none) bullet in Architecture declares the section absent, not a rule named (none)", () => {
+  const p = parseProfile("## Architecture\n\n- (none)\n");
+  assert.deepEqual(p.architecture, []);
+  assert.ok(p.declaredAbsent.has("architecture"));
+});
+
+test("declaredAbsent is an empty set, never undefined, for a profile that uses no markers", () => {
+  const p = parseProfile("# empty\n");
+  assert.equal(p.declaredAbsent.size, 0);
+});
+
+test("a bare (none) under an unrecognised heading is dropped, like every other bullet there", () => {
+  const p = parseProfile("## Colors\n\n- (none)\n\n## Commands\n\n- **check** — pnpm check\n");
+  assert.equal(p.declaredAbsent.has("colors"), false);
+  assert.equal(p.commands.check, "pnpm check", "a known section after it still parses");
 });

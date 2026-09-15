@@ -10,6 +10,11 @@
 npx github:dervalp/fieldnote-skills
 ```
 
+The default run first asks what you want to install — the picker starts fully
+ticked, so a plain Enter installs everything — then filters by stage.
+`npx github:dervalp/fieldnote-skills --all` installs every skill with no
+prompts at all, which is what you want in CI or anywhere there is no TTY.
+
 Requires Node >=21.
 
 ## Why
@@ -36,6 +41,7 @@ that shipped one company's software starts shipping yours.
 
 | Skill | Stage | Job |
 | --- | --- | --- |
+| `fieldnote-setup-profile` | setup | Writes `.fieldnote/profile.md` by reading the repository, and asks only about what it cannot. |
 | `fieldnote-setup-prd` | plan | Turns a settled design into a published PRD and its ticketed child issues, in one pass. |
 | `fieldnote-prd-to-plan` | plan | Breaks a PRD into a phased implementation plan of tracer-bullet vertical slices. |
 | `fieldnote-parallel-wave` | build | Implements a set of independent, ready-for-agent issues concurrently — one worktree and one PR per issue. |
@@ -78,19 +84,26 @@ Scaffold a starting point with:
 npx github:dervalp/fieldnote-skills init
 ```
 
+`init` fills what a regex can prove and marks the rest `TODO`. To fill the
+rest, run `/fieldnote-setup-profile` in Claude Code: it reads the repository —
+the CI workflow, the written rules, the deploy configuration — and asks only
+about what the repository genuinely cannot answer. See
+[docs/definition-of-done.md](docs/definition-of-done.md) for the one document
+it will push you to write.
+
 The profile carries facts, never procedure. It says which command runs your
 tests, not when to merge — that's the skill's job, and it's the same
 everywhere. See [docs/profile.md](docs/profile.md) for the full format.
 
 ## Status
 
-Seven of the twelve skills fieldnote runs on ship here. The other five —
+Eight of the thirteen skills fieldnote runs on ship here. The other five —
 `fieldnote-do-work`, `fieldnote-fix-bug`, `fieldnote-brainstorming`,
 `fieldnote-react-review`, and `fieldnote-react-sweep` — are `templated`: they
 still carry one company's language and framework doctrine, and generalizing
 them is later work.
 
-That gap is not cosmetic. The seven skills shipped here already reference the
+That gap is not cosmetic. The skills shipped here already reference the
 skills that aren't: 13 references to `fieldnote-do-work`, 1 to
 `fieldnote-fix-bug`. Install today and `fieldnote-deliver` or
 `fieldnote-parallel-wave` will hand implementation to a skill that isn't in
@@ -104,7 +117,7 @@ script that produces it. It will not run as-is outside that setup.
 |                                      | State               |
 | ------------------------------------ | ------------------- |
 | Plugin marketplace + npx install     | Shipped             |
-| Seven skills, profile-decoupled      | Shipped             |
+| Eight skills, profile-decoupled      | Shipped             |
 | `init` — scaffold a profile          | Shipped             |
 | Five templated skills                | Designed, not built |
 | `tailor` — render per repository     | Designed, not built |

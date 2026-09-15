@@ -27,7 +27,7 @@ https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md
 
 ## Docs
 
-- **definitionOfDone** — TODO
+- **definitionOfDone** — .fieldnote/definition-of-done.md
 - **pullRequest** — CONTRIBUTING.md
 - **testing** — TODO
 - **verification** — TODO

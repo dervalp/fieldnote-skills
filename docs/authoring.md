@@ -8,7 +8,7 @@
 
 2. **Fill in the frontmatter.** `name` (must equal the folder name),
    `description` (15+ words, containing a `use when …` clause), `stage`
-   (`plan` / `build` / `review`), `version` (semver), and `variance`
+   (`setup` / `plan` / `build` / `review`), `version` (semver), and `variance`
    (`universal` / `configured` / `templated` — see below). `surface`
    defaults to `code`; only set it otherwise if the skill is desktop-only.
    Leave `release` as the template set it — once this repository has cut a
