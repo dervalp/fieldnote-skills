@@ -17,7 +17,7 @@ import { stageLabel, VARIANCE_LABELS } from "./skill-model.js";
  * comes from `stageLabel()` (skill-model.ts) rather than being repeated here,
  * so the labels have exactly one source of truth.
  */
-const STAGE_ORDER: readonly string[] = ["plan", "build", "review"];
+const STAGE_ORDER: readonly string[] = ["setup", "plan", "build", "review"];
 
 const byCodepoint = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 

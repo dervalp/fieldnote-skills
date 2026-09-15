@@ -9,10 +9,15 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-/** Position in the delivery loop. Read from frontmatter — the skills tree is flat. */
-export const VALID_STAGES = ["plan", "build", "review"] as const;
+/**
+ * Position in the delivery loop, in the order work passes through it. Read
+ * from frontmatter — the skills tree is flat. `setup` comes first: it is what
+ * you do to a repository before any of the other three can run well.
+ */
+export const VALID_STAGES = ["setup", "plan", "build", "review"] as const;
 
 export const STAGE_LABELS: Record<(typeof VALID_STAGES)[number], string> = {
+  setup: "Setup",
   plan: "Plan",
   build: "Build",
   review: "Review",

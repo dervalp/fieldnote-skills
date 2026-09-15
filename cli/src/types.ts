@@ -2,7 +2,7 @@
 
 export type Surface = "desktop" | "code" | "both";
 /** Position in the delivery loop. */
-export type SkillStage = "plan" | "build" | "review";
+export type SkillStage = "setup" | "plan" | "build" | "review";
 /** How much a repository must tailor the skill. */
 export type SkillVariance = "universal" | "configured" | "templated";
 

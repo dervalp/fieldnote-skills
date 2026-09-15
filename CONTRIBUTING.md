@@ -38,7 +38,8 @@ What the validator actually checks:
 - **`description`** — required; at least 15 words, and must contain a
   `use when …` trigger clause. Write it for someone who doesn't know the
   skill exists yet.
-- **`stage`** — required; one of `plan`, `build`, `review`.
+- **`stage`** — required; one of `setup`, `plan`, `build`, `review`. `setup` is
+  for a skill that prepares a repository before the loop runs in it.
 - **`version`** — required; semver (`X.Y.Z`).
 - **`release`** — required once this repository has cut a release; must equal
   the value in `release.json` at the repo root (currently `skills-v0.1.0`).

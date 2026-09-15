@@ -160,7 +160,7 @@ test("skill names must carry the fieldnote prefix", () => {
 });
 
 test("stage and variance are closed sets", () => {
-  assert.deepEqual([...VALID_STAGES], ["plan", "build", "review"]);
+  assert.deepEqual([...VALID_STAGES], ["setup", "plan", "build", "review"]);
   assert.deepEqual([...VALID_VARIANCES], ["universal", "configured", "templated"]);
 });
 
