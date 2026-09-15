@@ -131,12 +131,17 @@ works, or when a check goes red. Advised files: `shared.md`, `front-end.md`,
 Draft only what the repository actually shows you:
 
 - **A profile with an `Architecture` section** — that section is superseded.
-  Move its bullets into `shared.md` verbatim and say you moved them.
+  Read `.fieldnote/concerns/shared.md` first. If it does not exist, move the
+  section's bullets into it verbatim and say you moved them. If it already
+  exists, leave it alone and report which bullets were not moved instead of
+  merging into someone's hand-written file.
 - **Written rules already in the repository** — a contributing guide, a
   coding-standards document, a rules file an agent already reads. Lift the
   rules that bind, and cite the source document rather than copying it whole.
-- **Nothing to read** — write the file from `templates/concerns/` with its
-  examples intact, and say plainly that it is a starter nobody has filled in.
+- **Nothing to read** — check whether the destination file already exists
+  first; if it does, leave it alone. Otherwise write it from
+  `templates/concerns/` with its examples intact, and say plainly that it is
+  a starter nobody has filled in.
 
 Do not invent a rule. A rule nobody wrote down is not a rule, and an invented
 one is worse than an absent one because every skill downstream will obey it.
