@@ -92,8 +92,16 @@ export function parseProfile(markdown: string): Profile {
     if (!pair) {
       // A bare `- (none)` under a key/value section declares the whole
       // section absent (e.g. a repository with no localization at all).
+      // Guarded the same way as the key/value path below, so an
+      // unrecognised heading stays silently dropped rather than becoming
+      // an entry nothing can ever query.
       const item = ITEM_RE.exec(line);
-      if (item && isNone(item[1]!) && current) profile.declaredAbsent.add(current);
+      if (item && isNone(item[1]!) && current) {
+        const section = (profile as unknown as Record<string, unknown>)[current];
+        if (section && typeof section === "object" && !Array.isArray(section)) {
+          profile.declaredAbsent.add(current);
+        }
+      }
       continue;
     }
     const bucket = (profile as unknown as Record<string, Record<string, string>>)[current];

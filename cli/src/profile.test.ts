@@ -122,3 +122,9 @@ test("declaredAbsent is an empty set, never undefined, for a profile that uses n
   const p = parseProfile("# empty\n");
   assert.equal(p.declaredAbsent.size, 0);
 });
+
+test("a bare (none) under an unrecognised heading is dropped, like every other bullet there", () => {
+  const p = parseProfile("## Colors\n\n- (none)\n\n## Commands\n\n- **check** — pnpm check\n");
+  assert.equal(p.declaredAbsent.has("colors"), false);
+  assert.equal(p.commands.check, "pnpm check", "a known section after it still parses");
+});
