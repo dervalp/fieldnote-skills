@@ -24,12 +24,15 @@ Usage:
   fieldnote-skills doctor            Report release drift across all surfaces
                   [--strict] [--json]
   fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
+                  [--force] [--print]
 
 Flags:
   --all         Install every skill without prompting (honours --stage)
   --stage       Filter list by plan, build, review, or all
   --yes, -y     Skip confirmation prompts
   --json        Machine-readable output
+  --force       Overwrite an existing .fieldnote/profile.md
+  --print       Print the probed profile to stdout; write nothing
   --help, -h    Show this help
 
 To author a skill, open a pull request against dervalp/fieldnote-skills.
@@ -80,7 +83,7 @@ async function main(): Promise<number> {
         json: Boolean(flags.json),
       });
     case "init":
-      return await runInit(env, { force: Boolean(flags.force) });
+      return await runInit(env, { force: Boolean(flags.force), print: Boolean(flags.print) });
     default:
       logger.error(`Unknown command "${command}".`);
       logger.output(HELP);
