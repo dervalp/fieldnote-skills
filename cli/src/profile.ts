@@ -19,6 +19,16 @@ export interface Profile {
   mergePolicy: Record<string, string>;
   localization: Record<string, string>;
   git: Record<string, string>;
+  /**
+   * Dotted keys whose value was the `(none)` marker — `commands.mutation` for
+   * a key, a bare section name like `localization` for a whole section.
+   *
+   * The value itself is deliberately NOT kept in the records above: a skill
+   * reading `profile.commands.mutation` gets `undefined` and cannot run the
+   * literal string "(none)" as a command. This set is how a skill that wants
+   * the distinction gets it back.
+   */
+  declaredAbsent: Set<string>;
 }
 
 /** `## Merge policy` -> `mergePolicy`. */
@@ -34,6 +44,13 @@ const PAIR_RE = /^-\s+\*\*(.+?)\*\*\s*[—–-]\s*(.*)$/;
 /** A bare `- value` bullet. */
 const ITEM_RE = /^-\s+(.*)$/;
 
+/** Marks a key or section the repository has decided it does not have. */
+export const NONE_MARKER = "(none)";
+
+function isNone(value: string): boolean {
+  return value.trim().toLowerCase() === NONE_MARKER;
+}
+
 export function parseProfile(markdown: string): Profile {
   const profile: Profile = {
     tracker: {},
@@ -45,6 +62,7 @@ export function parseProfile(markdown: string): Profile {
     mergePolicy: {},
     localization: {},
     git: {},
+    declaredAbsent: new Set<string>(),
   };
 
   let current = "";
@@ -60,17 +78,33 @@ export function parseProfile(markdown: string): Profile {
 
     if (current === "architecture") {
       const item = ITEM_RE.exec(line);
-      // Capture group 1 always exists when the regex matches.
-      if (item) profile.architecture.push(item[1]!.trim());
+      if (!item) continue;
+      const value = item[1]!.trim();
+      if (isNone(value)) {
+        profile.declaredAbsent.add("architecture");
+        continue;
+      }
+      profile.architecture.push(value);
       continue;
     }
 
     const pair = PAIR_RE.exec(line);
-    if (!pair) continue;
+    if (!pair) {
+      // A bare `- (none)` under a key/value section declares the whole
+      // section absent (e.g. a repository with no localization at all).
+      const item = ITEM_RE.exec(line);
+      if (item && isNone(item[1]!) && current) profile.declaredAbsent.add(current);
+      continue;
+    }
     const bucket = (profile as unknown as Record<string, Record<string, string>>)[current];
     if (bucket && typeof bucket === "object" && !Array.isArray(bucket)) {
-      // Capture groups 1 and 2 always exist when the regex matches.
-      bucket[pair[1]!.trim()] = pair[2]!.trim();
+      const key = pair[1]!.trim();
+      const value = pair[2]!.trim();
+      if (isNone(value)) {
+        profile.declaredAbsent.add(`${current}.${key}`);
+        continue;
+      }
+      bucket[key] = value;
     }
   }
 
@@ -87,4 +121,9 @@ export function findProfile(repoRoot: string): string | null {
 export function loadProfile(repoRoot: string): Profile | null {
   const path = findProfile(repoRoot);
   return path === null ? null : parseProfile(readFileSync(path, "utf8"));
+}
+
+/** True when the profile explicitly declared this key or section absent. */
+export function isDeclaredAbsent(profile: Profile, dottedKey: string): boolean {
+  return profile.declaredAbsent.has(dottedKey);
 }
