@@ -481,7 +481,23 @@ Insert immediately after the existing `mcp` validation block:
 Run: `cd cli && npm test && npm run typecheck`
 Expected: all PASS.
 
-- [ ] **Step 5: Document the rule where an author will meet it**
+- [ ] **Step 5: Bring the one existing templated skill into the rule**
+
+`fieldnote-pr-monitor` already declares `variance: templated` and declares no
+`concerns:`, so the rule you just added fails it and `npm run validate` goes
+red. Add to its frontmatter, after `variance: templated`:
+
+```yaml
+concerns: [ci]
+```
+
+Its body is entirely about the pull-request board and the checks that gate it,
+so `ci` is the file it reads. No other shipped skill declares `templated`.
+
+Because a `SKILL.md` changed, run `npm run catalog` and stage `catalog.json`,
+`CATALOG.md` and `skills.lock.json` with this task's commit.
+
+- [ ] **Step 6: Document the rule where an author will meet it**
 
 In `CONTRIBUTING.md`, extend the `variance` bullet with:
 
@@ -501,11 +517,12 @@ In `docs/authoring.md`, replace the `templated` bullet in step 3 with:
      [docs/concerns.md](concerns.md).
 ```
 
-- [ ] **Step 6: Run the full checks and commit**
+- [ ] **Step 7: Run the full checks and commit**
 
 ```bash
-npm run validate && npm run check:decoupling
-git add cli/src/skill-validate.ts cli/src/skill-validate.test.ts CONTRIBUTING.md docs/authoring.md
+npm run validate && npm run check:decoupling && npm run catalog
+git add cli/src/skill-validate.ts cli/src/skill-validate.test.ts CONTRIBUTING.md docs/authoring.md \
+        skills/fieldnote-pr-monitor/SKILL.md catalog.json CATALOG.md skills.lock.json
 git commit -m "feat(cli): require a concerns list on every templated skill"
 ```
 
