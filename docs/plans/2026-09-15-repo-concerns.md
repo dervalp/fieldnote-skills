@@ -909,6 +909,9 @@ Inside `runDoctor`, after `const tree = await scanInstalledSkills(env);` compute
 Add to the JSON payload object, after `claudeAi`:
 
 ```ts
+          // Named explicitly rather than omitted, like claudeAi above: a
+          // machine consumer must be able to tell "not in a repository"
+          // from "this CLI version has no such field".
           repository: { root: env.repoRoot, concerns },
 ```
 
@@ -945,8 +948,10 @@ test("names a concern file an installed skill reads and this repository lacks", 
     await mkdir(join(h.repoRoot, ".fieldnote", "concerns"), { recursive: true });
     await writeFile(join(h.repoRoot, ".fieldnote", "concerns", "shared.md"), "# Shared\n", "utf8");
 
-    const code = await runDoctor(h.env, {});
+    const code = await runDoctor(h.env, { strict: true });
 
+    // strict:true is what makes this falsifiable — without it runDoctor
+    // returns 0 unconditionally and the assertion proves nothing.
     assert.equal(code, 0, "a missing concern file is not release drift");
     const out = h.logger.infos.join("\n");
     assert.match(out, /\.fieldnote\/concerns\/shared\.md/);
