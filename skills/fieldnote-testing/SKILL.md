@@ -48,11 +48,12 @@ Use this skill when deciding what to test, where to test it, or how to prove a c
   (`Localization → canonicalLocale`) — no missing keys, no orphans, no empty values, and ICU that
   parses. When you touch a catalog or convert a page, add the keys to every catalog under
   `Localization → catalogs`, and assert converted pages render the canonical locale's strings by
-  default (update the existing page test rather than adding a parallel one). A primitive the
-  `Architecture` rules mark text-free stays text-free and needs no new tests. When the repository has
-  no `Localization` section, none of this applies.
+  default (update the existing page test rather than adding a parallel one). A component the rules in
+  `.fieldnote/concerns/front-end.md` mark text-free stays text-free and needs no new tests. When the
+  repository has no `Localization` section, none of this applies.
 
 ## References
 
 - Testing guide: the document named under `Docs → testing` in `.fieldnote/profile.md`
 - Verification guide: the document named under `Docs → verification` in `.fieldnote/profile.md`
+- Repository rules: `.fieldnote/concerns/` — read the file for the area under test

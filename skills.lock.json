@@ -81,11 +81,11 @@
     {
       "name": "fieldnote-testing",
       "version": "0.1.0",
-      "coreHash": "sha256:33a18db3ce1c706d8b514df7db10d6d67e7866b2a3a0fe11896aec016125913a",
+      "coreHash": "sha256:412ac4467692fee2b035bb2ded7e1b3bc537233427bf966fbc589b0eb12b8348",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:2b091ebf6b4d1014353cb1a9a93830b2ff437d53995c06accae961402aa9386f"
+          "hash": "sha256:39eb207a2435cb2b1193058595cf855eceed8b9654d53d344c361e9181173b68"
         }
       }
     }
