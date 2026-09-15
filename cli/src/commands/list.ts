@@ -101,10 +101,26 @@ export function buildChoices(
   for (const [stage, stageRows] of [...byStage.entries()].sort()) {
     choices.push({ name: `── ${stageTitle(stage)} ──`, value: `__stage:${stage}`, disabled: true });
     for (const row of stageRows.sort((a, b) => a.entry.name.localeCompare(b.entry.name))) {
-      choices.push({ name: rowLabel(row), value: row.entry.name });
+      // Pre-ticked: installing the whole loop is what almost everyone wants,
+      // so the picker starts from "all" and you untick the exceptions. The
+      // stage headers stay unticked — they are separators, not selections.
+      choices.push({ name: rowLabel(row), value: row.entry.name, checked: true });
     }
   }
   return choices;
+}
+
+/**
+ * The leading prompt: take the whole loop, or open the picker. "Everything"
+ * comes first so the common answer is the one Enter already lands on, and
+ * choosing it skips both the stage filter and the checkbox entirely.
+ */
+export function buildModeChoices(rows: SkillRow[]): { name: string; value: string }[] {
+  const count = `${rows.length} skill${rows.length === 1 ? "" : "s"}`;
+  return [
+    { name: `Everything (${count})`, value: "everything" },
+    { name: "Choose skills myself", value: "choose" },
+  ];
 }
 
 export function normalizeStageFilter(value: string): StageFilter {
@@ -145,15 +161,53 @@ async function resolveStage(env: Env, rows: SkillRow[], requested?: string): Pro
   return normalizeStageFilter(selected);
 }
 
+/** Install the given entries and report what happened, one line each. */
+async function installAndReport(env: Env, entries: SkillRow["entry"][]): Promise<void> {
+  const results = await installEntries(env, entries);
+  for (const r of results) {
+    const verb = r.action === "updated" ? "Updated" : "Installed";
+    env.logger.info(`${verb} ${r.name}@${r.version}`);
+  }
+}
+
 /**
- * The interactive `list` command (also the default no-arg command): render the
- * installable catalog as a grouped checkbox picker, then install the ticks.
+ * The interactive `list` command (also the default no-arg command): offer the
+ * whole loop first, and only render the grouped checkbox picker for someone
+ * who says they want to choose.
+ *
+ * `all` (the `--all` flag) takes the same path without any prompt, so it works
+ * where there is no TTY — CI, a piped shell, a one-line setup script. Passing
+ * `stage` narrows what "everything" means rather than overriding it.
  */
-export async function runList(env: Env, opts: { stage?: string } = {}): Promise<void> {
+export async function runList(env: Env, opts: { stage?: string; all?: boolean } = {}): Promise<void> {
   const rows = await computeRows(env);
   if (rows.length === 0) {
     env.logger.info("No installable skills in the catalog yet.");
     return;
+  }
+
+  if (opts.all) {
+    const stage = opts.stage === undefined ? "all" : normalizeStageFilter(opts.stage);
+    const scope = filterRowsByStage(rows, stage);
+    if (scope.length === 0) {
+      env.logger.info(`No installable skills in ${stage === "all" ? "all stages" : stageTitle(stage)}.`);
+      return;
+    }
+    await installAndReport(env, scope.map((r) => r.entry));
+    return;
+  }
+
+  // An explicit --stage is already a decision to browse, so it skips the
+  // everything/choose prompt and goes straight to that stage's picker.
+  if (opts.stage === undefined) {
+    const mode = await env.prompter.select({
+      message: "What do you want to install?",
+      choices: buildModeChoices(rows),
+    });
+    if (mode === "everything") {
+      await installAndReport(env, rows.map((r) => r.entry));
+      return;
+    }
   }
 
   const stage = await resolveStage(env, rows, opts.stage);
@@ -178,9 +232,5 @@ export async function runList(env: Env, opts: { stage?: string } = {}): Promise<
 
   const byName = new Map(filteredRows.map((r) => [r.entry.name, r.entry]));
   const entries = names.map((n) => byName.get(n)!).filter(Boolean);
-  const results = await installEntries(env, entries);
-  for (const r of results) {
-    const verb = r.action === "updated" ? "Updated" : "Installed";
-    env.logger.info(`${verb} ${r.name}@${r.version}`);
-  }
+  await installAndReport(env, entries);
 }
