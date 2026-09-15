@@ -15,7 +15,8 @@ import { chalkStderr } from "chalk";
 const HELP = `fieldnote-skills — install shared Claude Code skills into ~/.claude
 
 Usage:
-  fieldnote-skills [list]            Interactive stage + checkbox picker (default)
+  fieldnote-skills [list]            Install everything, or pick (default)
+  fieldnote-skills --all             Install every skill, no prompts
   fieldnote-skills install <name…>   Install named skills (non-interactive)
                   [--yes] [--json]
   fieldnote-skills update [name…]    Update installed skills (outdated pre-checked)
@@ -25,6 +26,7 @@ Usage:
   fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
 
 Flags:
+  --all         Install every skill without prompting (honours --stage)
   --stage       Filter list by plan, build, review, or all
   --yes, -y     Skip confirmation prompts
   --json        Machine-readable output
@@ -38,9 +40,10 @@ async function main(): Promise<number> {
   const logger = new ConsoleLogger();
 
   // Decorative banner → stderr only, and only on human-facing entry points
-  // (help text and the default interactive picker). Never on --json or the
-  // non-interactive install/update/sync paths, so machine output stays clean.
-  const showBanner = flags.help || (command === "list" && !flags.json);
+  // (help text and the default interactive picker). Never on --json, --all, or
+  // the non-interactive install/update/sync paths, so machine output stays
+  // clean — `--all` exists precisely to be run without a human watching.
+  const showBanner = flags.help || (command === "list" && !flags.json && !flags.all);
   if (showBanner) {
     logger.info(renderBanner(chalkStderr));
   }
@@ -57,7 +60,10 @@ async function main(): Promise<number> {
 
   switch (command) {
     case "list":
-      await runList(env, { stage: typeof flags.stage === "string" ? flags.stage : undefined });
+      await runList(env, {
+        stage: typeof flags.stage === "string" ? flags.stage : undefined,
+        all: Boolean(flags.all),
+      });
       return 0;
     case "install":
       await runInstall(env, positionals, { yes: Boolean(flags.yes), json: Boolean(flags.json) });

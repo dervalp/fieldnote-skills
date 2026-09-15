@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
-import { runList, buildChoices, descriptionWidth, rowLabel } from "./list.js";
+import { runList, buildChoices, buildModeChoices, descriptionWidth, rowLabel } from "./list.js";
 import { computeRows } from "../state.js";
 import { targetDirFor } from "../installer.js";
 import { installSkill } from "../installer.js";
@@ -113,7 +113,7 @@ test("ticking a skill in the picker installs it into ~/.claude", async () => {
     { name: "fieldnote-run-agent", stage: "build" },
   ]);
   try {
-    h.prompter.selectAnswers = ["build"];
+    h.prompter.selectAnswers = ["choose", "build"];
     h.prompter.checkboxAnswers = [["fieldnote-do-work"]];
     await runList(h.env);
 
@@ -132,7 +132,7 @@ test("default list asks for a stage and filters the checkbox picker", async () =
     { name: "fieldnote-validate-ticket", stage: "review" },
   ]);
   try {
-    h.prompter.selectAnswers = ["plan"];
+    h.prompter.selectAnswers = ["choose", "plan"];
     h.prompter.checkboxAnswers = [[]];
     await runList(h.env);
 
@@ -171,7 +171,7 @@ test("stage flag skips stage prompt and filters directly", async () => {
 test("stage picker hides empty stages", async () => {
   const h = await makeHarness([{ name: "fieldnote-plan-roadmap", stage: "plan" }]);
   try {
-    h.prompter.selectAnswers = ["plan"];
+    h.prompter.selectAnswers = ["choose", "plan"];
     h.prompter.checkboxAnswers = [[]];
     await runList(h.env);
 
@@ -213,7 +213,7 @@ test("unknown stage gives a user-facing error", async () => {
 test("selecting nothing installs nothing", async () => {
   const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }]);
   try {
-    h.prompter.selectAnswers = ["all"];
+    h.prompter.selectAnswers = ["choose", "all"];
     h.prompter.checkboxAnswers = [[]];
     await runList(h.env);
     assert.equal(await exists(targetDirFor(h.env, "fieldnote-do-work")), false);
@@ -260,4 +260,94 @@ test("description width tracks the terminal between a readable floor and ceiling
   assert.equal(descriptionWidth(80), 72);
   assert.equal(descriptionWidth(300), 96);
   assert.equal(descriptionWidth(30), 40);
+});
+
+test("the first prompt offers everything before it offers a picker", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-do-work", stage: "build" },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const choices = buildModeChoices(rows);
+    assert.deepEqual(
+      choices.map((c) => c.value),
+      ["everything", "choose"],
+      "everything leads, so enter installs the whole loop",
+    );
+    assert.match(choices[0]!.name, /2 skills/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("choosing everything installs the whole catalog without ever showing the picker", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-do-work", stage: "build" },
+    { name: "fieldnote-validate-ticket", stage: "review" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["everything"];
+    await runList(h.env);
+
+    for (const name of ["fieldnote-plan-roadmap", "fieldnote-do-work", "fieldnote-validate-ticket"]) {
+      assert.ok(await exists(join(targetDirFor(h.env, name), "SKILL.md")), `${name} installed`);
+    }
+    assert.deepEqual(h.prompter.lastCheckboxChoices, [], "the picker is never rendered");
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("the all flag installs everything with no prompt at all", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-do-work", stage: "build" },
+  ]);
+  try {
+    await runList(h.env, { all: true });
+
+    assert.ok(await exists(join(targetDirFor(h.env, "fieldnote-plan-roadmap"), "SKILL.md")));
+    assert.ok(await exists(join(targetDirFor(h.env, "fieldnote-do-work"), "SKILL.md")));
+    assert.deepEqual(h.prompter.lastSelectChoices, [], "no prompt, so it works without a TTY");
+    assert.deepEqual(h.prompter.lastCheckboxChoices, []);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("the all flag narrows to a stage when one is given", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-do-work", stage: "build" },
+  ]);
+  try {
+    await runList(h.env, { all: true, stage: "plan" });
+
+    assert.ok(await exists(join(targetDirFor(h.env, "fieldnote-plan-roadmap"), "SKILL.md")));
+    assert.equal(await exists(targetDirFor(h.env, "fieldnote-do-work")), false);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("the picker starts with every skill ticked, so enter is install-all", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-do-work", stage: "build" },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const choices = buildChoices(rows);
+    const skills = choices.filter((c) => !c.disabled);
+    assert.ok(skills.length > 0);
+    assert.ok(skills.every((c) => c.checked === true), "every skill row is pre-ticked");
+    assert.ok(
+      choices.filter((c) => c.disabled).every((c) => c.checked !== true),
+      "stage headers are never ticked",
+    );
+  } finally {
+    await h.cleanup();
+  }
 });
