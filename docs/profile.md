@@ -34,7 +34,9 @@ bullet, in every section, must be marked with a plain hyphen (`-`); `*` and
 `+` bullets (both valid Markdown, and what some editors auto-convert to) are
 not recognized and are silently ignored. The `Architecture` section is the
 one exception to the key/value shape: it holds a bare, ordered list of rules
-instead:
+instead. `Architecture` itself is superseded by
+`.fieldnote/concerns/shared.md` (see [docs/concerns.md](concerns.md)) — the
+parser still reads it this way only so an existing profile keeps parsing:
 
 ```markdown
 - A rule, stated as a sentence.
@@ -328,8 +330,8 @@ document.
 
 ## Architecture
 
-- Validate every boundary with a schema before it reaches a service.
-- Persistence stays behind a repository interface.
+Superseded by `.fieldnote/concerns/shared.md` — a new profile leaves this
+section empty and writes its rules there instead.
 
 ## Parallelism
 
