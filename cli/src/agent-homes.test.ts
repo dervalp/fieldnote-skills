@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { join } from "node:path";
 import { test } from "node:test";
-import { resolveAgentHomes } from "./agent-homes.js";
+import { resolveAgentHomes, selectAgentHomes } from "./agent-homes.js";
 
 const HOME = "/home/dev";
 const CLAUDE = join(HOME, ".claude");
@@ -76,4 +76,24 @@ test("an overridden home is used even when it does not exist yet", () => {
     exists: only(),
   });
   assert.deepEqual(homes, [{ agent: "codex", root: "/tmp/not-there-yet" }]);
+});
+
+test("--agent narrows the run to one of the homes found", () => {
+  const homes = resolveAgentHomes({ home: HOME, exists: only(CLAUDE, CODEX) });
+  assert.deepEqual(selectAgentHomes(homes, "codex"), [{ agent: "codex", root: CODEX }]);
+});
+
+test("no --agent leaves every home in play", () => {
+  const homes = resolveAgentHomes({ home: HOME, exists: only(CLAUDE, CODEX) });
+  assert.deepEqual(selectAgentHomes(homes, undefined), homes);
+});
+
+test("asking for an agent that is not on the machine says which ones are", () => {
+  const homes = resolveAgentHomes({ home: HOME, exists: only(CLAUDE) });
+  assert.throws(() => selectAgentHomes(homes, "codex"), /codex.*claude/s);
+});
+
+test("an agent this CLI has never heard of is refused by name", () => {
+  const homes = resolveAgentHomes({ home: HOME, exists: only(CLAUDE) });
+  assert.throws(() => selectAgentHomes(homes, "cursor"), /cursor/);
 });

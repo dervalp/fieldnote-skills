@@ -89,7 +89,7 @@ test("sync updates outdated installed skills and reports newly available ones", 
     await bumpVersion(h, "fieldnote-do-work", "1.2.0"); // and it is now outdated
 
     await runSync(h.env, { json: true });
-    const payload = JSON.parse(h.logger.outputs.at(-1)!);
+    const payload = JSON.parse(h.logger.outputs.at(-1)!).agents[0];
 
     assert.deepEqual(
       payload.updated.map((u: { name: string; version: string; action: string; agent: string }) => ({
@@ -191,7 +191,9 @@ test("sync --json lists orphans without prompting", async () => {
     // prompt from one that fired and silently defaulted to false.
     h.prompter.confirmAnswers = [true];
     await runSync(h.env, { json: true });
-    const payload = JSON.parse(h.logger.outputs.at(-1)!) as { orphaned: { name: string; supersededBy?: string }[] };
+    const payload = (JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { orphaned: { name: string; supersededBy?: string }[] }[];
+    }).agents[0]!;
     assert.deepEqual(payload.orphaned, [{ name: "tdd", supersededBy: "fieldnote-matt-tdd" }]);
     assert.equal(h.prompter.confirmAnswers.length, 1, "confirm() must not be called on the --json path");
 
@@ -241,7 +243,9 @@ test("sync reinstalls a skill left behind by a new release even though its versi
     await writeReleaseAndLock(h, "skills-v1.0.1", [TDD]);
 
     await runSync(h.env, { json: true });
-    const payload = JSON.parse(h.logger.outputs.at(-1)!) as { updated: { name: string }[] };
+    const payload = (JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { updated: { name: string }[] }[];
+    }).agents[0]!;
     assert.deepEqual(payload.updated.map((u) => u.name), [TDD.name]);
     assert.equal((await readManifest(h.env)).skills[TDD.name]?.release, "skills-v1.0.1");
   } finally {
@@ -258,10 +262,9 @@ test("sync leaves a locally modified skill alone and reports it instead of overw
     await writeReleaseAndLock(h, "skills-v1.0.1", [TDD]);
 
     await runSync(h.env, { json: true });
-    const payload = JSON.parse(h.logger.outputs.at(-1)!) as {
-      updated: { name: string }[];
-      skipped: { name: string; state: string }[];
-    };
+    const payload = (JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { updated: { name: string }[]; skipped: { name: string; state: string }[] }[];
+    }).agents[0]!;
     assert.deepEqual(payload.updated, [], "a modified copy must not be silently overwritten");
     assert.deepEqual(payload.skipped, [{ name: TDD.name, state: "modified" }]);
     const md = await readFile(join(targetDirFor(h.env, TDD.name), "SKILL.md"), "utf8");
@@ -298,16 +301,15 @@ test("sync reports the same orphans doctor does", async () => {
 
     await runDoctor(h.env, { json: true });
     const doctorPayload = JSON.parse(h.logger.outputs.at(-1)!) as {
-      claudeCode: { name: string; state: string }[];
+      agents: { skills: { name: string; state: string }[] }[];
     };
-    const doctorOrphans = doctorPayload.claudeCode.filter((r) => r.state === "orphaned").map((r) => r.name).sort();
+    const doctorOrphans = doctorPayload.agents[0]!.skills.filter((r) => r.state === "orphaned").map((r) => r.name).sort();
 
     h.prompter.confirmAnswers = [false];
     await runSync(h.env, { json: true });
-    const syncPayload = JSON.parse(h.logger.outputs.at(-1)!) as {
-      orphaned: { name: string }[];
-      unmanaged: { name: string }[];
-    };
+    const syncPayload = (JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { orphaned: { name: string }[]; unmanaged: { name: string }[] }[];
+    }).agents[0]!;
     const syncOrphans = [...syncPayload.orphaned, ...syncPayload.unmanaged].map((o) => o.name).sort();
 
     assert.deepEqual(doctorOrphans, ["diagnose", "tdd"]);
@@ -375,6 +377,36 @@ test("update <name> refreshes the skill in every agent home", async () => {
         "1.2.0",
         `${agent} was left on the old version`,
       );
+    }
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("sync brings every agent home current, not just the first", async () => {
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build", version: "1.0.0" }], {
+    agents: ["claude", "codex"],
+  });
+  try {
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+    await bumpVersion(h, "fieldnote-do-work", "1.2.0");
+
+    await runSync(h.env, { json: true });
+    const payload = JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { agent: string; root: string; updated: { name: string; version: string }[] }[];
+    };
+
+    assert.deepEqual(
+      payload.agents.map((a) => a.agent),
+      ["claude", "codex"],
+    );
+    for (const a of payload.agents) {
+      assert.deepEqual(
+        a.updated.map((u) => `${u.name}@${u.version}`),
+        ["fieldnote-do-work@1.2.0"],
+      );
+      const manifest = await readManifest({ ...h.env, agentDir: a.root });
+      assert.equal(manifest.skills["fieldnote-do-work"]?.version, "1.2.0");
     }
   } finally {
     await h.cleanup();

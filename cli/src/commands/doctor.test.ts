@@ -3,7 +3,7 @@ import { mkdir, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { runDoctor } from "./doctor.js";
-import { installEntries, targetDirFor } from "../installer.js";
+import { installEntries, installEverywhere, targetDirFor } from "../installer.js";
 import { hashSkillDir, renderLock, type LockEntry } from "../lock.js";
 import { makeHarness, toEntry, type FixtureSkill } from "../testkit.js";
 
@@ -260,12 +260,12 @@ test("--json reports every surface, with claude.ai marked uninspectable", async 
     await runDoctor(h.env, { json: true });
     const payload = JSON.parse(h.logger.outputs.at(-1)!) as {
       release: string;
-      claudeCode: { name: string; state: string }[];
+      agents: { agent: string; skills: { name: string; state: string }[] }[];
       claudeAi: { inspectable: boolean; expected: string[] };
       upstream: { pins: { repo: string; ref: string }[]; latestChecked: boolean };
     };
     assert.equal(payload.release, "skills-v1.0.0");
-    assert.deepEqual(payload.claudeCode.map((r) => r.state), ["ok"]);
+    assert.deepEqual(payload.agents[0]!.skills.map((r) => r.state), ["ok"]);
     assert.equal("mastra" in payload, false, "--json must not carry a mastra surface");
     assert.equal(payload.claudeAi.inspectable, false);
     assert.deepEqual(payload.claudeAi.expected, ["fieldnote-matt-tdd-skills-v1.0.0.zip"]);
@@ -368,6 +368,67 @@ test("names a concern file an installed skill reads and this repository lacks", 
     const out = h.logger.infos.join("\n");
     assert.match(out, /\.fieldnote\/concerns\/shared\.md/);
     assert.match(out, /\.fieldnote\/concerns\/qa\.md[^\n]*not present/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("doctor reports each agent home separately, naming the agent and its path", async () => {
+  const h = await makeHarness([SKILL], { agents: ["claude", "codex"] });
+  try {
+    await writeLockFor(h, "skills-v1.0.0");
+    await installEverywhere(h.env, [toEntry(SKILL)]);
+
+    await runDoctor(h.env, { json: true });
+    const payload = JSON.parse(h.logger.outputs.at(-1)!) as {
+      agents: { agent: string; root: string; skills: { name: string; state: string }[] }[];
+    };
+
+    assert.deepEqual(
+      payload.agents.map((a) => a.agent),
+      ["claude", "codex"],
+    );
+    for (const a of payload.agents) {
+      assert.equal(a.root, h.homes[a.agent as "claude" | "codex"]);
+      assert.deepEqual(
+        a.skills.map((s) => s.state),
+        ["ok"],
+      );
+    }
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("drift in the Codex tree alone still fails doctor --strict", async () => {
+  const h = await makeHarness([SKILL], { agents: ["claude", "codex"] });
+  try {
+    await writeLockFor(h, "skills-v1.0.0");
+    await installEverywhere(h.env, [toEntry(SKILL)]);
+    // Edit only the Codex copy. A per-agent report must notice; a report that
+    // read the first home alone would call the machine clean.
+    await writeFile(
+      join(h.homes.codex!, "skills", SKILL.name, "SKILL.md"),
+      "---\nname: " + SKILL.name + "\n---\n\nlocally edited\n",
+      "utf8",
+    );
+
+    assert.equal(await runDoctor(h.env, { strict: true, json: true }), 1);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("the text report names every agent home it walked", async () => {
+  const h = await makeHarness([SKILL], { agents: ["claude", "codex"] });
+  try {
+    await writeLockFor(h, "skills-v1.0.0");
+    await installEverywhere(h.env, [toEntry(SKILL)]);
+
+    await runDoctor(h.env, {});
+    const out = h.logger.infos.join("\n");
+    assert.match(out, new RegExp(`claude\\s+${h.homes.claude!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+    assert.match(out, new RegExp(`codex\\s+${h.homes.codex!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   } finally {
     await h.cleanup();
   }

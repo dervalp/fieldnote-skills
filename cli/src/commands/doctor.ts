@@ -22,7 +22,17 @@ import {
 import { scanInstalledSkills } from "../installed-tree.js";
 import { readLock, type Lock } from "../lock.js";
 import { readManifest } from "../manifest.js";
+import type { AgentName } from "../agent-homes.js";
 import type { Catalog, Env } from "../types.js";
+
+/** One agent's skills tree, classified on its own manifest and its own files. */
+interface AgentReport {
+  agent: AgentName;
+  root: string;
+  /** Names the manifest in that home claims, used to scope the concern rows. */
+  installedNames: Set<string>;
+  skills: DoctorRow[];
+}
 
 export interface DoctorFlags {
   strict?: boolean;
@@ -199,18 +209,35 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
   }
 
   const catalog = await loadCatalog(env);
-  const manifest = await readManifest(env);
-  const tree = await scanInstalledSkills(env);
-  const concerns = concernRows(env, catalog, new Set(Object.keys(manifest.skills)));
-  const rows = classifyInstalled({
-    lock,
-    manifest,
-    onDiskCoreHash: tree.coreHash,
-    unreadable: tree.unreadable,
-    supersedes: supersedesMap(lock),
-    onDiskNames: tree.names,
-    known: knownSkillNames(lock, catalog.skills.map((s) => s.name)),
-  });
+
+  // One report per agent home. Each home has its own manifest and its own
+  // tree, so each is classified on its own: a skill edited in ~/.codex must
+  // show as modified there and stay `ok` under ~/.claude.
+  const agents: AgentReport[] = [];
+  for (const home of env.agentHomes) {
+    const scoped = { ...env, agentDir: home.root };
+    const manifest = await readManifest(scoped);
+    const tree = await scanInstalledSkills(scoped);
+    agents.push({
+      agent: home.agent,
+      root: home.root,
+      installedNames: new Set(Object.keys(manifest.skills)),
+      skills: classifyInstalled({
+        lock,
+        manifest,
+        onDiskCoreHash: tree.coreHash,
+        unreadable: tree.unreadable,
+        supersedes: supersedesMap(lock),
+        onDiskNames: tree.names,
+        known: knownSkillNames(lock, catalog.skills.map((s) => s.name)),
+      }),
+    });
+  }
+
+  // Concerns are a property of the repository, not of any one agent, so they
+  // are asked once — against every skill installed anywhere.
+  const installedAnywhere = new Set(agents.flatMap((a) => [...a.installedNames]));
+  const concerns = concernRows(env, catalog, installedAnywhere);
 
   // Only desktop/both skills are ever packaged into a claude.ai zip (see
   // build-catalog / CI); a code-only skill has a SKILL.md too, so that field
@@ -221,14 +248,17 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
     .sort();
 
   const pins = upstreamPins(lock);
-  const drift = rows.some((r) => r.state !== "ok");
+  const drift = agents.some((a) => a.skills.some((r) => r.state !== "ok"));
 
   if (flags.json === true) {
     env.logger.output(
       JSON.stringify(
         {
           release: lock.release,
-          claudeCode: rows,
+          // One entry per agent home, replacing the old single `claudeCode`
+          // list: with two agents on the machine that key could only ever
+          // describe one of them, and would quietly hide drift in the other.
+          agents: agents.map(({ agent, root, skills }) => ({ agent, root, skills })),
           // Named explicitly rather than omitted: a machine consumer must be
           // able to tell "no drift here" from "this surface cannot be read".
           claudeAi: { inspectable: false, expected: expectedZips },
@@ -250,11 +280,13 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
   env.logger.info(
     `fieldnote skills · latest release ${lock.release}${pinLabel === null ? "" : ` · ${pinLabel}`}`,
   );
-  env.logger.info("");
-  env.logger.info(`Claude Code  ${tree.root}`);
-  if (rows.length === 0) env.logger.info("  (nothing installed)");
-  const cols = columnsFor(rows);
-  for (const row of rows) env.logger.info(describe(row, lock.release, cols));
+  for (const { agent, root, skills } of agents) {
+    env.logger.info("");
+    env.logger.info(`${agent}  ${join(root, "skills")}`);
+    if (skills.length === 0) env.logger.info("  (nothing installed)");
+    const cols = columnsFor(skills);
+    for (const row of skills) env.logger.info(describe(row, lock.release, cols));
+  }
 
   if (env.repoRoot !== null) {
     env.logger.info("");
