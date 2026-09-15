@@ -10,6 +10,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { DOD_CONVENTION_PATH } from "../dod.js";
 import { findGitRoot } from "../paths.js";
 import type { Env } from "../types.js";
 import { UserError } from "../types.js";
@@ -165,6 +166,7 @@ function readLabels(): string[] {
 function readDocs(repoRoot: string): string[] {
   const found: string[] = [];
   for (const candidate of [
+    DOD_CONVENTION_PATH,
     "CONTRIBUTING.md",
     "AGENTS.md",
     "CLAUDE.md",
@@ -301,7 +303,10 @@ export function probeRepo(repoRoot: string): ProbeResult {
   };
 }
 
-export async function runInit(env: Env, opts: { force?: boolean } = {}): Promise<number> {
+export async function runInit(
+  env: Env,
+  opts: { force?: boolean; print?: boolean } = {},
+): Promise<number> {
   const cwd = process.cwd();
   const root = env.repoRoot ?? findGitRoot(cwd);
   if (root === null) {
@@ -310,6 +315,16 @@ export async function runInit(env: Env, opts: { force?: boolean } = {}): Promise
         "the repository you want to profile (or one of its subdirectories).",
     );
   }
+
+  // `--print` probes and renders, and touches nothing. It exists so a caller
+  // can read this repository's mechanical facts WITHOUT risking a profile the
+  // engineer has already hand-edited — the refusal below would otherwise make
+  // that impossible, and `--force` would make it dangerous.
+  if (opts.print) {
+    env.logger.output(renderProfile(probeRepo(root)));
+    return 0;
+  }
+
   const dir = join(root, ".fieldnote");
   const target = join(dir, "profile.md");
 

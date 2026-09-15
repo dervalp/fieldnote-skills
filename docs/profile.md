@@ -225,6 +225,37 @@ fork-workflow remote name that only some repositories use.
 - **baseBranch** — main
 ```
 
+## Saying "this repository has none"
+
+`TODO` means *nobody has filled this in yet*. It is not the same as *this
+repository does not have one*, and until now both looked identical.
+
+Write `(none)` for the second:
+
+```markdown
+## Commands
+
+- **check** — pnpm check
+- **mutation** — (none)
+```
+
+A `(none)` value is dropped from the parsed profile, so a skill reading
+`Commands → mutation` sees nothing at all and can never run the literal string
+`(none)` as a command. It is recorded separately, so a skill that cares can
+tell "decided: none" from "never answered".
+
+A bare `- (none)` bullet, with no bold key, declares the whole section absent:
+
+```markdown
+## Localization
+
+- (none)
+```
+
+The marker is case-insensitive. `fieldnote-skills init` never writes it —
+`init` observes, it does not decide — so `(none)` only ever appears because a
+person or a skill put it there on purpose.
+
 ## If a key isn't being picked up
 
 `parseProfile` is intentionally forgiving: it never throws on content it

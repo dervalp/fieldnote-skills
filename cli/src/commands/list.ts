@@ -97,8 +97,18 @@ export function buildChoices(
     byStage.set(row.entry.stage, list);
   }
 
+  // Ordered by the loop, not by the alphabet: a plain .sort() put Build
+  // before Plan, which is not the order anyone works in.
+  const stageRank = (stage: string): number => {
+    const i = (VALID_STAGES as readonly string[]).indexOf(stage);
+    return i === -1 ? VALID_STAGES.length : i;
+  };
+  const ordered = [...byStage.entries()].sort(
+    ([a], [b]) => stageRank(a) - stageRank(b) || (a < b ? -1 : a > b ? 1 : 0),
+  );
+
   const choices: { name: string; value: string; checked?: boolean; disabled?: boolean }[] = [];
-  for (const [stage, stageRows] of [...byStage.entries()].sort()) {
+  for (const [stage, stageRows] of ordered) {
     choices.push({ name: `── ${stageTitle(stage)} ──`, value: `__stage:${stage}`, disabled: true });
     for (const row of stageRows.sort((a, b) => a.entry.name.localeCompare(b.entry.name))) {
       // Pre-ticked: installing the whole loop is what almost everyone wants,

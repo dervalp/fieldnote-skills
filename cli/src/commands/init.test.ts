@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { renderProfile, runInit } from "./init.js";
@@ -208,5 +208,120 @@ test("runInit refuses with a clear message outside any git repository, rather th
   } finally {
     process.chdir(prevCwd);
     rmSync(plain, { recursive: true, force: true });
+  }
+});
+
+test("--print writes the profile to stdout and creates nothing on disk", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-print-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  const prevCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const logger = new FakeLogger();
+    const env: Env = {
+      claudeDir: "/unused",
+      catalogPath: "/unused/catalog.json",
+      skillsSourceDir: "/unused/skills",
+      repoRoot: null,
+      prompter: new FakePrompter(),
+      logger,
+    };
+
+    const code = await runInit(env, { print: true });
+
+    assert.equal(code, 0);
+    assert.equal(existsSync(join(repo, ".fieldnote")), false, "no directory is created");
+    assert.equal(logger.outputs.length, 1, "the profile goes to stdout exactly once");
+    assert.match(logger.outputs[0]!, /^# fieldnote profile/);
+    assert.equal(parseProfile(logger.outputs[0]!).tracker.epicLink, "TODO");
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("--print does not refuse when a profile already exists, and leaves it untouched", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-print-existing-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  mkdirSync(join(repo, ".fieldnote"), { recursive: true });
+  const existing = join(repo, ".fieldnote", "profile.md");
+  writeFileSync(existing, "# hand written, do not touch\n", "utf8");
+  const prevCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const logger = new FakeLogger();
+    const env: Env = {
+      claudeDir: "/unused",
+      catalogPath: "/unused/catalog.json",
+      skillsSourceDir: "/unused/skills",
+      repoRoot: null,
+      prompter: new FakePrompter(),
+      logger,
+    };
+
+    const code = await runInit(env, { print: true });
+
+    assert.equal(code, 0);
+    assert.equal(readFileSync(existing, "utf8"), "# hand written, do not touch\n");
+    assert.match(logger.outputs[0]!, /^# fieldnote profile/);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("--print reports no TODO warning, because it is not scaffolding anything", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-print-quiet-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  const prevCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const logger = new FakeLogger();
+    const env: Env = {
+      claudeDir: "/unused",
+      catalogPath: "/unused/catalog.json",
+      skillsSourceDir: "/unused/skills",
+      repoRoot: null,
+      prompter: new FakePrompter(),
+      logger,
+    };
+
+    await runInit(env, { print: true });
+
+    assert.deepEqual(logger.warns, [], "stdout stays the only channel");
+    assert.deepEqual(logger.infos, []);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("--print resolves Docs.definitionOfDone to .fieldnote/definition-of-done.md, preferring it over docs/definition-of-done.md", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-dod-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  mkdirSync(join(repo, ".fieldnote"), { recursive: true });
+  writeFileSync(join(repo, ".fieldnote", "definition-of-done.md"), "# DoD\n", "utf8");
+  mkdirSync(join(repo, "docs"), { recursive: true });
+  writeFileSync(join(repo, "docs", "definition-of-done.md"), "# other DoD\n", "utf8");
+  const prevCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const logger = new FakeLogger();
+    const env: Env = {
+      claudeDir: "/unused",
+      catalogPath: "/unused/catalog.json",
+      skillsSourceDir: "/unused/skills",
+      repoRoot: null,
+      prompter: new FakePrompter(),
+      logger,
+    };
+
+    await runInit(env, { print: true });
+
+    const p = parseProfile(logger.outputs[0]!);
+    assert.equal(p.docs.definitionOfDone, ".fieldnote/definition-of-done.md");
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
   }
 });

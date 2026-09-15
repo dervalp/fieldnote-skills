@@ -351,3 +351,62 @@ test("the picker starts with every skill ticked, so enter is install-all", async
     await h.cleanup();
   }
 });
+
+test("the picker orders stage groups by the loop, not by the alphabet", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-run-review", stage: "review" },
+    { name: "fieldnote-do-work", stage: "build" },
+    { name: "fieldnote-plan-roadmap", stage: "plan" },
+    { name: "fieldnote-setup-profile", stage: "setup" },
+  ]);
+  try {
+    const rows = await computeRows(h.env);
+    const headers = buildChoices(rows)
+      .filter((c) => c.disabled)
+      .map((c) => c.name);
+    assert.deepEqual(headers, [
+      "── Setup ──",
+      "── Plan ──",
+      "── Build ──",
+      "── Review ──",
+    ]);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("setup is a valid stage filter", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-setup-profile", stage: "setup" },
+    { name: "fieldnote-do-work", stage: "build" },
+  ]);
+  try {
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env, { stage: "setup" });
+
+    const values = h.prompter.lastCheckboxChoices.map((c) => c.value);
+    assert.ok(values.includes("fieldnote-setup-profile"));
+    assert.equal(values.includes("fieldnote-do-work"), false);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("the stage prompt lists setup first", async () => {
+  const h = await makeHarness([
+    { name: "fieldnote-do-work", stage: "build" },
+    { name: "fieldnote-setup-profile", stage: "setup" },
+  ]);
+  try {
+    h.prompter.selectAnswers = ["choose", "setup"];
+    h.prompter.checkboxAnswers = [[]];
+    await runList(h.env);
+
+    assert.deepEqual(
+      h.prompter.lastSelectChoices.map((c) => c.value),
+      ["all", "setup", "build"],
+    );
+  } finally {
+    await h.cleanup();
+  }
+});

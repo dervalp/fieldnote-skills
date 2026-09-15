@@ -1,13 +1,18 @@
 # The delivery loop
 
-Twelve skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
+Thirteen skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
 become parallel waves of code, code becomes pull requests, and pull requests
 get merged without a human re-checking what CI and the agent reviewers
-already checked. Seven of the twelve ship in this repository today. The
+already checked. Eight of the thirteen ship in this repository today. The
 other five are designed, not yet built — see
 [README § Status](../README.md#status) for why.
 
 ## Stage by stage
+
+**Setup** — `fieldnote-setup-profile` *(shipped)*. Runs once per repository,
+before anything else: writes `.fieldnote/profile.md` from what the repository
+itself says, and pushes for a written definition of done, which is what every
+later stage reads to decide whether it is finished.
 
 **Brainstorm** — `fieldnote-brainstorming` *(not yet shipped)*. Runs before
 any change is made: explores the idea, produces a before/after artifact and
@@ -48,7 +53,7 @@ gate.
 
 ## Where the gap bites today
 
-The seven shipped skills already assume the missing five exist.
+The shipped skills already assume the missing five exist.
 `fieldnote-parallel-wave` and `fieldnote-deliver` hand implementation to
 `fieldnote-do-work` — 13 references across the shipped skills.
 `fieldnote-pull-request` recognizes a PR opened by `fieldnote-fix-bug` — 1

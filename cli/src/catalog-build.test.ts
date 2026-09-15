@@ -113,3 +113,23 @@ test("markdown omits the artifact flow section when nothing is declared", () => 
     assert.ok(!md.includes("## Artifact flow"), md);
   });
 });
+
+test("a skill with an unknown stage throws instead of silently vanishing from CATALOG.md", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-bogus-thing", baseFm("fieldnote-bogus-thing", { stage: "bogus" }));
+    const skills = discover(d);
+    assert.equal(skills[0]!.stage, "bogus", "discover() does not itself reject an unknown stage");
+    assert.throws(() => renderMarkdown(skills), /fieldnote-bogus-thing/);
+    assert.throws(() => renderMarkdown(skills), /bogus/);
+  });
+});
+
+test("CATALOG.md renders the setup stage first", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-setup-profile", baseFm("fieldnote-setup-profile", { stage: "setup" }));
+    writeSkill(d, "fieldnote-do-work", baseFm("fieldnote-do-work", { stage: "build" }));
+    const md = renderMarkdown(discover(d));
+    assert.ok(md.indexOf("## Setup") < md.indexOf("## Build"), "Setup precedes Build");
+    assert.ok(md.includes("fieldnote-setup-profile"));
+  });
+});
