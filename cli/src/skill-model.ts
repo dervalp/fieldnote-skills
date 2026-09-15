@@ -110,6 +110,7 @@ export interface CatalogEntry {
   variance: string;
   produces?: string[];
   consumes?: string[];
+  concerns?: string[];
 }
 
 function stripQuotes(raw: string): string {
@@ -250,6 +251,16 @@ export class Skill {
     return this.listField("mcp");
   }
 
+  /**
+   * Repository-authored concern files this skill always reads (see
+   * `concerns.ts`). Declared only by `variance: templated` skills. A skill
+   * that picks further concerns from the change in front of it describes that
+   * in its body — frontmatter cannot express a judgement.
+   */
+  get concerns(): string[] {
+    return this.listField("concerns");
+  }
+
   /** Artifact types this skill emits. */
   get produces(): string[] {
     return this.listField("produces");
@@ -292,6 +303,7 @@ export class Skill {
     // Emitted only when declared, so entries without artifacts stay byte-stable.
     if (this.produces.length > 0) entry.produces = this.produces;
     if (this.consumes.length > 0) entry.consumes = this.consumes;
+    if (this.concerns.length > 0) entry.concerns = this.concerns;
     return entry;
   }
 }
