@@ -3,8 +3,8 @@
 Thirteen skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
 become parallel waves of code, code becomes pull requests, and pull requests
 get merged without a human re-checking what CI and the agent reviewers
-already checked. Eight of the thirteen ship in this repository today. The
-other five are designed, not yet built — see
+already checked. Nine of the thirteen ship in this repository today. The
+other four are designed, not yet built — see
 [README § Status](../README.md#status) for why.
 
 ## Stage by stage

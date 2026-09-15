@@ -1,6 +1,6 @@
 ---
 name: fieldnote-parallel-wave
-description: Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a "wave") and running them one-by-one would be slow; composes fieldnote-do-work (not yet shipped in this repository — bring your own implementation step) + fieldnote-pull-request. Not for dependent issues, not for merging.
+description: Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a "wave") and running them one-by-one would be slow; composes fieldnote-do-work + fieldnote-pull-request. Not for dependent issues, not for merging.
 stage: build
 variance: configured
 surface: code
@@ -22,7 +22,8 @@ the only path code enters the mainline.
 
 The orchestration here is **tooling-agnostic**: it never names a package manager, test runner, or
 language. The stack-specific details live behind two repo-local seams it delegates to — the
-**implementation skill** (`fieldnote-do-work`, which owns language/framework doctrine) and the
+**implementation skill** (`fieldnote-do-work`, which reads the repository's own rules from
+`.fieldnote/concerns/` rather than owning any language or framework doctrine itself) and the
 **verification gate** (`CLAUDE.md` › Verification, the repo's check commands). Swap those two and the
 wave logic is unchanged.
 
@@ -74,8 +75,7 @@ Launch all runnable issues **concurrently** (one message, multiple Agent calls) 
 
 **Right-size each agent's model first (cost lever).** Don't default the fan-out to the most capable
 tier — a wave multiplies whatever you pick. Gauge each issue and assign the cheapest **capability tier**
-that fits (see `fieldnote-do-work` › *Right-Size The Model* for the tiers; the examples there are Claude
-Haiku/Sonnet/Opus — substitute your tool's equivalents): the small/cheap tier for mechanical/codemod
+that fits (see `fieldnote-do-work` › *Right-Size The Model* for the tiers): the small/cheap tier for mechanical/codemod
 slices, the mid tier for well-specified pattern-following slices (the default for most slices here), the
 top tier only for genuinely judgment-heavy ones. When an issue's shape is unclear, scope it first with a
 cheap **read-only exploration agent** (e.g. an `Explore` agent on the small/mid tier) and pick the tier

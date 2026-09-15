@@ -117,9 +117,9 @@ script that produces it. It will not run as-is outside that setup.
 |                                      | State               |
 | ------------------------------------ | ------------------- |
 | Plugin marketplace + npx install     | Shipped             |
-| Eight skills, profile-decoupled      | Shipped             |
+| Nine skills, profile-decoupled       | Shipped             |
 | `init` — scaffold a profile          | Shipped             |
-| Five templated skills                | Designed, not built |
+| Four templated skills                | Designed, not built |
 | `tailor` — render per repository     | Designed, not built |
 | Rendering from fieldnote's Act arm   | Designed, not built |
 

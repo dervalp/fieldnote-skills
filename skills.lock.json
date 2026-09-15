@@ -4,33 +4,33 @@
     {
       "name": "fieldnote-deliver",
       "version": "0.1.0",
-      "coreHash": "sha256:5b7034c74453ab72614106a1075207571765d54531a7bd4030fd0efd7f71d338",
+      "coreHash": "sha256:47e549316405a8514a55c4f8f3dab1aecda461309a9a5a6e12631905a7e23533",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:4b8753fce5ffd9dfefdae1a86ecd515cdc3969d3ecee238487a05f030d457183"
+          "hash": "sha256:6279f48424c41ef420b79090c22ec639a29f50df9d0060faf7d94164cf7977e3"
         }
       }
     },
     {
       "name": "fieldnote-do-work",
       "version": "0.1.0",
-      "coreHash": "sha256:97accda8f78f68b42a8bc30acbb5ca9cabc45dcbec63d85895982cfe57f7896f",
+      "coreHash": "sha256:c4be9e012e1d65e6b31b96a0d417bc7dc0a21e4edd32745086a0efcd98edabf9",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:21214362f6084cb0ea3622de60e6cda0c446c16ffc6ca83a602ae08ff0e9eb7b"
+          "hash": "sha256:9d335ab323d5775ce6f86fa94b92dded4f461b85cce9179843195bbd9e7455fb"
         }
       }
     },
     {
       "name": "fieldnote-parallel-wave",
       "version": "0.1.0",
-      "coreHash": "sha256:4051426b70f450aaa1b1d59fe878e151f9eb56d2d3981ac84d88055462d098ff",
+      "coreHash": "sha256:fc1351a041dce66e1c738dcedb63459b2de06d48ef81ba6f878e988a67868250",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:0c706c7723eadb678b0f324c05a46f4f9bbd406376ae7704f1eceabf7bfc57cd"
+          "hash": "sha256:98eaa309cd0f51e4fe5bcd83f588fd5544c509490d5086d0e5b8de83a30326e5"
         }
       }
     },

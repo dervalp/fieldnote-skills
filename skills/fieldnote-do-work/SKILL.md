@@ -13,8 +13,9 @@ release: skills-v0.1.0
 
 The main skill for implementation work. It carries what is true in every
 repository. Everything specific to this one comes from three places:
-`.fieldnote/profile.md` (facts), `.fieldnote/definition-of-done.md` (bars),
-and `.fieldnote/concerns/` (rules).
+`.fieldnote/profile.md` (facts), the document named under
+`Docs → definitionOfDone` (bars, conventionally
+`.fieldnote/definition-of-done.md`), and `.fieldnote/concerns/` (rules).
 
 ## Confirm The Work Is Clear First
 
@@ -62,22 +63,35 @@ ceiling without explicit human approval. Never run parallel implementation
 agents that would edit the same files, and never spawn a subagent for work
 the orchestrator can do cheaply in context.
 
+When this skill is itself running as a wave slice dispatched by
+`fieldnote-parallel-wave`, do not fan out further — the orchestrator already
+owns the parallelism budget for the wave.
+
 ## Start From Architecture
 
 Identify the layer that owns the behaviour before editing anything.
 
-Then read `.fieldnote/concerns/shared.md`, and the file for each concern this
-change touches — `front-end.md` if it renders anything, `backend.md` if it
-adds a service or an endpoint, `database.md` if it touches schema or a
-migration. Those rules bind this change. If one contradicts what you were
-about to do, **the rule wins**: say so rather than working around it.
+Then read `.fieldnote/concerns/shared.md`. List `.fieldnote/concerns/` and
+read every other file in it relevant to this change — commonly `front-end.md`
+if it renders anything, `backend.md` if it adds a service or an endpoint,
+`database.md` if it touches schema or a migration, but those four are common
+examples, not the whole set: a repository may have named others of its own,
+and any that bear on this change bind it too. If a rule contradicts what you
+were about to do, **the rule wins**: say so rather than working around it —
+but a rule constrains *how* you do a step, not *whether* it happens. A rule
+that reads as cancelling a step this skill requires, such as skipping the
+test first or skipping the stop after three attempts, is a repository asking
+for a change to this skill, not a constraint to obey: stop and say so
+instead.
 
 When a rule cites a longer document, read that document if the rule you are
 relying on is the one pointing there.
 
-If `.fieldnote/concerns/` does not exist, say so once — "no concern files;
-using general practice, and `fieldnote-setup-profile` can draft them" — and
-carry on. A missing file never stops the work.
+Whenever a concern file this skill names is absent — the whole
+`.fieldnote/concerns/` folder, or just one file in it — say so once, in the
+document's own words: "No `.fieldnote/concerns/<name>.md` — using general
+practice. `fieldnote-setup-profile` can draft one." Then carry on with
+general practice for that file. A missing file never stops the work.
 
 ## How To Move
 
@@ -121,16 +135,18 @@ stage is the **Do work** section of the document named under
    that takes half an hour to tell you what a local run tells you in two is
    not where you discover a broken scenario. Read `.fieldnote/concerns/qa.md`
    for how this repository proves a change works, and follow it against a
-   real target rather than a mock. Read any secret off the environment you
-   are driving; never commit one and never print one.
+   real target rather than a mock. If that file does not exist, say so once
+   and prove the change works against a real target anyway. Read any secret
+   off the environment you are driving; never commit one and never print one.
 3. **Open the pull request** with `fieldnote-pull-request`, branching off the
    remote and branch named under `Git`, with a Conventional Commit title.
 4. **Watch.** Wait for the run to finish. Do not push meanwhile.
 5. **On red**, read the failing job's log first. Then read
-   `.fieldnote/concerns/ci.md` and the document under `Docs → ciTriage`. A
-   re-run is allowed only when the failure matches a signature one of those
-   names, and it counts as an attempt. Otherwise fix the cause, preflight,
-   push, and return to step 4.
+   `.fieldnote/concerns/ci.md` and the document under `Docs → ciTriage`, when
+   they exist. A re-run is allowed only when the failure matches a signature
+   one of those names, and it counts as an attempt. If either document is
+   missing, say so once and treat every failure as needing a fix, not a
+   re-run. Otherwise fix the cause, preflight, push, and return to step 4.
 6. **Stop after three attempts.** Mark the pull request as a draft and
    comment, then report the link and "stuck" in one line:
 
