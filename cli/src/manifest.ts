@@ -6,7 +6,7 @@ const MANIFEST_VERSION = 1;
 
 /** The manifest lives beside installed skills, inside ~/.claude. */
 export function manifestPath(env: Env): string {
-  return join(env.claudeDir, "skills", ".fieldnote-skills.json");
+  return join(env.agentDir, "skills", ".fieldnote-skills.json");
 }
 
 /** Read the installed-skill manifest, returning an empty one if absent. */

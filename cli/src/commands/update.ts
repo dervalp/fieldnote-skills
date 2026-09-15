@@ -1,7 +1,9 @@
 import { rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { loadCatalog, requireSkill } from "../catalog.js";
-import { installEntries, targetDirFor } from "../installer.js";
+import { installEntries, installEverywhere, targetDirFor, type InstallResult } from "../installer.js";
+import type { AgentName } from "../agent-homes.js";
+import { reportInstall } from "./install.js";
 import { readLock } from "../lock.js";
 import {
   classifyInstalled,
@@ -13,7 +15,7 @@ import {
 import { scanInstalledSkills } from "../installed-tree.js";
 import { forgetInstalled, readManifest } from "../manifest.js";
 import { computeRows } from "../state.js";
-import type { Env, SkillRow } from "../types.js";
+import type { Catalog, Env, SkillRow } from "../types.js";
 import { UserError } from "../types.js";
 
 function updateChoice(row: SkillRow): { name: string; value: string; checked?: boolean } {
@@ -37,8 +39,7 @@ export async function runUpdate(env: Env, names: string[]): Promise<void> {
 
   if (names.length > 0) {
     const entries = names.map((name) => requireSkill(catalog, name));
-    const results = await installEntries(env, entries);
-    for (const r of results) env.logger.info(`Updated ${r.name}@${r.version}`);
+    reportInstall(env, await installEverywhere(env, entries), {});
     return;
   }
 
@@ -60,8 +61,7 @@ export async function runUpdate(env: Env, names: string[]): Promise<void> {
 
   const byName = new Map(rows.map((r) => [r.entry.name, r.entry]));
   const entries = picked.map((n) => byName.get(n)!).filter(Boolean);
-  const results = await installEntries(env, entries);
-  for (const r of results) env.logger.info(`Updated ${r.name}@${r.version}`);
+  reportInstall(env, await installEverywhere(env, entries), {});
 }
 
 export interface SyncFlags {
@@ -85,6 +85,53 @@ const HELD: ReadonlySet<SkillState> = new Set<SkillState>(["modified", "unreadab
  */
 export async function runSync(env: Env, flags: SyncFlags): Promise<void> {
   const catalog = await loadCatalog(env);
+
+  // Every agent home reconciles on its own: each has its own manifest, its own
+  // files, and so its own answer to what is stale, held back or orphaned.
+  const reports: SyncReport[] = [];
+  for (const home of env.agentHomes) {
+    if (flags.json !== true && env.agentHomes.length > 1) {
+      env.logger.info("");
+      env.logger.info(`${home.agent}  ${join(home.root, "skills")}`);
+    }
+    reports.push({
+      agent: home.agent,
+      root: home.root,
+      ...(await syncHome({ ...env, agentDir: home.root }, catalog, flags)),
+    });
+  }
+
+  if (flags.json === true) {
+    env.logger.output(JSON.stringify({ agents: reports }, null, 2));
+  }
+}
+
+/** One agent home's slice of a `sync` run. */
+interface SyncReport {
+  agent: AgentName;
+  root: string;
+  updated: InstallResult[];
+  available: { name: string; version: string }[];
+  skipped: { name: string; state: SkillState }[];
+  orphaned: OrphanReport[];
+  unmanaged: OrphanReport[];
+}
+
+interface OrphanReport {
+  name: string;
+  supersededBy?: string;
+}
+
+/**
+ * Reconcile one agent home. Prints its own text report as it goes (the orphan
+ * prompt has to sit inside this, next to the removal it authorises) and hands
+ * back the structured version for `--json`.
+ */
+async function syncHome(
+  env: Env,
+  catalog: Catalog,
+  flags: SyncFlags,
+): Promise<Omit<SyncReport, "agent" | "root">> {
   const rows = await computeRows(env, catalog);
   const available = rows.filter((r) => !r.installed);
 
@@ -146,27 +193,19 @@ export async function runSync(env: Env, flags: SyncFlags): Promise<void> {
 
   const results = await installEntries(env, toUpdate.map((r) => r.entry));
   const skipped = held.map((r) => ({ name: r.entry.name, state: states.get(r.entry.name)! }));
+  const report = {
+    updated: results,
+    available: available.map((r) => ({ name: r.entry.name, version: r.entry.version })),
+    skipped,
+    orphaned: removable.map(({ name, supersededBy }) =>
+      supersededBy === undefined ? { name } : { name, supersededBy },
+    ),
+    unmanaged: unmanaged.map(({ name, supersededBy }) =>
+      supersededBy === undefined ? { name } : { name, supersededBy },
+    ),
+  };
 
-  if (flags.json) {
-    env.logger.output(
-      JSON.stringify(
-        {
-          updated: results,
-          available: available.map((r) => ({ name: r.entry.name, version: r.entry.version })),
-          skipped,
-          orphaned: removable.map(({ name, supersededBy }) =>
-            supersededBy === undefined ? { name } : { name, supersededBy },
-          ),
-          unmanaged: unmanaged.map(({ name, supersededBy }) =>
-            supersededBy === undefined ? { name } : { name, supersededBy },
-          ),
-        },
-        null,
-        2,
-      ),
-    );
-    return;
-  }
+  if (flags.json) return report;
 
   if (results.length === 0) {
     env.logger.info("Everything installed is up to date.");
@@ -211,4 +250,6 @@ export async function runSync(env: Env, flags: SyncFlags): Promise<void> {
       }
     }
   }
+
+  return report;
 }

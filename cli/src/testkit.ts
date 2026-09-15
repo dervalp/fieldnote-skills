@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { AgentHome, AgentName } from "./agent-homes.js";
 import type {
   Catalog,
   Env,
@@ -94,7 +95,10 @@ export interface Harness {
   env: Env;
   prompter: FakePrompter;
   logger: FakeLogger;
-  claudeDir: string;
+  /** The first agent home — the Claude one unless `agents` says otherwise. */
+  agentDir: string;
+  /** Every agent home this harness created, keyed by agent. */
+  homes: Partial<Record<AgentName, string>>;
   sourceDir: string;
   repoRoot: string;
   cleanup: () => Promise<void>;
@@ -106,12 +110,24 @@ export interface Harness {
  * looks like a repo clone (skills/ + cli/package.json) so repo-detection
  * tests can rely on it.
  */
-export async function makeHarness(skills: FixtureSkill[]): Promise<Harness> {
+export async function makeHarness(
+  skills: FixtureSkill[],
+  opts: { agents?: AgentName[] } = {},
+): Promise<Harness> {
   const root = await mkdtemp(join(tmpdir(), "vz-skills-"));
   const repoRoot = join(root, "repo");
   const sourceDir = join(repoRoot, "skills");
-  const claudeDir = join(root, "claude");
-  await mkdir(claudeDir, { recursive: true });
+
+  // One temp home per agent under test. Default stays Claude-only, so a test
+  // that says nothing about agents is asserting single-home behaviour.
+  const agents = opts.agents ?? ["claude"];
+  const agentHomes: AgentHome[] = agents.map((agent) => ({ agent, root: join(root, agent) }));
+  const homes: Partial<Record<AgentName, string>> = {};
+  for (const home of agentHomes) {
+    await mkdir(home.root, { recursive: true });
+    homes[home.agent] = home.root;
+  }
+  const agentDir = agentHomes[0]!.root;
   await mkdir(join(repoRoot, "cli"), { recursive: true });
   await writeFile(join(repoRoot, "cli", "package.json"), "{}\n", "utf8");
 
@@ -150,7 +166,8 @@ export async function makeHarness(skills: FixtureSkill[]): Promise<Harness> {
   const logger = new FakeLogger();
 
   const env: Env = {
-    claudeDir,
+    agentHomes,
+    agentDir,
     catalogPath,
     skillsSourceDir: sourceDir,
     repoRoot,
@@ -162,7 +179,8 @@ export async function makeHarness(skills: FixtureSkill[]): Promise<Harness> {
     env,
     prompter,
     logger,
-    claudeDir,
+    agentDir,
+    homes,
     sourceDir,
     repoRoot,
     cleanup: () => rm(root, { recursive: true, force: true }),

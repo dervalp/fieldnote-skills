@@ -2,7 +2,7 @@
   "name": "fieldnote-skills",
   "version": "0.1.0",
   "private": true,
-  "description": "Interactive CLI to install fieldnote's Claude Code skills into ~/.claude.",
+  "description": "Your coding agent writes the code. These skills run the loop around it: settled design to ticketed PRD, every takeable issue as one parallel wave of worktrees and pull requests, evidence-filled PRs, and a drained review board.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "bin": {

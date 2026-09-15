@@ -410,3 +410,27 @@ test("the stage prompt lists setup first", async () => {
     await h.cleanup();
   }
 });
+
+test("--all installs into every agent home on the machine", async () => {
+  const h = await makeHarness(
+    [
+      { name: "fieldnote-do-work", stage: "build" },
+      { name: "fieldnote-testing", stage: "review" },
+    ],
+    { agents: ["claude", "codex"] },
+  );
+  try {
+    await runList(h.env, { all: true });
+
+    for (const agent of ["claude", "codex"] as const) {
+      for (const name of ["fieldnote-do-work", "fieldnote-testing"]) {
+        assert.ok(
+          await exists(join(h.homes[agent]!, "skills", name, "SKILL.md")),
+          `${name} missing from ${agent}`,
+        );
+      }
+    }
+  } finally {
+    await h.cleanup();
+  }
+});

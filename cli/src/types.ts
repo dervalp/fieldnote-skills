@@ -1,4 +1,5 @@
 /** Core data model shared across the CLI. */
+import type { AgentHome } from "./agent-homes.js";
 
 export type Surface = "desktop" | "code" | "both";
 /** Position in the delivery loop. */
@@ -84,8 +85,14 @@ export interface Logger {
  * from the real filesystem in paths.ts.
  */
 export interface Env {
-  /** Target install root, normally ~/.claude. */
-  claudeDir: string;
+  /** Every agent home this run installs into — see agent-homes.ts. */
+  agentHomes: AgentHome[];
+  /**
+   * The single agent home the current operation acts on. Defaults to the
+   * first of `agentHomes`; commands that install into every agent re-point
+   * it per home as they loop, so the helpers below it stay single-rooted.
+   */
+  agentDir: string;
   /** Path to catalog.json (repo clone or bundled in the package). */
   catalogPath: string;
   /** Directory holding skill source folders (skills/<name>/). */

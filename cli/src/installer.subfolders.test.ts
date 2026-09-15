@@ -67,7 +67,7 @@ test("atomic rollback holds for a multi-folder skill", async () => {
     assert.ok(await exists(join(target, "hooks/pre-commit.sh")));
     assert.ok(await exists(join(target, "agents/reviewer.md")));
 
-    const skillsRoot = join(h.claudeDir, "skills");
+    const skillsRoot = join(h.agentDir, "skills");
     const leftovers = (await readdir(skillsRoot)).filter(
       (n) => n.startsWith(".staging-") || n.startsWith(".backup-"),
     );

@@ -4,12 +4,12 @@ export interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
-const VALUE_FLAGS = new Set(["stage"]);
+const VALUE_FLAGS = new Set(["stage", "agent"]);
 const ALIASES: Record<string, string> = { y: "yes", h: "help" };
 
 /**
  * Minimal argv parser. First positional is the command (default "list").
- * Boolean flags (`--yes`, `--json`); value flags (`--stage build`).
+ * Boolean flags (`--yes`, `--json`); value flags (`--stage build`, `--agent codex`).
  */
 export function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];

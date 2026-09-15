@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from "./args.js";
 import { resolveEnv } from "./paths.js";
+import { selectAgentHomes } from "./agent-homes.js";
 import { InquirerPrompter } from "./prompter.js";
 import { ConsoleLogger } from "./logger.js";
 import { runList } from "./commands/list.js";
@@ -12,7 +13,7 @@ import { renderBanner } from "./banner.js";
 import { UserError } from "./types.js";
 import { chalkStderr } from "chalk";
 
-const HELP = `fieldnote-skills — install shared Claude Code skills into ~/.claude
+const HELP = `fieldnote-skills — install the delivery-loop skills for your coding agent
 
 Usage:
   fieldnote-skills [list]            Install everything, or pick (default)
@@ -21,7 +22,7 @@ Usage:
                   [--yes] [--json]
   fieldnote-skills update [name…]    Update installed skills (outdated pre-checked)
   fieldnote-skills sync [--json]     Update outdated + report newly available
-  fieldnote-skills doctor            Report release drift across all surfaces
+  fieldnote-skills doctor            Report release drift per agent home
                   [--strict] [--json]
   fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
                   [--force] [--print]
@@ -29,6 +30,8 @@ Usage:
 Flags:
   --all         Install every skill without prompting (honours --stage)
   --stage       Filter list by setup, plan, build, review, or all
+  --agent       Install for one agent only: claude or codex. Default: every
+                agent home found (~/.claude, ~/.codex)
   --yes, -y     Skip confirmation prompts
   --json        Machine-readable output
   --force       Overwrite an existing .fieldnote/profile.md
@@ -56,10 +59,17 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  const env = resolveEnv({
+  const base = resolveEnv({
     prompter: new InquirerPrompter(),
     logger,
   });
+  // `--agent` narrows the run; without it every agent home found gets the
+  // skills. agentDir follows, so the single-home helpers stay consistent.
+  const agentHomes = selectAgentHomes(
+    base.agentHomes,
+    typeof flags.agent === "string" ? flags.agent : undefined,
+  );
+  const env = { ...base, agentHomes, agentDir: agentHomes[0]!.root };
 
   switch (command) {
     case "list":

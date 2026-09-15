@@ -89,3 +89,41 @@ test("findGitRoot returns null with no .git anywhere above", () => {
     rmSync(plain, { recursive: true, force: true });
   }
 });
+
+/** Run `fn` with the fieldnote home overrides set to the given values. */
+function withOverrides(vars: Record<string, string | undefined>, fn: () => void): void {
+  const saved = Object.fromEntries(Object.keys(vars).map((k) => [k, process.env[k]]));
+  try {
+    for (const [k, v] of Object.entries(vars)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    fn();
+  } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
+}
+
+test("both home overrides put both agents in the env's target list", () => {
+  withOverrides(
+    { FIELDNOTE_CLAUDE_DIR: "/tmp/env-claude", FIELDNOTE_CODEX_DIR: "/tmp/env-codex" },
+    () => {
+      const env = resolveEnv(deps);
+      assert.deepEqual(env.agentHomes, [
+        { agent: "claude", root: "/tmp/env-claude" },
+        { agent: "codex", root: "/tmp/env-codex" },
+      ]);
+    },
+  );
+});
+
+test("agentDir is the first target, so single-root callers keep working", () => {
+  withOverrides({ FIELDNOTE_CLAUDE_DIR: "/tmp/env-claude", FIELDNOTE_CODEX_DIR: undefined }, () => {
+    const env = resolveEnv(deps);
+    assert.equal(env.agentDir, "/tmp/env-claude");
+    assert.deepEqual(env.agentHomes, [{ agent: "claude", root: "/tmp/env-claude" }]);
+  });
+});

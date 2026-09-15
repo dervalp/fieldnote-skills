@@ -2,6 +2,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { resolveAgentHomes } from "./agent-homes.js";
 import type { Env, Logger, Prompter } from "./types.js";
 
 /** Directory of the installed package (one level up from dist/ or src/). */
@@ -70,10 +71,22 @@ export function resolveEnv(deps: {
     : join(pkg, "catalog.json");
   const skillsSourceDir = pkgRepoRoot ? join(pkgRepoRoot, "skills") : join(pkg, "skills");
 
-  const claudeDir = process.env.FIELDNOTE_CLAUDE_DIR ?? join(homedir(), ".claude");
+  // Which agents' skill trees this run writes to. An override pins the list
+  // and switches detection off — see resolveAgentHomes for why that matters.
+  const agentHomes = resolveAgentHomes({
+    home: homedir(),
+    overrides: {
+      claude: process.env.FIELDNOTE_CLAUDE_DIR,
+      codex: process.env.FIELDNOTE_CODEX_DIR,
+    },
+    exists: existsSync,
+  });
 
   return {
-    claudeDir,
+    agentHomes,
+    // The root the single-target helpers (installer, manifest, tree scan) act
+    // on. Commands that touch every agent re-point it per home as they loop.
+    agentDir: agentHomes[0]!.root,
     catalogPath,
     skillsSourceDir,
     repoRoot,

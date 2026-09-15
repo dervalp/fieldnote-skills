@@ -1,5 +1,6 @@
 import { computeRows } from "../state.js";
-import { installEntries } from "../installer.js";
+import { installEverywhere } from "../installer.js";
+import { reportInstall } from "./install.js";
 import { STAGE_LABELS, VALID_STAGES } from "../skill-rules.js";
 import type { Env, SkillRow, SkillStage } from "../types.js";
 import { UserError } from "../types.js";
@@ -171,13 +172,13 @@ async function resolveStage(env: Env, rows: SkillRow[], requested?: string): Pro
   return normalizeStageFilter(selected);
 }
 
-/** Install the given entries and report what happened, one line each. */
+/**
+ * Install the given entries into every agent home and report what happened.
+ * Reporting is `install`'s, not a second copy of it, so the picker and the
+ * non-interactive command can never describe the same result differently.
+ */
 async function installAndReport(env: Env, entries: SkillRow["entry"][]): Promise<void> {
-  const results = await installEntries(env, entries);
-  for (const r of results) {
-    const verb = r.action === "updated" ? "Updated" : "Installed";
-    env.logger.info(`${verb} ${r.name}@${r.version}`);
-  }
+  reportInstall(env, await installEverywhere(env, entries), {});
 }
 
 /**

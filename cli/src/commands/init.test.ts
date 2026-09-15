@@ -172,7 +172,7 @@ test("never invents Localization facts — always TODO, since none is observable
 
 function makeEnv(repoRoot: string | null): Env {
   return {
-    claudeDir: "/unused",
+    agentDir: "/unused",
     catalogPath: "/unused/catalog.json",
     skillsSourceDir: "/unused/skills",
     repoRoot,
@@ -219,7 +219,7 @@ test("--print writes the profile to stdout and creates nothing on disk", async (
   try {
     const logger = new FakeLogger();
     const env: Env = {
-      claudeDir: "/unused",
+      agentDir: "/unused",
       catalogPath: "/unused/catalog.json",
       skillsSourceDir: "/unused/skills",
       repoRoot: null,
@@ -251,7 +251,7 @@ test("--print does not refuse when a profile already exists, and leaves it untou
   try {
     const logger = new FakeLogger();
     const env: Env = {
-      claudeDir: "/unused",
+      agentDir: "/unused",
       catalogPath: "/unused/catalog.json",
       skillsSourceDir: "/unused/skills",
       repoRoot: null,
@@ -278,7 +278,7 @@ test("--print reports no TODO warning, because it is not scaffolding anything", 
   try {
     const logger = new FakeLogger();
     const env: Env = {
-      claudeDir: "/unused",
+      agentDir: "/unused",
       catalogPath: "/unused/catalog.json",
       skillsSourceDir: "/unused/skills",
       repoRoot: null,
@@ -308,7 +308,7 @@ test("--print resolves Docs.definitionOfDone to .fieldnote/definition-of-done.md
   try {
     const logger = new FakeLogger();
     const env: Env = {
-      claudeDir: "/unused",
+      agentDir: "/unused",
       catalogPath: "/unused/catalog.json",
       skillsSourceDir: "/unused/skills",
       repoRoot: null,
