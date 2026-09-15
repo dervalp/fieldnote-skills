@@ -4,7 +4,7 @@ description: Write this repository's .fieldnote/profile.md by reading the reposi
 stage: setup
 variance: universal
 surface: code
-version: 0.2.0
+version: 0.2.1
 release: skills-v0.1.0
 ---
 
@@ -136,8 +136,11 @@ Draft only what the repository actually shows you:
   exists, leave it alone and report which bullets were not moved instead of
   merging into someone's hand-written file.
 - **Written rules already in the repository** — a contributing guide, a
-  coding-standards document, a rules file an agent already reads. Lift the
-  rules that bind, and cite the source document rather than copying it whole.
+  coding-standards document, a rules file an agent already reads. For each
+  rule, check whether the concern file it belongs to already exists first; if
+  it does, leave it alone and report which rules were not moved. Otherwise
+  lift the rules that bind into that file, and cite the source document
+  rather than copying it whole.
 - **Nothing to read** — check whether the destination file already exists
   first; if it does, leave it alone. Otherwise write it from
   `templates/concerns/` with its examples intact, and say plainly that it is

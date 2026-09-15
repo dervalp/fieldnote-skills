@@ -5,7 +5,7 @@ stage: review
 variance: templated
 concerns: [ci]
 surface: code
-version: 0.1.0
+version: 0.1.1
 release: skills-v0.1.0
 ---
 
@@ -156,6 +156,11 @@ gh pr edit <number> --add-label <label>
 | `pr:needs-fix` | a real regression on this branch                                             |
 | `pr:flaky`     | matches a known flake — see the doc named under `Docs → ciTriage` in the profile |
 | `pr:infra`     | Railway, a fork's Postgres that never provisioned, and their kin             |
+
+Judging `pr:flaky` reads two things: the doc named under `Docs → ciTriage`, and
+`.fieldnote/concerns/ci.md` — this repository's own rules about which failures may be
+labelled flaky rather than handed back as `pr:needs-fix`. If the concern file does not
+exist, say so once and judge from `Docs → ciTriage` alone.
 
 The label persists on the board, so the same pull request is not re-triaged every round and the
 operator can see at a glance who owes what. A labelled pull request is skipped at gate 4 next round

@@ -13,6 +13,7 @@ import {
   missingConcerns,
   sortConcerns,
 } from "./concerns.js";
+import { discover } from "./skill-model.js";
 
 const repoRoot = join(import.meta.dirname, "..", "..");
 
@@ -121,4 +122,20 @@ test("classifyConcerns reports a file no installed skill asked for", () => {
 
 test("classifyConcerns on a repository with nothing returns nothing", () => {
   assert.deepEqual(classifyConcerns({ present: [], declaredBy: new Map() }), []);
+});
+
+test("every skill that declares concerns actually reads each one in its own body", () => {
+  const skills = discover(join(repoRoot, "skills"));
+  const failures: string[] = [];
+  for (const skill of skills) {
+    if (skill.concerns.length === 0) continue;
+    const body = readFileSync(skill.path, "utf8");
+    for (const name of skill.concerns) {
+      const path = concernPath(name);
+      if (!body.includes(path)) {
+        failures.push(`${skill.name} declares concerns: [${name}] but never reads ${path}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
 });

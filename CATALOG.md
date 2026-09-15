@@ -7,7 +7,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Setup
 
-- **fieldnote-setup-profile** (v0.2.0, universal) — Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says "set up the profile", "fill in the profile", "onboard this repo", or asks why a fieldnote skill keeps asking the same question.
+- **fieldnote-setup-profile** (v0.2.1, universal) — Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says "set up the profile", "fill in the profile", "onboard this repo", or asks why a fieldnote skill keeps asking the same question.
 
 ## Plan
 
@@ -22,8 +22,8 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Review
 
-- **fieldnote-pr-monitor** (v0.1.0, templated) — Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Requires a Turbo monorepo and a package-graph evidence script this skill does not ship (see "Runs Here Only" below) — it will not work as-is outside that setup. Use when the board has stalled behind Update-branch turns, or when asked to "monitor the PRs", "drain the board", "merge what is safe". `--dry-run` prints every verdict and merges nothing.
+- **fieldnote-pr-monitor** (v0.1.1, templated) — Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Requires a Turbo monorepo and a package-graph evidence script this skill does not ship (see "Runs Here Only" below) — it will not work as-is outside that setup. Use when the board has stalled behind Update-branch turns, or when asked to "monitor the PRs", "drain the board", "merge what is safe". `--dry-run` prints every verdict and merges nothing.
 - **fieldnote-pull-request** (v0.1.0, configured) — Fill this repository's own PR template with domain impact, business rules, validation evidence, risk, rollback, reviewer focus, and Conventional Commit-aware context. Use when preparing, reviewing, or updating a pull request for this repository.
-- **fieldnote-testing** (v0.1.0, configured) — This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
+- **fieldnote-testing** (v0.1.1, templated) — This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
 
 _Total: 9 skill(s)._

@@ -36,12 +36,12 @@
     },
     {
       "name": "fieldnote-pr-monitor",
-      "version": "0.1.0",
-      "coreHash": "sha256:c04c4c9b76ecf144fbc53ade63a355c3126455a62259d59a0d216a6cdf87cb1c",
+      "version": "0.1.1",
+      "coreHash": "sha256:d4b8392711dde1a957921332005fa9cc5653ddab01e2a8053b63d520a4e362ac",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:6666ba3212443a6922ea23588287841b5cf7c78d9b5eadf3344311a9de0b00a1"
+          "hash": "sha256:1052e23d8dbe38a716e684e46801f4ca16364ebd12db6c8221eda085986c57d1"
         }
       }
     },
@@ -80,23 +80,23 @@
     },
     {
       "name": "fieldnote-setup-profile",
-      "version": "0.2.0",
-      "coreHash": "sha256:55a211498e2038d0542edabfe5eab0d0b8d358f29a3593e59bc7a8090db21fcc",
+      "version": "0.2.1",
+      "coreHash": "sha256:6dd4e032fa18a3c474c6cbcbf803206f2d298db1ebfb29da86a372b9980ead6a",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:97463de5702f62b0f3e4ffcbc9029d726adfcd62e58516bab6fc78224c51c9f4"
+          "hash": "sha256:522147daa2015faa2d7150d787de2c7aa7fbc43bda59bff9af05f00ae821625d"
         }
       }
     },
     {
       "name": "fieldnote-testing",
-      "version": "0.1.0",
-      "coreHash": "sha256:412ac4467692fee2b035bb2ded7e1b3bc537233427bf966fbc589b0eb12b8348",
+      "version": "0.1.1",
+      "coreHash": "sha256:de5653324df1f28bcba04ffa55b7a6017826433b0f07885a71113410d3cc7f88",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:39eb207a2435cb2b1193058595cf855eceed8b9654d53d344c361e9181173b68"
+          "hash": "sha256:83b84a88637ea315e9840886e6e00d5277b37b9f011c0d891d69c80eaa4a9982"
         }
       }
     }

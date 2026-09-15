@@ -2,9 +2,10 @@
 name: fieldnote-testing
 description: This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
 stage: review
-variance: configured
+variance: templated
+concerns: [shared]
 surface: code
-version: 0.1.0
+version: 0.1.1
 release: skills-v0.1.0
 ---
 
@@ -14,12 +15,15 @@ Use this skill when deciding what to test, where to test it, or how to prove a c
 
 ## Workflow
 
-1. Identify the behavior or invariant the change protects.
-2. Prefer red-green-refactor when the expected behavior is clear.
-3. Add characterization tests before risky refactors.
-4. Choose the narrowest test that proves the risk, then add broader coverage only when integration
+1. Read `.fieldnote/concerns/shared.md` for this repository's own rules before choosing what to
+   test — a repository-wide rule can widen what needs coverage or rule out a pattern entirely. If
+   the file does not exist, say so once and continue on general practice.
+2. Identify the behavior or invariant the change protects.
+3. Prefer red-green-refactor when the expected behavior is clear.
+4. Add characterization tests before risky refactors.
+5. Choose the narrowest test that proves the risk, then add broader coverage only when integration
    is the risk.
-5. Run the relevant package or repo check and report skipped checks with a reason.
+6. Run the relevant package or repo check and report skipped checks with a reason.
 
 ## Test Selection
 
