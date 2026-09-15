@@ -68,6 +68,7 @@ export interface FixtureSkill {
   description?: string;
   mcp?: string[];
   variance?: SkillVariance;
+  concerns?: string[];
   /** Extra files keyed by repo-relative path within the skill folder. */
   files?: Record<string, string>;
 }
@@ -76,7 +77,7 @@ const DEFAULT_DESC =
   "Use when the user wants this fixture skill so that the description clears the fifteen word minimum easily.";
 
 export function toEntry(skill: FixtureSkill): SkillEntry {
-  return {
+  const entry: SkillEntry = {
     name: skill.name,
     stage: skill.stage,
     surface: skill.surface ?? "code",
@@ -85,6 +86,8 @@ export function toEntry(skill: FixtureSkill): SkillEntry {
     mcp: skill.mcp ?? [],
     variance: skill.variance ?? "universal",
   };
+  if (skill.concerns !== undefined && skill.concerns.length > 0) entry.concerns = skill.concerns;
+  return entry;
 }
 
 export interface Harness {

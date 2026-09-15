@@ -97,18 +97,18 @@ everywhere. See [docs/profile.md](docs/profile.md) for the full format.
 
 ## Status
 
-Eight of the thirteen skills fieldnote runs on ship here. The other five —
-`fieldnote-do-work`, `fieldnote-fix-bug`, `fieldnote-brainstorming`,
-`fieldnote-react-review`, and `fieldnote-react-sweep` — are `templated`: they
-still carry one company's language and framework doctrine, and generalizing
-them is later work.
+Nine of the thirteen skills fieldnote runs on ship here. The other four —
+`fieldnote-fix-bug`, `fieldnote-brainstorming`, `fieldnote-react-review`, and
+`fieldnote-react-sweep` — still carry one company's language and framework
+doctrine, and generalizing them is later work.
 
-That gap is not cosmetic. The skills shipped here already reference the
-skills that aren't: 13 references to `fieldnote-do-work`, 1 to
-`fieldnote-fix-bug`. Install today and `fieldnote-deliver` or
-`fieldnote-parallel-wave` will hand implementation to a skill that isn't in
-your `~/.claude` yet — bring your own implementation step until a later phase
-ships it.
+`fieldnote-do-work` now ships. It keeps what is true in every repository and
+reads what is true in yours from `.fieldnote/concerns/` — see
+[docs/concerns.md](docs/concerns.md). The 13 references to it from
+`fieldnote-deliver` and `fieldnote-parallel-wave` resolve on a fresh install.
+
+One reference is still open: `fieldnote-pull-request` recognizes a pull
+request opened by `fieldnote-fix-bug`, which has not shipped yet.
 
 `fieldnote-pr-monitor` ships, but stays `templated` too. Its evidence comes
 from a Turbo monorepo's package graph, and this repository does not ship the
@@ -117,10 +117,9 @@ script that produces it. It will not run as-is outside that setup.
 |                                      | State               |
 | ------------------------------------ | ------------------- |
 | Plugin marketplace + npx install     | Shipped             |
-| Eight skills, profile-decoupled      | Shipped             |
+| Nine skills, profile-decoupled       | Shipped             |
 | `init` — scaffold a profile          | Shipped             |
-| Five templated skills                | Designed, not built |
-| `tailor` — render per repository     | Designed, not built |
+| Four templated skills                | Designed, not built |
 | Rendering from fieldnote's Act arm   | Designed, not built |
 
 ## Contributing

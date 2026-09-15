@@ -18,6 +18,8 @@ export interface SkillEntry {
   /** Artifact types this skill emits / reads; absent when none. */
   produces?: string[];
   consumes?: string[];
+  /** `.fieldnote/concerns/` files this skill always reads; absent when none. */
+  concerns?: string[];
 }
 
 export interface Catalog {

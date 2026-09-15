@@ -326,3 +326,56 @@ test("two skills claiming the same superseded name is rejected", () => {
     assert.ok(collectErrors(d).some((e) => e.includes("supersedes 'tdd'")));
   });
 });
+
+test("a templated skill must declare the concerns it reads", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing", { variance: "templated" }));
+    const errors = collectErrors(d);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0]!, /variance 'templated' requires a non-empty 'concerns:' list/);
+  });
+});
+
+test("a templated skill declaring concerns validates clean", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", {
+      ...baseFm("fieldnote-do-thing", { variance: "templated" }),
+      concerns: "[shared, qa]",
+    });
+    assert.deepEqual(collectErrors(d), []);
+  });
+});
+
+test("a concern name outside the advised six is accepted in silence", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", {
+      ...baseFm("fieldnote-do-thing", { variance: "templated" }),
+      concerns: "[shared, prompts]",
+    });
+    assert.deepEqual(collectErrors(d), []);
+  });
+});
+
+test("only a templated skill may declare concerns", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", {
+      ...baseFm("fieldnote-do-thing", { variance: "configured" }),
+      concerns: "[shared]",
+    });
+    const errors = collectErrors(d);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0]!, /'concerns:' is only valid on a 'templated' skill/);
+  });
+});
+
+test("a concern entry must be a kebab-case file stem", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", {
+      ...baseFm("fieldnote-do-thing", { variance: "templated" }),
+      concerns: "[Front_End]",
+    });
+    const errors = collectErrors(d);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0]!, /concerns entry 'Front_End' must be a kebab-case file name/);
+  });
+});

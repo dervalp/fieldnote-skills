@@ -4,16 +4,28 @@
     {
       "name": "fieldnote-deliver",
       "stage": "build",
-      "description": "Drive a PRD/epic to completion wave by wave. Give it a PRD (or epic) issue reference; it discovers the remaining child issues, builds the dependency graph, computes which are takeable now (open, ready-for-agent, all blockers merged, no PR yet), and runs that frontier as one parallel wave — then stops at the human-merge gate. Use when you have a PRD/epic whose children are already ticketed and want to keep shipping the next takeable slices without hand-picking issue numbers. Re-run after merging to advance the next wave naturally. Composes fieldnote-parallel-wave, which in turn hands implementation to fieldnote-do-work (not yet shipped in this repository — bring your own implementation step); does not invent issues and never merges.",
+      "description": "Drive a PRD/epic to completion wave by wave. Give it a PRD (or epic) issue reference; it discovers the remaining child issues, builds the dependency graph, computes which are takeable now (open, ready-for-agent, all blockers merged, no PR yet), and runs that frontier as one parallel wave — then stops at the human-merge gate. Use when you have a PRD/epic whose children are already ticketed and want to keep shipping the next takeable slices without hand-picking issue numbers. Re-run after merging to advance the next wave naturally. Composes fieldnote-parallel-wave, which in turn hands implementation to fieldnote-do-work; does not invent issues and never merges.",
       "surface": "code",
       "version": "0.1.0",
       "mcp": [],
       "variance": "configured"
     },
     {
+      "name": "fieldnote-do-work",
+      "stage": "build",
+      "description": "Implement one slice of work to standard — confirm the ask is clear, right-size any delegated agent, work in tracer bullets test-first, respect the rules this repository wrote down, and carry it to a green pull request or an honest stop. Use when implementing, doing work, building a change, picking up a ticket, or starting to code.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "templated",
+      "concerns": [
+        "shared"
+      ]
+    },
+    {
       "name": "fieldnote-parallel-wave",
       "stage": "build",
-      "description": "Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a \"wave\") and running them one-by-one would be slow; composes fieldnote-do-work (not yet shipped in this repository — bring your own implementation step) + fieldnote-pull-request. Not for dependent issues, not for merging.",
+      "description": "Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a \"wave\") and running them one-by-one would be slow; composes fieldnote-do-work + fieldnote-pull-request. Not for dependent issues, not for merging.",
       "surface": "code",
       "version": "0.1.0",
       "mcp": [],
@@ -42,9 +54,12 @@
       "stage": "review",
       "description": "Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Requires a Turbo monorepo and a package-graph evidence script this skill does not ship (see \"Runs Here Only\" below) — it will not work as-is outside that setup. Use when the board has stalled behind Update-branch turns, or when asked to \"monitor the PRs\", \"drain the board\", \"merge what is safe\". `--dry-run` prints every verdict and merges nothing.",
       "surface": "code",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "mcp": [],
-      "variance": "templated"
+      "variance": "templated",
+      "concerns": [
+        "ci"
+      ]
     },
     {
       "name": "fieldnote-pull-request",
@@ -60,16 +75,19 @@
       "stage": "review",
       "description": "This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.",
       "surface": "code",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "mcp": [],
-      "variance": "configured"
+      "variance": "templated",
+      "concerns": [
+        "shared"
+      ]
     },
     {
       "name": "fieldnote-setup-profile",
       "stage": "setup",
       "description": "Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says \"set up the profile\", \"fill in the profile\", \"onboard this repo\", or asks why a fieldnote skill keeps asking the same question.",
       "surface": "code",
-      "version": "0.1.0",
+      "version": "0.2.1",
       "mcp": [],
       "variance": "universal"
     }

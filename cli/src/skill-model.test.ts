@@ -184,3 +184,37 @@ test("stage and variance are read from frontmatter, not the directory", () => {
     assert.equal(skill.folderName, "fieldnote-parallel-wave");
   });
 });
+
+// --- concerns (Task 2): repository concern files a skill declares it reads ---
+
+test("concerns parses as an inline list", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", {
+      ...baseFm("fieldnote-do-thing", { variance: "templated" }),
+      concerns: "[shared, qa, ci]",
+    });
+    assert.deepEqual(discover(d)[0]!.concerns, ["shared", "qa", "ci"]);
+  });
+});
+
+test("an absent concerns list reads as empty", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-do-thing", baseFm("fieldnote-do-thing"));
+    assert.deepEqual(discover(d)[0]!.concerns, []);
+  });
+});
+
+test("concerns reach the catalog entry only when declared", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-plain", baseFm("fieldnote-plain"));
+    writeSkill(d, "fieldnote-tailored", {
+      ...baseFm("fieldnote-tailored", { variance: "templated" }),
+      concerns: "[shared]",
+    });
+    const entries = discover(d).map((s) => s.toCatalogEntry());
+    const plain = entries.find((e) => e.name === "fieldnote-plain");
+    const tailored = entries.find((e) => e.name === "fieldnote-tailored");
+    assert.equal("concerns" in plain!, false);
+    assert.deepEqual(tailored!.concerns, ["shared"]);
+  });
+});

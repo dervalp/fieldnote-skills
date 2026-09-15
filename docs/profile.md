@@ -34,7 +34,9 @@ bullet, in every section, must be marked with a plain hyphen (`-`); `*` and
 `+` bullets (both valid Markdown, and what some editors auto-convert to) are
 not recognized and are silently ignored. The `Architecture` section is the
 one exception to the key/value shape: it holds a bare, ordered list of rules
-instead:
+instead. `Architecture` itself is superseded by
+`.fieldnote/concerns/shared.md` (see [docs/concerns.md](concerns.md)) — the
+parser still reads it this way only so an existing profile keeps parsing:
 
 ```markdown
 - A rule, stated as a sentence.
@@ -137,18 +139,24 @@ here; the profile only records *where* they are.
 - **plans** — ./plans
 ```
 
-### Architecture
+### Architecture (superseded)
 
-An ordered list of durable architectural rules — the constraints a skill
-should respect when it proposes a design or reviews one, stated as plain
-sentences rather than key/value facts because there's no natural "key" for a
-rule.
+Superseded by `.fieldnote/concerns/shared.md`. See
+[docs/concerns.md](concerns.md).
+
+This was a bare list of rules — no concern, no room for a rule with
+sub-cases, no way to cite a longer document. Those are the limits the
+concerns folder exists to lift.
+
+The parser still reads the section, so an existing profile keeps working and
+nothing breaks on upgrade. Nothing new should be written here. Move the
+bullets to `.fieldnote/concerns/shared.md`; `fieldnote-setup-profile` offers
+to do it when it finds them.
 
 ```markdown
 ## Architecture
 
-- Validate every boundary with a schema before it reaches a service.
-- Persistence stays behind a repository interface.
+- A rule, stated as a sentence.
 ```
 
 ### Parallelism
@@ -271,6 +279,8 @@ assuming a skill or the parser is broken:
   word) all fail to be recognized as one of the nine sections. A heading the
   parser doesn't recognize is not an error: every bullet under it is
   silently dropped, and nothing under it becomes available to any skill.
+  `Architecture` is still recognized, but superseded: write new rules in
+  `.fieldnote/concerns/shared.md` instead (see [docs/concerns.md](concerns.md)).
 - **The bullet marker must be a hyphen (`-`)**, not `*` or `+`.
 - **A key/value bullet needs bold around the key**: `` - **key** — value ``.
   A bullet without the `**...**` around the key parses as an unrecognized
@@ -320,8 +330,8 @@ document.
 
 ## Architecture
 
-- Validate every boundary with a schema before it reaches a service.
-- Persistence stays behind a repository interface.
+Superseded by `.fieldnote/concerns/shared.md` — a new profile leaves this
+section empty and writes its rules there instead.
 
 ## Parallelism
 

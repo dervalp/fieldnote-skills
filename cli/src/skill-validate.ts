@@ -19,6 +19,7 @@ import {
   frontmatterLineErrors,
 } from "./skill-model.js";
 import { isVendoredName, missingVendorFields, REQUIRED_VENDOR_FIELDS, vendorPrefixList } from "./vendor-model.js";
+import { ADVISED_CONCERNS, CONCERN_NAME_RE, CONCERNS_DIR } from "./concerns.js";
 
 const sortedJoin = (values: readonly string[]): string => [...values].sort().join(", ");
 
@@ -141,6 +142,32 @@ export function validateSkill(
       err("mcp must be an inline list, e.g. mcp: [jira, slack]");
     } else if (mcpRaw.some((item) => typeof item !== "string" || item === "")) {
       err("mcp entries must be non-empty server names");
+    }
+  }
+
+  // `templated` is the one variance that promises a repository authored
+  // something. The list is what makes that promise checkable — and what
+  // `doctor` reads to say which file a repository is missing.
+  const concernsRaw = fm["concerns"];
+  if (concernsRaw !== undefined && !Array.isArray(concernsRaw)) {
+    err(`concerns must be an inline list, e.g. concerns: [${ADVISED_CONCERNS.slice(0, 2).join(", ")}]`);
+  } else {
+    const concerns = skill.concerns;
+    if (declaredVariance === "templated" && concerns.length === 0) {
+      err(
+        `variance 'templated' requires a non-empty 'concerns:' list — ` +
+          `the ${CONCERNS_DIR}/ files this skill reads`,
+      );
+    }
+    if (declaredVariance !== "templated" && concerns.length > 0) {
+      err(`'concerns:' is only valid on a 'templated' skill (this one is '${declaredVariance}')`);
+    }
+    for (const name of concerns) {
+      // Deliberately no membership check against ADVISED_CONCERNS: the six are
+      // advice, and a repository naming its own concern must not fail a build.
+      if (!CONCERN_NAME_RE.test(name)) {
+        err(`concerns entry '${name}' must be a kebab-case file name, e.g. front-end`);
+      }
     }
   }
 

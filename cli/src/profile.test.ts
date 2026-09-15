@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { parseProfile, isDeclaredAbsent } from "./profile.js";
 
 const SAMPLE = `# fieldnote profile
@@ -127,4 +129,17 @@ test("a bare (none) under an unrecognised heading is dropped, like every other b
   const p = parseProfile("## Colors\n\n- (none)\n\n## Commands\n\n- **check** — pnpm check\n");
   assert.equal(p.declaredAbsent.has("colors"), false);
   assert.equal(p.commands.check, "pnpm check", "a known section after it still parses");
+});
+
+test("a retired Architecture section still parses, so an existing profile does not break", () => {
+  const profile = parseProfile(
+    "## Architecture\n\n- Persistence stays behind a repository interface.\n",
+  );
+  assert.deepEqual(profile.architecture, ["Persistence stays behind a repository interface."]);
+});
+
+test("docs/profile.md sends the reader from Architecture to the concerns folder", () => {
+  const md = readFileSync(join(import.meta.dirname, "..", "..", "docs", "profile.md"), "utf8");
+  assert.match(md, /### Architecture \(superseded\)/);
+  assert.match(md, /\.fieldnote\/concerns\/shared\.md/);
 });

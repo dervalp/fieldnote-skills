@@ -12,6 +12,7 @@
  */
 import { dirname, join } from "node:path";
 import { loadCatalog } from "../catalog.js";
+import { classifyConcerns, concernPath, findConcerns, type ConcernRow } from "../concerns.js";
 import {
   classifyInstalled,
   knownSkillNames,
@@ -21,7 +22,7 @@ import {
 import { scanInstalledSkills } from "../installed-tree.js";
 import { readLock, type Lock } from "../lock.js";
 import { readManifest } from "../manifest.js";
-import type { Env } from "../types.js";
+import type { Catalog, Env } from "../types.js";
 
 export interface DoctorFlags {
   strict?: boolean;
@@ -160,6 +161,36 @@ function headerPin(pins: UpstreamPin[]): string | null {
   return `upstream pins ${pins.map((p) => `${p.repo} ${p.ref}`).join(", ")}`;
 }
 
+/**
+ * The repository section. Only skills that are actually installed are asked
+ * about: a file the reader has no skill to read is not a gap.
+ */
+function concernRows(env: Env, catalog: Catalog, installed: Set<string>): ConcernRow[] {
+  if (env.repoRoot === null) return [];
+  const declaredBy = new Map<string, string[]>();
+  for (const skill of catalog.skills) {
+    if (!installed.has(skill.name)) continue;
+    if (skill.concerns !== undefined && skill.concerns.length > 0) declaredBy.set(skill.name, skill.concerns);
+  }
+  return classifyConcerns({ present: findConcerns(env.repoRoot), declaredBy });
+}
+
+function concernSection(rows: ConcernRow[], repoRoot: string): string[] {
+  const lines = [`This repository  ${repoRoot}`];
+  if (rows.length === 0) {
+    lines.push("  no .fieldnote/concerns/ — skills fall back to general practice");
+    lines.push("  `fieldnote-setup-profile` can draft them; see docs/concerns.md");
+    return lines;
+  }
+  for (const row of rows) {
+    const mark = row.present ? "✔" : "⚠";
+    const who = row.wantedBy.length === 0 ? "read by nothing installed" : `read by ${row.wantedBy.join(", ")}`;
+    const state = row.present ? who : `${who} — not present`;
+    lines.push(`  ${mark} ${concernPath(row.name)}   ${state}`);
+  }
+  return lines;
+}
+
 export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
   const lock = readLock(join(dirname(env.catalogPath), "skills.lock.json"));
   if (lock === null) {
@@ -170,6 +201,7 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
   const catalog = await loadCatalog(env);
   const manifest = await readManifest(env);
   const tree = await scanInstalledSkills(env);
+  const concerns = concernRows(env, catalog, new Set(Object.keys(manifest.skills)));
   const rows = classifyInstalled({
     lock,
     manifest,
@@ -201,6 +233,11 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
           // able to tell "no drift here" from "this surface cannot be read".
           claudeAi: { inspectable: false, expected: expectedZips },
           upstream: { pins, latestChecked: false },
+          // Named explicitly even outside a repository (root: null, concerns:
+          // []) rather than omitted, for the same reason as claudeAi above: a
+          // machine consumer must be able to tell "not in a repository" from
+          // "this CLI version has no such field".
+          repository: { root: env.repoRoot, concerns },
         },
         null,
         2,
@@ -219,6 +256,10 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
   const cols = columnsFor(rows);
   for (const row of rows) env.logger.info(describe(row, lock.release, cols));
 
+  if (env.repoRoot !== null) {
+    env.logger.info("");
+    for (const line of concernSection(concerns, env.repoRoot)) env.logger.info(line);
+  }
 
   env.logger.info("");
   env.logger.info("claude.ai  cannot be inspected");

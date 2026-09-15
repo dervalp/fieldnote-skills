@@ -3,8 +3,9 @@ name: fieldnote-pr-monitor
 description: Walk the open pull request board in rounds of five and land what main cannot break. For each pull request it either merges on the spot, presses Update branch and moves on, or labels the failure and hands it back. Reads no code — the CI harness and the agent reviewers already on each pull request are the review. Requires a Turbo monorepo and a package-graph evidence script this skill does not ship (see "Runs Here Only" below) — it will not work as-is outside that setup. Use when the board has stalled behind Update-branch turns, or when asked to "monitor the PRs", "drain the board", "merge what is safe". `--dry-run` prints every verdict and merges nothing.
 stage: review
 variance: templated
+concerns: [ci]
 surface: code
-version: 0.1.0
+version: 0.1.1
 release: skills-v0.1.0
 ---
 
@@ -155,6 +156,11 @@ gh pr edit <number> --add-label <label>
 | `pr:needs-fix` | a real regression on this branch                                             |
 | `pr:flaky`     | matches a known flake — see the doc named under `Docs → ciTriage` in the profile |
 | `pr:infra`     | Railway, a fork's Postgres that never provisioned, and their kin             |
+
+Judging `pr:flaky` reads two things: the doc named under `Docs → ciTriage`, and
+`.fieldnote/concerns/ci.md` — this repository's own rules about which failures may be
+labelled flaky rather than handed back as `pr:needs-fix`. If the concern file does not
+exist, say so once and judge from `Docs → ciTriage` alone.
 
 The label persists on the board, so the same pull request is not re-triaged every round and the
 operator can see at a glance who owes what. A labelled pull request is skipped at gate 4 next round

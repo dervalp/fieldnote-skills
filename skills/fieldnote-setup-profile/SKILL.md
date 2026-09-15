@@ -4,7 +4,7 @@ description: Write this repository's .fieldnote/profile.md by reading the reposi
 stage: setup
 variance: universal
 surface: code
-version: 0.1.0
+version: 0.2.1
 release: skills-v0.1.0
 ---
 
@@ -121,7 +121,38 @@ summary line naming them, and each of those keys is recorded `(none)` — the
 repository has been looked at and does not have one, so nothing should ask
 again. Generating them is a different job.
 
-### 4. Show the whole file, with provenance
+### 4. Draft the concern files
+
+`.fieldnote/concerns/` is where this repository writes its own rules — the
+ones a skill reads before it touches a UI file, before it says a change
+works, or when a check goes red. Advised files: `shared.md`, `front-end.md`,
+`backend.md`, `database.md`, `qa.md`, `ci.md`. A repository may name its own.
+
+Draft only what the repository actually shows you:
+
+- **A profile with an `Architecture` section** — that section is superseded.
+  Read `.fieldnote/concerns/shared.md` first. If it does not exist, move the
+  section's bullets into it verbatim and say you moved them. If it already
+  exists, leave it alone and report which bullets were not moved instead of
+  merging into someone's hand-written file.
+- **Written rules already in the repository** — a contributing guide, a
+  coding-standards document, a rules file an agent already reads. For each
+  rule, check whether the concern file it belongs to already exists first; if
+  it does, leave it alone and report which rules were not moved. Otherwise
+  lift the rules that bind into that file, and cite the source document
+  rather than copying it whole.
+- **Nothing to read** — check whether the destination file already exists
+  first; if it does, leave it alone. Otherwise write it from
+  `templates/concerns/` with its examples intact, and say plainly that it is
+  a starter nobody has filled in.
+
+Do not invent a rule. A rule nobody wrote down is not a rule, and an invented
+one is worse than an absent one because every skill downstream will obey it.
+
+Only draft a file for a concern this repository has: no `front-end.md` for a
+command-line tool, no `database.md` for a repository with no database.
+
+### 5. Show the whole file, with provenance
 
 Present every value together with where it came from:
 
@@ -135,19 +166,19 @@ Show the whole file, not only the parts that changed. A wrong fact here
 silently poisons every skill downstream, so it has to be catchable at a
 glance.
 
-### 5. Ask once
+### 6. Ask once
 
 Whatever the repository genuinely cannot answer, ask as one numbered list in a
 single message. These are independent facts — a label name, a concurrency
 number — not a decision tree, so nothing is gained by asking them one at a
 time.
 
-### 6. Write, then stop
+### 7. Write, then stop
 
-On approval, write `.fieldnote/profile.md` (and
-`.fieldnote/definition-of-done.md` if one was drafted). Report the path of
-each file written, how many values were filled, and anything left as `TODO`
-with the reason.
+On approval, write `.fieldnote/profile.md`, plus
+`.fieldnote/definition-of-done.md` and any `.fieldnote/concerns/*.md` that
+were drafted. Report the path of each file written, how many values were
+filled, and anything left as `TODO` with the reason.
 
 Then stop. Do not commit, branch, push, or open a pull request.
 
@@ -163,6 +194,9 @@ Then stop. Do not commit, branch, push, or open a pull request.
 - **A private or unfamiliar CI system** — if you cannot tell which job gates a
   pull request, ask rather than guessing. A wrong `Commands.check` is worse
   than an empty one, because it will be reported as passing.
+- **A concern file already exists** — leave it alone. Report that it is
+  there and was not touched. These are hand-written rules; overwriting them
+  is the one unrecoverable thing this skill could do.
 
 ## References
 
@@ -172,3 +206,7 @@ Then stop. Do not commit, branch, push, or open a pull request.
   for the five-section convention.
 - https://github.com/dervalp/fieldnote-skills/blob/main/templates/definition-of-done.md
   for a starter with the headings in place.
+- https://github.com/dervalp/fieldnote-skills/blob/main/docs/concerns.md
+  for the concerns convention and what belongs in each file.
+- https://github.com/dervalp/fieldnote-skills/blob/main/templates/concerns/
+  for the six starters.
