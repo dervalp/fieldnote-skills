@@ -7,6 +7,7 @@ import {
   ADVISED_CONCERNS,
   CONCERNS_DIR,
   CONCERN_NAME_RE,
+  classifyConcerns,
   concernPath,
   findConcerns,
   missingConcerns,
@@ -92,4 +93,29 @@ test("the convention document shows every advised concern, so the copies cannot 
   for (const name of ADVISED_CONCERNS) {
     assert.ok(md.includes(concernPath(name)), `docs/concerns.md must show ${concernPath(name)}`);
   }
+});
+
+test("classifyConcerns pairs what skills want with what the repository has", () => {
+  const rows = classifyConcerns({
+    present: ["shared", "ci"],
+    declaredBy: new Map([
+      ["fieldnote-do-work", ["shared"]],
+      ["fieldnote-pr-monitor", ["ci"]],
+      ["fieldnote-fix-bug", ["shared", "qa"]],
+    ]),
+  });
+  assert.deepEqual(rows, [
+    { name: "shared", present: true, wantedBy: ["fieldnote-do-work", "fieldnote-fix-bug"] },
+    { name: "qa", present: false, wantedBy: ["fieldnote-fix-bug"] },
+    { name: "ci", present: true, wantedBy: ["fieldnote-pr-monitor"] },
+  ]);
+});
+
+test("classifyConcerns reports a file no installed skill asked for", () => {
+  const rows = classifyConcerns({ present: ["prompts"], declaredBy: new Map() });
+  assert.deepEqual(rows, [{ name: "prompts", present: true, wantedBy: [] }]);
+});
+
+test("classifyConcerns on a repository with nothing returns nothing", () => {
+  assert.deepEqual(classifyConcerns({ present: [], declaredBy: new Map() }), []);
 });

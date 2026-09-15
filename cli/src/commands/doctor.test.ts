@@ -346,3 +346,29 @@ test("tells the truth about a locally modified skill: sync holds it, update over
     await h.cleanup();
   }
 });
+
+test("names a concern file an installed skill reads and this repository lacks", async () => {
+  const skill: FixtureSkill = {
+    name: "fieldnote-do-work",
+    stage: "build",
+    surface: "code",
+    variance: "templated",
+    concerns: ["shared", "qa"],
+  };
+  const h = await makeHarness([skill]);
+  try {
+    await writeLockFor(h, "skills-v1.0.0", { skills: [skill] });
+    await installEntries(h.env, [toEntry(skill)]);
+    await mkdir(join(h.repoRoot, ".fieldnote", "concerns"), { recursive: true });
+    await writeFile(join(h.repoRoot, ".fieldnote", "concerns", "shared.md"), "# Shared\n", "utf8");
+
+    const code = await runDoctor(h.env, {});
+
+    assert.equal(code, 0, "a missing concern file is not release drift");
+    const out = h.logger.infos.join("\n");
+    assert.match(out, /\.fieldnote\/concerns\/shared\.md/);
+    assert.match(out, /\.fieldnote\/concerns\/qa\.md[^\n]*not present/);
+  } finally {
+    await h.cleanup();
+  }
+});

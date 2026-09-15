@@ -76,3 +76,40 @@ export function missingConcerns(declared: string[], present: string[]): string[]
   const have = new Set(present);
   return sortConcerns(declared.filter((name) => !have.has(name)));
 }
+
+/** One concern: who reads it, and whether this repository wrote it. */
+export interface ConcernRow {
+  name: string;
+  present: boolean;
+  /** Installed skills that declared this concern, in name order. */
+  wantedBy: string[];
+}
+
+/**
+ * Pair what the installed skills declare against what the repository has.
+ *
+ * Pure: the command layer gathers the inputs and renders the output, the same
+ * split `doctor-state.ts` uses, so every state is testable without a disk.
+ * A file nobody asked for is still reported — it confirms the folder was seen,
+ * and a name nothing reads is worth knowing about.
+ */
+export function classifyConcerns(input: {
+  present: string[];
+  declaredBy: Map<string, string[]>;
+}): ConcernRow[] {
+  const have = new Set(input.present);
+  const wantedBy = new Map<string, string[]>();
+  for (const [skill, concerns] of [...input.declaredBy].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    for (const name of concerns) {
+      const list = wantedBy.get(name);
+      if (list === undefined) wantedBy.set(name, [skill]);
+      else list.push(skill);
+    }
+  }
+  const names = sortConcerns([...new Set([...input.present, ...wantedBy.keys()])]);
+  return names.map((name) => ({
+    name,
+    present: have.has(name),
+    wantedBy: wantedBy.get(name) ?? [],
+  }));
+}
