@@ -5,7 +5,7 @@
     {
       "name": "fieldnote",
       "source": "./",
-      "description": "The delivery loop as skills: brainstorm, PRD, plan, parallel waves, pull request, board drain."
+      "description": "Your coding agent writes the code. These skills run the loop around it: settled design to ticketed PRD, every takeable issue as one parallel wave of worktrees and pull requests, evidence-filled PRs, and a drained review board."
     }
   ]
 }

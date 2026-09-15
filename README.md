@@ -1,41 +1,139 @@
 # fieldnote-skills
 
-**The delivery loop, as skills.**
+**The delivery loop your coding agent doesn't have.**
+
+[![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue)](LICENSE)
+[![Node >= 21](https://img.shields.io/badge/node-%3E%3D%2021-brightgreen)](package.json)
+[![Agents: Claude Code · Codex](https://img.shields.io/badge/agents-Claude%20Code%20%C2%B7%20Codex-8A2BE2)](#1-install-the-skills)
+
+## The problem
+
+Your agent writes the code. That part works now, and it stopped being the
+bottleneck a while ago.
+
+What it doesn't do is the loop around the code. You still turn the design into
+a ticket yourself. You still work out by hand which issues are actually
+takeable this morning, and you still run them one at a time because keeping
+four agents straight in your head is worse than waiting. You still write the
+pull request body, and you still re-read a diff that CI and two agent
+reviewers already checked, because nobody wrote down what "checked" means
+here.
+
+And you explain your own repository again every single session. Which label
+means ready. Which command runs the tests. Where the definition of done
+lives — if it's written down anywhere at all. The agent can't remember, so you
+repeat yourself, and the parts you forget to repeat are the parts it guesses.
+
+The result is an agent that's fast at the one step you'd already automated and
+absent for the seven around it.
+
+## What this is
+
+Nine skills that do the loop: a settled design becomes a PRD with ticketed
+child issues, the issues that are takeable right now run as one parallel wave
+of worktrees and pull requests, each pull request arrives with real evidence
+in it, and the review board gets drained without re-reading what the checks
+already covered.
+
+They read your repository's facts from one small file you write once, so they
+stop asking. They ran inside a private monorepo for months before this
+repository existed; publishing them is what makes them usable anywhere.
+
+## Getting started
+
+You'll need Node 21 or newer, a git repository, and a coding agent — Claude
+Code or Codex.
+
+### 1. Install the skills
+
+From any shell:
 
 ```bash
-# inside Claude Code
-/plugin marketplace add dervalp/fieldnote-skills
-
-# from any shell
 npx github:dervalp/fieldnote-skills
 ```
 
-The default run first asks what you want to install — the picker starts fully
-ticked, so a plain Enter installs everything — then filters by stage.
-`npx github:dervalp/fieldnote-skills --all` installs every skill with no
-prompts at all, which is what you want in CI or anywhere there is no TTY.
+You get a picker, already fully ticked, so a plain Enter installs everything.
+For CI or any shell without a terminal, skip the prompts entirely:
 
-Requires Node >=21.
+```bash
+npx github:dervalp/fieldnote-skills --all
+```
 
-## Why
+The installer looks for the agent homes on your machine and writes to each one
+it finds — `~/.claude/skills`, `~/.codex/skills`, or both. Add
+`--agent claude` or `--agent codex` to pin it to one.
 
-Agents write the code. What decides whether it ships is the loop around the
-code: turning a settled design into a ticketed PRD, running the issues that
-are actually takeable right now as one parallel wave, filling out a pull
-request with real evidence instead of placeholders, and draining the review
-board without re-reading diffs the CI and the agent reviewers already
-covered.
+Claude Code users can install as a plugin instead, which keeps the skills
+updating with the marketplace:
 
-These skills are that loop. They ran inside one company's private monorepo
-for months. Business users relied on them daily. The developers who stood to
-benefit most never picked them up, because the skills only existed in one
-place and only worked in one place — hardcoding that repository's own ADR
-numbers, paths, labels, and shell commands.
+```
+/plugin marketplace add dervalp/fieldnote-skills
+```
 
-Publishing them fixes the first problem. Making each skill read its facts
-from a small file in your own repository, instead of assuming they are the
-skill's own, fixes the second. Install once, write a profile, and the loop
-that shipped one company's software starts shipping yours.
+Check it landed:
+
+```bash
+npx github:dervalp/fieldnote-skills doctor
+```
+
+That prints one section per agent home, and every skill's state in it.
+
+### 2. Tell the skills about your repository
+
+This is the step that stops the repeated questions. Run it in the repository
+you want to work in:
+
+```bash
+npx github:dervalp/fieldnote-skills init
+```
+
+It writes `.fieldnote/profile.md`, filling in everything a regex can prove
+from the repository itself and marking the rest `TODO`. A skill that hits a
+`TODO` stops and asks rather than guessing, so the TODOs are worth filling.
+
+To fill them without doing it by hand, run this in your agent:
+
+```
+/fieldnote-setup-profile
+```
+
+It reads the CI workflow, the written rules and the deploy configuration, and
+asks only about what the repository genuinely cannot answer. Expect it to push
+you toward writing a definition of done — see
+[docs/definition-of-done.md](docs/definition-of-done.md) for why that one
+document earns its keep.
+
+### 3. Run your first loop
+
+**If you plan the work**, start here. Hand it a settled design — straight out
+of a brainstorm or a grilling session:
+
+```
+/fieldnote-setup-prd
+```
+
+It writes the PRD, slices it into tracer-bullet child issues with the
+dependency graph wired up, and publishes both behind a single review, instead
+of making you sit through the PRD and the issue breakdown as two separate
+ceremonies.
+
+**If you write the code**, start here instead. Point it at a PRD or epic
+issue:
+
+```
+/fieldnote-deliver
+```
+
+It works out which child issues are takeable right now — open, labelled ready,
+every blocker merged, no pull request yet — and runs that whole frontier as
+one parallel wave: one isolated worktree and one pull request per issue. Then
+it stops at the merge gate and hands back.
+
+Merge what you're happy with, run it again, and the next wave comes forward.
+
+Nothing in this repository merges on your behalf, with one deliberate
+exception: `fieldnote-pr-monitor`, which exists to drain a stalled board and
+says so out loud every time it lands something.
 
 ## The loop
 
@@ -44,6 +142,7 @@ that shipped one company's software starts shipping yours.
 | `fieldnote-setup-profile` | setup | Writes `.fieldnote/profile.md` by reading the repository, and asks only about what it cannot. |
 | `fieldnote-setup-prd` | plan | Turns a settled design into a published PRD and its ticketed child issues, in one pass. |
 | `fieldnote-prd-to-plan` | plan | Breaks a PRD into a phased implementation plan of tracer-bullet vertical slices. |
+| `fieldnote-do-work` | build | Implements one slice test-first, against the rules your repository wrote down. |
 | `fieldnote-parallel-wave` | build | Implements a set of independent, ready-for-agent issues concurrently — one worktree and one PR per issue. |
 | `fieldnote-deliver` | build | Drives a PRD/epic to completion wave by wave; re-run after each merge to advance the next wave. |
 | `fieldnote-pull-request` | review | Fills this repository's own PR template with domain impact, evidence, risk, and rollback. |
@@ -51,73 +150,44 @@ that shipped one company's software starts shipping yours.
 | `fieldnote-pr-monitor` | review | Walks the open PR board and merges what main cannot break. `templated` — see Status. |
 
 See [docs/the-loop.md](docs/the-loop.md) for how these compose end to end,
-including the five skills that aren't here yet.
-
-## Two ways in
-
-**If you plan work**, start with `fieldnote-setup-prd`. Hand it a settled
-design — straight out of a brainstorm or a grill — and it writes the PRD,
-slices it into tracer-bullet child issues with a wired dependency graph, and
-publishes both behind a single consolidated review, instead of running the
-PRD and the issue breakdown as two separate ceremonies.
-
-**If you write code**, start with `fieldnote-deliver`. Point it at a PRD or
-epic issue and it works out which child issues are actually takeable right
-now — open, labeled ready, every blocker merged, no PR yet — and runs that
-frontier as one parallel wave, one isolated worktree and one PR per issue
-(today, by composing an implementation skill this repository doesn't ship
-yet — see Status below). Re-run it after each merge to pull the next wave
-forward. It stops at the human-merge gate; nothing in this repository merges
-on its own, except `fieldnote-pr-monitor`, which is the one explicit, logged
-exception to that rule.
+including the four skills that aren't here yet.
 
 ## Tailoring
 
 Skills in this repository don't know your repository. `.fieldnote/profile.md`
 carries the facts they need instead — where issues live, which label means
-"ready for an agent," what command runs your checks, where your definition of
+"ready for an agent", what command runs your checks, where your definition of
 done is documented.
 
-Scaffold a starting point with:
-
-```bash
-npx github:dervalp/fieldnote-skills init
-```
-
-`init` fills what a regex can prove and marks the rest `TODO`. To fill the
-rest, run `/fieldnote-setup-profile` in Claude Code: it reads the repository —
-the CI workflow, the written rules, the deploy configuration — and asks only
-about what the repository genuinely cannot answer. See
-[docs/definition-of-done.md](docs/definition-of-done.md) for the one document
-it will push you to write.
-
 The profile carries facts, never procedure. It says which command runs your
-tests, not when to merge — that's the skill's job, and it's the same
-everywhere. See [docs/profile.md](docs/profile.md) for the full format.
+tests, not when to merge — that part is the skill's job, and it's the same
+everywhere. See [docs/profile.md](docs/profile.md) for the full format, and
+[docs/concerns.md](docs/concerns.md) for how `.fieldnote/concerns/` carries the
+rules a change has to respect here.
 
 ## Status
 
 Nine of the thirteen skills fieldnote runs on ship here. The other four —
-`fieldnote-fix-bug`, `fieldnote-brainstorming`, `fieldnote-react-review`, and
+`fieldnote-fix-bug`, `fieldnote-brainstorming`, `fieldnote-react-review` and
 `fieldnote-react-sweep` — still carry one company's language and framework
 doctrine, and generalizing them is later work.
-
-`fieldnote-do-work` now ships. It keeps what is true in every repository and
-reads what is true in yours from `.fieldnote/concerns/` — see
-[docs/concerns.md](docs/concerns.md). The 13 references to it from
-`fieldnote-deliver` and `fieldnote-parallel-wave` resolve on a fresh install.
 
 One reference is still open: `fieldnote-pull-request` recognizes a pull
 request opened by `fieldnote-fix-bug`, which has not shipped yet.
 
-`fieldnote-pr-monitor` ships, but stays `templated` too. Its evidence comes
-from a Turbo monorepo's package graph, and this repository does not ship the
-script that produces it. It will not run as-is outside that setup.
+`fieldnote-pr-monitor` ships, but stays `templated`. Its evidence comes from a
+Turbo monorepo's package graph, and this repository does not ship the script
+that produces it. It will not run as-is outside that setup.
+
+The skills themselves are plain Markdown and carry nothing agent-specific.
+The installer knows two agent homes, `~/.claude` and `~/.codex`; any other
+agent that reads a `skills/` folder works by pointing it there yourself.
 
 |                                      | State               |
 | ------------------------------------ | ------------------- |
 | Plugin marketplace + npx install     | Shipped             |
 | Nine skills, profile-decoupled       | Shipped             |
+| Installs for Claude Code and Codex   | Shipped             |
 | `init` — scaffold a profile          | Shipped             |
 | Four templated skills                | Designed, not built |
 | Rendering from fieldnote's Act arm   | Designed, not built |

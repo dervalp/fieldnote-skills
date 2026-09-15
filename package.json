@@ -1,7 +1,7 @@
 {
   "name": "fieldnote-skills",
   "version": "0.1.0",
-  "description": "Claude Code skills for shipping software with agents — the delivery loop fieldnote runs on.",
+  "description": "Your coding agent writes the code. These skills run the loop around it: settled design to ticketed PRD, every takeable issue as one parallel wave of worktrees and pull requests, evidence-filled PRs, and a drained review board.",
   "license": "AGPL-3.0-only",
   "repository": { "type": "git", "url": "git+https://github.com/dervalp/fieldnote-skills.git" },
   "type": "module",
