@@ -13,6 +13,17 @@
       }
     },
     {
+      "name": "fieldnote-do-work",
+      "version": "0.1.0",
+      "coreHash": "sha256:97accda8f78f68b42a8bc30acbb5ca9cabc45dcbec63d85895982cfe57f7896f",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:21214362f6084cb0ea3622de60e6cda0c446c16ffc6ca83a602ae08ff0e9eb7b"
+        }
+      }
+    },
+    {
       "name": "fieldnote-parallel-wave",
       "version": "0.1.0",
       "coreHash": "sha256:4051426b70f450aaa1b1d59fe878e151f9eb56d2d3981ac84d88055462d098ff",

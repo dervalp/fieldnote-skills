@@ -31,7 +31,7 @@ issues concurrently, one isolated worktree and one PR per issue.
 `fieldnote-deliver` composes it: given a PRD or epic, it works out which
 child issues are takeable right now and hands that frontier to
 `fieldnote-parallel-wave`. Both stop at the human-merge gate. Both compose
-`fieldnote-do-work` *(not yet shipped)* — the repository's own implementation
+`fieldnote-do-work` *(shipped)* — the repository's own implementation
 practice — to actually write the code.
 
 **Fix** — `fieldnote-fix-bug` *(not yet shipped)*. The same loop entered from
@@ -53,12 +53,12 @@ gate.
 
 ## Where the gap bites today
 
-The shipped skills already assume the missing five exist.
-`fieldnote-parallel-wave` and `fieldnote-deliver` hand implementation to
-`fieldnote-do-work` — 13 references across the shipped skills.
+The shipped skills still assume one missing skill exists.
 `fieldnote-pull-request` recognizes a PR opened by `fieldnote-fix-bug` — 1
-reference. Until a later phase ships those five, bring your own
-implementation step where they're named.
+reference. `fieldnote-do-work`, which `fieldnote-parallel-wave` and
+`fieldnote-deliver` hand implementation to across 13 references, now ships
+and reads this repository's rules from `.fieldnote/concerns/`. Until a later
+phase ships the remaining four, bring your own step where they're named.
 
 For where to start using what's here, see
 [README § Two ways in](../README.md#two-ways-in).

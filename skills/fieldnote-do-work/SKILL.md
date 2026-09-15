@@ -1,0 +1,158 @@
+---
+name: fieldnote-do-work
+description: Implement one slice of work to standard — confirm the ask is clear, right-size any delegated agent, work in tracer bullets test-first, respect the rules this repository wrote down, and carry it to a green pull request or an honest stop. Use when implementing, doing work, building a change, picking up a ticket, or starting to code.
+stage: build
+variance: templated
+concerns: [shared]
+surface: code
+version: 0.1.0
+release: skills-v0.1.0
+---
+
+# Fieldnote Do Work
+
+The main skill for implementation work. It carries what is true in every
+repository. Everything specific to this one comes from three places:
+`.fieldnote/profile.md` (facts), `.fieldnote/definition-of-done.md` (bars),
+and `.fieldnote/concerns/` (rules).
+
+## Confirm The Work Is Clear First
+
+**Given a spec path:** read the spec in full, plus whatever its handoff
+section names. The spec's scenarios are the definition of done, so the ask is
+clear by construction. Work on the branch the handoff names — never directly
+on the branch named under `Git → baseBranch`.
+
+**Without a spec:** confirm the task states a clear, testable "done" before
+writing any code. If the acceptance criteria are missing, ambiguous, or
+contradictory — no definition of done, readable two materially different
+ways, a key term undefined, a conflict with the parent issue — **stop and
+return "needs clarification"**, naming what is unclear and the question that
+would resolve it. Do not implement on a guess.
+
+Dispatched as a wave subagent, return `fieldnote-parallel-wave`'s
+`needs-clarification` result shape instead of opening a pull request. An
+honest stop beats a confident wrong build.
+
+## Right-Size The Model
+
+Model choice is a cost lever. Do not run every subagent on the most capable
+tier. Before delegating, gauge the task and pick the cheapest tier that can do
+it well. When the task is unfamiliar, scope it first with a cheap read-only
+exploration pass that maps the files and patterns involved, then launch the
+implementation agent on the right tier.
+
+Match work to a **capability tier**, not a model name:
+
+- **Small / cheap** — mechanical work: renames, find-replace, codemod runs,
+  scripted edits with no judgement in them.
+- **Mid** — well-specified work following an established local pattern, with
+  a clear work list. **The default for execution subagents.**
+- **Top** — genuine judgement: architecture, adversarial review, hard
+  debugging, or anything a cheaper tier has already struggled with. Keep the
+  orchestrator here and push the work down.
+
+State the chosen tier and a one-line reason when launching. Start cheap;
+escalate only when the agent struggles.
+
+Cap fan-out. Start with two or three subagents where parallelism actually
+helps, and treat four active as the default ceiling. Use five only when the
+work splits into genuinely independent lenses or modules. Treat six as a hard
+ceiling without explicit human approval. Never run parallel implementation
+agents that would edit the same files, and never spawn a subagent for work
+the orchestrator can do cheaply in context.
+
+## Start From Architecture
+
+Identify the layer that owns the behaviour before editing anything.
+
+Then read `.fieldnote/concerns/shared.md`, and the file for each concern this
+change touches — `front-end.md` if it renders anything, `backend.md` if it
+adds a service or an endpoint, `database.md` if it touches schema or a
+migration. Those rules bind this change. If one contradicts what you were
+about to do, **the rule wins**: say so rather than working around it.
+
+When a rule cites a longer document, read that document if the rule you are
+relying on is the one pointing there.
+
+If `.fieldnote/concerns/` does not exist, say so once — "no concern files;
+using general practice, and `fieldnote-setup-profile` can draft them" — and
+carry on. A missing file never stops the work.
+
+## How To Move
+
+- Work in **tracer bullets**, not layer piles. Prove the smallest vertical
+  path end to end, then widen it.
+- Prefer **red-green-refactor** when the behaviour is clear: one failing test
+  that states the next behaviour, the minimum code to pass it, then refactor
+  as a separate step with the tests green. One test at a time.
+- Add **characterization tests** before a risky refactor of behaviour that
+  already exists.
+- Let abstractions earn their keep. Follow the local pattern first; extract
+  only when the duplication or the complexity is real.
+- Keep seams **narrow and behavioural**. Do not pass broad framework or
+  provider objects across them.
+- Keep commits and pull requests reviewable: one coherent change at a time,
+  no unrelated formatting.
+
+## SOLID
+
+- **Single Responsibility** — each module has one reason to change.
+- **Open/Closed** — extend behaviour by adding code, not by editing what
+  already works.
+- **Liskov Substitution** — an implementation behind a seam honours that
+  seam's contract.
+- **Interface Segregation** — depend on small, focused ports, not broad
+  clients.
+- **Dependency Inversion** — depend on abstractions, not on concrete
+  implementations.
+
+## Ship
+
+The work is not done at "tests pass locally". It is done at a green pull
+request, or at a comment that says exactly what is stuck. The bar for this
+stage is the **Do work** section of the document named under
+`Docs → definitionOfDone`.
+
+1. **Preflight.** Run the command under `Commands → preflight`. Fix until
+   green. If that key is absent or reads `TODO`, ask for it once rather than
+   guessing a command.
+2. **Run your own scenarios, before the push.** CI is not a test loop: a run
+   that takes half an hour to tell you what a local run tells you in two is
+   not where you discover a broken scenario. Read `.fieldnote/concerns/qa.md`
+   for how this repository proves a change works, and follow it against a
+   real target rather than a mock. Read any secret off the environment you
+   are driving; never commit one and never print one.
+3. **Open the pull request** with `fieldnote-pull-request`, branching off the
+   remote and branch named under `Git`, with a Conventional Commit title.
+4. **Watch.** Wait for the run to finish. Do not push meanwhile.
+5. **On red**, read the failing job's log first. Then read
+   `.fieldnote/concerns/ci.md` and the document under `Docs → ciTriage`. A
+   re-run is allowed only when the failure matches a signature one of those
+   names, and it counts as an attempt. Otherwise fix the cause, preflight,
+   push, and return to step 4.
+6. **Stop after three attempts.** Mark the pull request as a draft and
+   comment, then report the link and "stuck" in one line:
+
+   ```markdown
+   ## Stuck after 3 attempts
+
+   **Red check:** <job name> — <one-line failure>
+   **Tried:** 1. … 2. … 3. …
+   **I believe:** <what is wrong, one paragraph>
+   **A human should look at:** <file or job>, because <reason>
+   ```
+
+Every hand-off line, green or stuck, names the checks that ran and the checks
+that did not.
+
+**When dispatched by `fieldnote-parallel-wave`:** stop after step 3 and
+return the wave's result shape. The orchestrator owns the watch; never watch
+CI from inside a wave.
+
+## Pair With
+
+- `fieldnote-testing` — choosing and adding tests.
+- `fieldnote-pull-request` — preparing the pull request body.
+- `fieldnote-setup-profile` — when the profile, the definition of done, or
+  `.fieldnote/concerns/` is missing or still full of TODO.

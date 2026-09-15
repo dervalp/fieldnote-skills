@@ -17,6 +17,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 ## Build
 
 - **fieldnote-deliver** (v0.1.0, configured) — Drive a PRD/epic to completion wave by wave. Give it a PRD (or epic) issue reference; it discovers the remaining child issues, builds the dependency graph, computes which are takeable now (open, ready-for-agent, all blockers merged, no PR yet), and runs that frontier as one parallel wave — then stops at the human-merge gate. Use when you have a PRD/epic whose children are already ticketed and want to keep shipping the next takeable slices without hand-picking issue numbers. Re-run after merging to advance the next wave naturally. Composes fieldnote-parallel-wave, which in turn hands implementation to fieldnote-do-work (not yet shipped in this repository — bring your own implementation step); does not invent issues and never merges.
+- **fieldnote-do-work** (v0.1.0, templated) — Implement one slice of work to standard — confirm the ask is clear, right-size any delegated agent, work in tracer bullets test-first, respect the rules this repository wrote down, and carry it to a green pull request or an honest stop. Use when implementing, doing work, building a change, picking up a ticket, or starting to code.
 - **fieldnote-parallel-wave** (v0.1.0, configured) — Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a "wave") and running them one-by-one would be slow; composes fieldnote-do-work (not yet shipped in this repository — bring your own implementation step) + fieldnote-pull-request. Not for dependent issues, not for merging.
 
 ## Review
@@ -25,4 +26,4 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 - **fieldnote-pull-request** (v0.1.0, configured) — Fill this repository's own PR template with domain impact, business rules, validation evidence, risk, rollback, reviewer focus, and Conventional Commit-aware context. Use when preparing, reviewing, or updating a pull request for this repository.
 - **fieldnote-testing** (v0.1.0, configured) — This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
 
-_Total: 8 skill(s)._
+_Total: 9 skill(s)._

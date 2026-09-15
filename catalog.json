@@ -11,6 +11,18 @@
       "variance": "configured"
     },
     {
+      "name": "fieldnote-do-work",
+      "stage": "build",
+      "description": "Implement one slice of work to standard — confirm the ask is clear, right-size any delegated agent, work in tracer bullets test-first, respect the rules this repository wrote down, and carry it to a green pull request or an honest stop. Use when implementing, doing work, building a change, picking up a ticket, or starting to code.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "templated",
+      "concerns": [
+        "shared"
+      ]
+    },
+    {
       "name": "fieldnote-parallel-wave",
       "stage": "build",
       "description": "Implement a set of mutually-independent, ready-for-agent issues concurrently — one isolated worktree subagent per issue, each ending in its own PR — while keeping the orchestrator's context small and stopping at the human-merge gate. Use when several issues are unblocked at once (a \"wave\") and running them one-by-one would be slow; composes fieldnote-do-work (not yet shipped in this repository — bring your own implementation step) + fieldnote-pull-request. Not for dependent issues, not for merging.",
