@@ -356,7 +356,7 @@ Expected: all PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add cli/src/skill-model.ts cli/src/skill-model.test.ts
+git add cli/src/skill-model.ts cli/src/types.ts cli/src/testkit.ts cli/src/skill-model.test.ts
 git commit -m "feat(cli): let a skill declare the concern files it reads"
 ```
 
