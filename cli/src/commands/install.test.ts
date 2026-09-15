@@ -45,9 +45,15 @@ test("--json emits machine-readable output and nothing decorative", async () => 
     assert.equal(h.logger.infos.length, 0, "no decorative info lines in --json mode");
     assert.equal(h.logger.outputs.length, 1);
     const payload = JSON.parse(h.logger.outputs[0]!);
-    assert.deepEqual(payload.installed, [
-      { name: "fieldnote-do-work", version: "1.0.0", action: "installed" },
-    ]);
+    assert.deepEqual(
+      payload.installed.map((i: { name: string; version: string; action: string; agent: string }) => ({
+        name: i.name,
+        version: i.version,
+        action: i.action,
+        agent: i.agent,
+      })),
+      [{ name: "fieldnote-do-work", version: "1.0.0", action: "installed", agent: "claude" }],
+    );
   } finally {
     await h.cleanup();
   }
@@ -91,6 +97,25 @@ test("installs a flat-tree skill into the claude dir", async () => {
     assert.ok(await exists(installed), "SKILL.md should be installed");
     const body = await readFile(installed, "utf8");
     assert.match(body, /stage: build/);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("install puts the skill in every agent home and says where each copy went", async () => {
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build" }], {
+    agents: ["claude", "codex"],
+  });
+  try {
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+
+    for (const agent of ["claude", "codex"] as const) {
+      const skill = join(h.homes[agent]!, "skills", "fieldnote-do-work", "SKILL.md");
+      assert.ok(await stat(skill).then(() => true, () => false), `missing in ${agent}: ${skill}`);
+    }
+    const said = h.logger.infos.join("\n");
+    assert.match(said, /claude/);
+    assert.match(said, /codex/);
   } finally {
     await h.cleanup();
   }

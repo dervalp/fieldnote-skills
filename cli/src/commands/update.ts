@@ -1,7 +1,8 @@
 import { rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { loadCatalog, requireSkill } from "../catalog.js";
-import { installEntries, targetDirFor } from "../installer.js";
+import { installEntries, installEverywhere, targetDirFor } from "../installer.js";
+import { reportInstall } from "./install.js";
 import { readLock } from "../lock.js";
 import {
   classifyInstalled,
@@ -37,8 +38,7 @@ export async function runUpdate(env: Env, names: string[]): Promise<void> {
 
   if (names.length > 0) {
     const entries = names.map((name) => requireSkill(catalog, name));
-    const results = await installEntries(env, entries);
-    for (const r of results) env.logger.info(`Updated ${r.name}@${r.version}`);
+    reportInstall(env, await installEverywhere(env, entries), {});
     return;
   }
 
@@ -60,8 +60,7 @@ export async function runUpdate(env: Env, names: string[]): Promise<void> {
 
   const byName = new Map(rows.map((r) => [r.entry.name, r.entry]));
   const entries = picked.map((n) => byName.get(n)!).filter(Boolean);
-  const results = await installEntries(env, entries);
-  for (const r of results) env.logger.info(`Updated ${r.name}@${r.version}`);
+  reportInstall(env, await installEverywhere(env, entries), {});
 }
 
 export interface SyncFlags {

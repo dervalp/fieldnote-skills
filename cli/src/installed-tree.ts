@@ -32,7 +32,7 @@ export interface InstalledTree {
  * blaming the engineer for an edit they never made.
  */
 export async function scanInstalledSkills(env: Env): Promise<InstalledTree> {
-  const root = join(env.claudeDir, "skills");
+  const root = join(env.agentDir, "skills");
   const tree: InstalledTree = { root, coreHash: new Map(), unreadable: new Map(), names: [] };
 
   let entries: string[];

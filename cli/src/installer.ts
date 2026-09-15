@@ -1,5 +1,6 @@
 import { cp, mkdir, rm, rename, stat } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
+import type { AgentName } from "./agent-homes.js";
 import type { Env, SkillEntry } from "./types.js";
 import { UserError } from "./types.js";
 import { readManifest, recordInstalled } from "./manifest.js";
@@ -13,7 +14,7 @@ export function sourceDirFor(env: Env, entry: SkillEntry): string {
 
 /** Where a skill is installed: ~/.claude/skills/<name>/. */
 export function targetDirFor(env: Env, name: string): string {
-  return join(env.claudeDir, "skills", name);
+  return join(env.agentDir, "skills", name);
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -46,7 +47,7 @@ export async function installSkill(env: Env, entry: SkillEntry): Promise<void> {
   }
 
   const target = targetDirFor(env, entry.name);
-  const skillsRoot = join(env.claudeDir, "skills");
+  const skillsRoot = join(env.agentDir, "skills");
   await mkdir(skillsRoot, { recursive: true });
 
   const suffix = `${process.pid}-${Date.now()}`;
@@ -91,6 +92,10 @@ export interface InstallResult {
   name: string;
   version: string;
   action: "installed" | "updated";
+  /** Which agent's skills tree this copy went into. */
+  agent: AgentName;
+  /** That agent's home directory, so output can name the path. */
+  root: string;
 }
 
 /**
@@ -108,7 +113,35 @@ export async function installEntries(env: Env, entries: SkillEntry[]): Promise<I
       name: entry.name,
       version: entry.version,
       action: wasInstalled ? "updated" : "installed",
+      agent: agentOf(env),
+      root: env.agentDir,
     });
+  }
+  return results;
+}
+
+/** The agent whose home `env.agentDir` currently points at. */
+function agentOf(env: Env): AgentName {
+  return env.agentHomes.find((h) => h.root === env.agentDir)?.agent ?? env.agentHomes[0]!.agent;
+}
+
+/**
+ * Install a set of entries into every agent home this run targets.
+ *
+ * The single-home path above is left exactly as it was and simply runs once
+ * per home against a re-pointed env, so each agent keeps its own skills tree
+ * and its own manifest — they are separately editable and must not share
+ * bookkeeping.
+ *
+ * A failure installing into one home still throws, but the homes already done
+ * keep their skills: each install is individually atomic, and there is no
+ * sensible way to un-install a good copy because a later, unrelated directory
+ * was unwritable. The caller reports how far it got.
+ */
+export async function installEverywhere(env: Env, entries: SkillEntry[]): Promise<InstallResult[]> {
+  const results: InstallResult[] = [];
+  for (const home of env.agentHomes) {
+    results.push(...(await installEntries({ ...env, agentDir: home.root }, entries)));
   }
   return results;
 }

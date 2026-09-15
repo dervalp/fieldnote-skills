@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir, writeFile, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { installEntries, installSkill, targetDirFor } from "./installer.js";
+import { installEntries, installEverywhere, installSkill, targetDirFor } from "./installer.js";
 import { readManifest } from "./manifest.js";
 import { hashSkillDir } from "./lock.js";
 import { makeHarness, toEntry } from "./testkit.js";
@@ -47,7 +47,7 @@ test("install is atomic: a missing source leaves the prior version untouched", a
     const manifest = await readManifest(h.env);
     assert.equal(manifest.skills["fieldnote-do-work"]?.version, "1.0.0");
 
-    const skillsRoot = join(h.claudeDir, "skills");
+    const skillsRoot = join(h.agentDir, "skills");
     const leftovers = (await readdir(skillsRoot)).filter(
       (n) => n.startsWith(".staging-") || n.startsWith(".backup-"),
     );
@@ -92,6 +92,51 @@ test("install records a core hash matching the files on disk", async () => {
     const recorded = manifest.skills["fieldnote-do-thing"]!.coreHash;
     const { coreHash } = hashSkillDir(targetDirFor(h.env, "fieldnote-do-thing"));
     assert.equal(recorded, coreHash);
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("with both agent homes present a skill lands in each of them", async () => {
+  const h = await makeHarness([{ name: "tdd", stage: "build" }], { agents: ["claude", "codex"] });
+  try {
+    const results = await installEverywhere(h.env, [toEntry({ name: "tdd", stage: "build" })]);
+
+    for (const agent of ["claude", "codex"] as const) {
+      const skill = join(h.homes[agent]!, "skills", "tdd", "SKILL.md");
+      assert.ok(await exists(skill), `expected ${agent} to have the skill at ${skill}`);
+    }
+    assert.deepEqual(
+      results.map((r) => [r.agent, r.name, r.action]),
+      [
+        ["claude", "tdd", "installed"],
+        ["codex", "tdd", "installed"],
+      ],
+    );
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("each agent home gets its own manifest, so the two trees stay independent", async () => {
+  const h = await makeHarness([{ name: "tdd", stage: "build" }], { agents: ["claude", "codex"] });
+  try {
+    await installEverywhere(h.env, [toEntry({ name: "tdd", stage: "build" })]);
+    for (const agent of ["claude", "codex"] as const) {
+      const manifest = join(h.homes[agent]!, "skills", ".fieldnote-skills.json");
+      assert.ok(await exists(manifest), `expected a manifest in ${agent}`);
+    }
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("a single agent home installs there and nowhere else", async () => {
+  const h = await makeHarness([{ name: "tdd", stage: "build" }], { agents: ["codex"] });
+  try {
+    const results = await installEverywhere(h.env, [toEntry({ name: "tdd", stage: "build" })]);
+    assert.deepEqual(results.map((r) => r.agent), ["codex"]);
+    assert.ok(await exists(join(h.homes.codex!, "skills", "tdd", "SKILL.md")));
   } finally {
     await h.cleanup();
   }

@@ -79,9 +79,9 @@ test("reports an orphan and names its replacement", async () => {
   const h = await makeHarness([SKILL]);
   try {
     await writeLockFor(h, "skills-v1.0.0");
-    await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills", "tdd"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
+      join(h.agentDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
@@ -98,7 +98,7 @@ test("reports an unmanaged directory as orphaned and names its replacement", asy
     await writeLockFor(h, "skills-v1.0.0");
     // "tdd" sits on disk but was never installed through this CLI — no
     // manifest entry at all, unlike a manifest-tracked orphan.
-    await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills", "tdd"), { recursive: true });
     await runDoctor(h.env, {});
     const out = h.logger.infos.join("\n");
     assert.match(out, /⚠ tdd\s+—\s+—\s+orphaned — superseded by fieldnote-matt-tdd/);
@@ -160,7 +160,7 @@ test("survives a dangling symlink inside an installed skill and reports it", asy
   try {
     await writeLockFor(h, "skills-v1.0.0");
     await installEntries(h.env, [toEntry(SKILL)]);
-    await symlink(join(h.claudeDir, "skills", "gone", "target.md"), join(targetDirFor(h.env, SKILL.name), "link.md"));
+    await symlink(join(h.agentDir, "skills", "gone", "target.md"), join(targetDirFor(h.env, SKILL.name), "link.md"));
 
     assert.equal(await runDoctor(h.env, {}), 0);
     const out = h.logger.infos.join("\n");
@@ -178,8 +178,8 @@ test("survives a dangling symlink standing in for a whole skill folder", async (
   const h = await makeHarness([SKILL]);
   try {
     await writeLockFor(h, "skills-v1.0.0");
-    await mkdir(join(h.claudeDir, "skills"), { recursive: true });
-    await symlink(join(h.claudeDir, "moved-repo", "some-skill"), join(h.claudeDir, "skills", "some-skill"));
+    await mkdir(join(h.agentDir, "skills"), { recursive: true });
+    await symlink(join(h.agentDir, "moved-repo", "some-skill"), join(h.agentDir, "skills", "some-skill"));
 
     assert.equal(await runDoctor(h.env, {}), 0);
     assert.match(h.logger.infos.join("\n"), /some-skill/);

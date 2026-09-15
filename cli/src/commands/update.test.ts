@@ -91,9 +91,15 @@ test("sync updates outdated installed skills and reports newly available ones", 
     await runSync(h.env, { json: true });
     const payload = JSON.parse(h.logger.outputs.at(-1)!);
 
-    assert.deepEqual(payload.updated, [
-      { name: "fieldnote-do-work", version: "1.2.0", action: "updated" },
-    ]);
+    assert.deepEqual(
+      payload.updated.map((u: { name: string; version: string; action: string; agent: string }) => ({
+        name: u.name,
+        version: u.version,
+        action: u.action,
+        agent: u.agent,
+      })),
+      [{ name: "fieldnote-do-work", version: "1.2.0", action: "updated", agent: "claude" }],
+    );
     assert.deepEqual(
       payload.available.map((s: { name: string }) => s.name),
       ["fieldnote-run-agent"],
@@ -120,9 +126,9 @@ test("sync with everything current reports up to date", async () => {
 test("sync reports an orphan and names its replacement", async () => {
   const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
-    await mkdir(join(h.claudeDir, "skills"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
+      join(h.agentDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
@@ -144,10 +150,10 @@ test("sync reports an orphan and names its replacement", async () => {
 test("sync removes an orphan when confirmed", async () => {
   const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
-    await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
-    await writeFile(join(h.claudeDir, "skills", "tdd", "SKILL.md"), "---\nname: tdd\n---\n", "utf8");
+    await mkdir(join(h.agentDir, "skills", "tdd"), { recursive: true });
+    await writeFile(join(h.agentDir, "skills", "tdd", "SKILL.md"), "---\nname: tdd\n---\n", "utf8");
     await writeFile(
-      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
+      join(h.agentDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
@@ -159,7 +165,7 @@ test("sync removes an orphan when confirmed", async () => {
     h.prompter.confirmAnswers = [true];
     await runSync(h.env, {});
     assert.equal(await readManifest(h.env).then((m) => m.skills["tdd"]), undefined);
-    await assert.rejects(() => stat(join(h.claudeDir, "skills", "tdd")));
+    await assert.rejects(() => stat(join(h.agentDir, "skills", "tdd")));
   } finally {
     await h.cleanup();
   }
@@ -168,9 +174,9 @@ test("sync removes an orphan when confirmed", async () => {
 test("sync --json lists orphans without prompting", async () => {
   const h = await makeHarness([{ name: "fieldnote-matt-tdd", stage: "build", surface: "both" }]);
   try {
-    await mkdir(join(h.claudeDir, "skills"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills"), { recursive: true });
     await writeFile(
-      join(h.claudeDir, "skills", ".fieldnote-skills.json"),
+      join(h.agentDir, "skills", ".fieldnote-skills.json"),
       JSON.stringify({ version: 1, skills: { tdd: { version: "0.0.0", stage: "build", surface: "code" } } }),
       "utf8",
     );
@@ -287,8 +293,8 @@ test("sync reports the same orphans doctor does", async () => {
     ]);
     // Two directories installed by hand: one a vendored skill supersedes, one
     // nobody claims.
-    await mkdir(join(h.claudeDir, "skills", "tdd"), { recursive: true });
-    await mkdir(join(h.claudeDir, "skills", "diagnose"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills", "tdd"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills", "diagnose"), { recursive: true });
 
     await runDoctor(h.env, { json: true });
     const doctorPayload = JSON.parse(h.logger.outputs.at(-1)!) as {
@@ -320,16 +326,16 @@ test("an unclaimed unmanaged directory is never removed, even on yes", async () 
     // `tdd` is claimed by a supersedes entry; the other two are somebody's own
     // work. Widening the orphan list must not arm `rm -rf` against them.
     for (const name of ["tdd", "my-own-skill", "borrowed-from-a-colleague"]) {
-      await mkdir(join(h.claudeDir, "skills", name), { recursive: true });
-      await writeFile(join(h.claudeDir, "skills", name, "SKILL.md"), `---\nname: ${name}\n---\n`, "utf8");
+      await mkdir(join(h.agentDir, "skills", name), { recursive: true });
+      await writeFile(join(h.agentDir, "skills", name, "SKILL.md"), `---\nname: ${name}\n---\n`, "utf8");
     }
 
     h.prompter.confirmAnswers = [true];
     await runSync(h.env, {});
 
-    await assert.rejects(() => stat(join(h.claudeDir, "skills", "tdd")), "a superseded copy is removable");
-    await stat(join(h.claudeDir, "skills", "my-own-skill"));
-    await stat(join(h.claudeDir, "skills", "borrowed-from-a-colleague"));
+    await assert.rejects(() => stat(join(h.agentDir, "skills", "tdd")), "a superseded copy is removable");
+    await stat(join(h.agentDir, "skills", "my-own-skill"));
+    await stat(join(h.agentDir, "skills", "borrowed-from-a-colleague"));
     const out = h.logger.infos.join("\n");
     assert.match(out, /left alone/);
     assert.match(out, /my-own-skill/);
@@ -342,11 +348,34 @@ test("sync never prompts when the only orphans are unmanaged", async () => {
   const h = await makeHarness([TDD]);
   try {
     await writeReleaseAndLock(h, "skills-v1.0.0", [TDD]);
-    await mkdir(join(h.claudeDir, "skills", "someone-elses"), { recursive: true });
+    await mkdir(join(h.agentDir, "skills", "someone-elses"), { recursive: true });
     h.prompter.confirmAnswers = [true];
     await runSync(h.env, {});
     assert.equal(h.prompter.confirmAnswers.length, 1, "nothing removable means nothing to confirm");
-    await stat(join(h.claudeDir, "skills", "someone-elses"));
+    await stat(join(h.agentDir, "skills", "someone-elses"));
+  } finally {
+    await h.cleanup();
+  }
+});
+
+test("update <name> refreshes the skill in every agent home", async () => {
+  const h = await makeHarness([{ name: "fieldnote-do-work", stage: "build", version: "1.0.0" }], {
+    agents: ["claude", "codex"],
+  });
+  try {
+    await runInstall(h.env, ["fieldnote-do-work"], {});
+    await bumpVersion(h, "fieldnote-do-work", "1.2.0");
+
+    await runUpdate(h.env, ["fieldnote-do-work"]);
+
+    for (const agent of ["claude", "codex"] as const) {
+      const manifest = await readManifest({ ...h.env, agentDir: h.homes[agent]! });
+      assert.equal(
+        manifest.skills["fieldnote-do-work"]?.version,
+        "1.2.0",
+        `${agent} was left on the old version`,
+      );
+    }
   } finally {
     await h.cleanup();
   }
