@@ -68,6 +68,17 @@
       }
     },
     {
+      "name": "fieldnote-setup-profile",
+      "version": "0.1.0",
+      "coreHash": "sha256:8f87a57c45c221a37e1003777efdd00d0e1342193d1424bf73566491c86335ce",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:2f39852e627429d306b445070416c65d1fd19de477e45590237c73d94b48c069"
+        }
+      }
+    },
+    {
       "name": "fieldnote-testing",
       "version": "0.1.0",
       "coreHash": "sha256:33a18db3ce1c706d8b514df7db10d6d67e7866b2a3a0fe11896aec016125913a",

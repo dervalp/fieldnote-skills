@@ -7,7 +7,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Setup
 
-_No skills yet._
+- **fieldnote-setup-profile** (v0.1.0, universal) — Write this repository's .fieldnote/profile.md by reading the repository itself — its CI workflow, its written rules, its deploy configuration — and asking only about what the repository cannot answer. Use when a repository has no profile, when its profile is still full of TODO, or when someone says "set up the profile", "fill in the profile", "onboard this repo", or asks why a fieldnote skill keeps asking the same question.
 
 ## Plan
 
@@ -25,4 +25,4 @@ _No skills yet._
 - **fieldnote-pull-request** (v0.1.0, configured) — Fill this repository's own PR template with domain impact, business rules, validation evidence, risk, rollback, reviewer focus, and Conventional Commit-aware context. Use when preparing, reviewing, or updating a pull request for this repository.
 - **fieldnote-testing** (v0.1.0, configured) — This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
 
-_Total: 7 skill(s)._
+_Total: 8 skill(s)._
