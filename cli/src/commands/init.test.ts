@@ -295,3 +295,33 @@ test("--print reports no TODO warning, because it is not scaffolding anything", 
     rmSync(repo, { recursive: true, force: true });
   }
 });
+
+test("--print resolves Docs.definitionOfDone to .fieldnote/definition-of-done.md, preferring it over docs/definition-of-done.md", async () => {
+  const repo = mkdtempSync(join(tmpdir(), "fieldnote-init-dod-"));
+  mkdirSync(join(repo, ".git"), { recursive: true });
+  mkdirSync(join(repo, ".fieldnote"), { recursive: true });
+  writeFileSync(join(repo, ".fieldnote", "definition-of-done.md"), "# DoD\n", "utf8");
+  mkdirSync(join(repo, "docs"), { recursive: true });
+  writeFileSync(join(repo, "docs", "definition-of-done.md"), "# other DoD\n", "utf8");
+  const prevCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const logger = new FakeLogger();
+    const env: Env = {
+      claudeDir: "/unused",
+      catalogPath: "/unused/catalog.json",
+      skillsSourceDir: "/unused/skills",
+      repoRoot: null,
+      prompter: new FakePrompter(),
+      logger,
+    };
+
+    await runInit(env, { print: true });
+
+    const p = parseProfile(logger.outputs[0]!);
+    assert.equal(p.docs.definitionOfDone, ".fieldnote/definition-of-done.md");
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(repo, { recursive: true, force: true });
+  }
+});

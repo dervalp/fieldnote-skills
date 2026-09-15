@@ -32,6 +32,9 @@ implement, plan, commit, or merge.
 - **Never write provenance into the file.** Everything after the dash on a
   bullet is the value, so `- **check** — npm run ci (from ci.yml)` makes the
   check command that whole string. Provenance belongs in the conversation.
+- **Keep every line in the exact `- **key** — value` shape.** The parser
+  recognises nothing else — not a colon, not a `*` bullet, not an indented
+  one — and it drops what it does not recognise without a word.
 - **Stop at the human gate.** Write the files, report, stop. No commit, no
   branch, no pull request.
 
@@ -39,14 +42,23 @@ implement, plan, commit, or merge.
 
 ### 1. Get the mechanical facts
 
+Try, in order:
+
+```bash
+fieldnote-skills init --print
+```
+
 ```bash
 npx github:dervalp/fieldnote-skills init --print
 ```
 
-This probes the repository and prints a profile to stdout without touching
-anything. Keep it in memory as the baseline. If the command is unavailable,
-carry on without it — everything below works from the repository directly, it
-is just slower.
+The first form may already be on `PATH` via the plugin marketplace install and
+is the cheapest way to call the CLI. The second form clones and builds the CLI
+on every run, so it is heavier — fall back to it only when the first is not
+available. Either way, this probes the repository and prints a profile to
+stdout without touching anything. Keep it in memory as the baseline. If
+neither command is available, carry on without it — everything below works
+from the repository directly, it is just slower.
 
 Read the existing `.fieldnote/profile.md` too, if there is one. Every value in
 it that is not `TODO` is settled and is never revisited.
@@ -105,7 +117,9 @@ concrete bullets from the evidence, never prompts to fill in later. If the
 offer is declined, record `(none)` and move on without repeating the warning.
 
 This offer is for the definition of done only. Other missing documents get one
-summary line naming them; generating them is a different job.
+summary line naming them, and each of those keys is recorded `(none)` — the
+repository has been looked at and does not have one, so nothing should ask
+again. Generating them is a different job.
 
 ### 4. Show the whole file, with provenance
 
@@ -152,7 +166,9 @@ Then stop. Do not commit, branch, push, or open a pull request.
 
 ## References
 
-- `docs/profile.md` in this skill's own repository for every section the
-  profile defines and what each key means.
-- `docs/definition-of-done.md` for the five-section convention.
-- `templates/definition-of-done.md` for a starter with the headings in place.
+- https://github.com/dervalp/fieldnote-skills/blob/main/docs/profile.md for
+  every section the profile defines and what each key means.
+- https://github.com/dervalp/fieldnote-skills/blob/main/docs/definition-of-done.md
+  for the five-section convention.
+- https://github.com/dervalp/fieldnote-skills/blob/main/templates/definition-of-done.md
+  for a starter with the headings in place.

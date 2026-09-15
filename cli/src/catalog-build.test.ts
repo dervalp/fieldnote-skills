@@ -114,6 +114,16 @@ test("markdown omits the artifact flow section when nothing is declared", () => 
   });
 });
 
+test("a skill with an unknown stage throws instead of silently vanishing from CATALOG.md", () => {
+  withSkillsDir((d) => {
+    writeSkill(d, "fieldnote-bogus-thing", baseFm("fieldnote-bogus-thing", { stage: "bogus" }));
+    const skills = discover(d);
+    assert.equal(skills[0]!.stage, "bogus", "discover() does not itself reject an unknown stage");
+    assert.throws(() => renderMarkdown(skills), /fieldnote-bogus-thing/);
+    assert.throws(() => renderMarkdown(skills), /bogus/);
+  });
+});
+
 test("CATALOG.md renders the setup stage first", () => {
   withSkillsDir((d) => {
     writeSkill(d, "fieldnote-setup-profile", baseFm("fieldnote-setup-profile", { stage: "setup" }));

@@ -10,14 +10,15 @@
  * about a skill's surface or version.
  */
 import type { Skill } from "./skill-model.js";
-import { stageLabel, VARIANCE_LABELS } from "./skill-model.js";
+import { stageLabel, VALID_STAGES, VARIANCE_LABELS } from "./skill-model.js";
 
 /**
- * Rendering order of the delivery-loop stages. The display label for each key
- * comes from `stageLabel()` (skill-model.ts) rather than being repeated here,
- * so the labels have exactly one source of truth.
+ * Rendering order of the delivery-loop stages. Both the order and the display
+ * label for each key come from skill-model.ts (`VALID_STAGES` and
+ * `stageLabel()` respectively) rather than being repeated here, so the order
+ * has exactly one source of truth, the same way the labels already do.
  */
-const STAGE_ORDER: readonly string[] = ["setup", "plan", "build", "review"];
+const STAGE_ORDER: readonly string[] = VALID_STAGES;
 
 const byCodepoint = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -26,7 +27,13 @@ export function renderMarkdown(skills: Skill[]): string {
   for (const key of STAGE_ORDER) byStage.set(key, []);
   for (const skill of skills) {
     const bucket = byStage.get(skill.stage);
-    if (bucket) bucket.push(skill);
+    if (!bucket) {
+      throw new Error(
+        `Skill '${skill.name || skill.folderName}' has stage '${skill.stage}', which is not in ` +
+          `STAGE_ORDER (${STAGE_ORDER.join(", ")}). It would silently vanish from CATALOG.md.`,
+      );
+    }
+    bucket.push(skill);
   }
 
   const lines = [

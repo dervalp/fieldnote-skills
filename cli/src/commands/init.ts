@@ -10,6 +10,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { DOD_CONVENTION_PATH } from "../dod.js";
 import { findGitRoot } from "../paths.js";
 import type { Env } from "../types.js";
 import { UserError } from "../types.js";
@@ -165,6 +166,7 @@ function readLabels(): string[] {
 function readDocs(repoRoot: string): string[] {
   const found: string[] = [];
   for (const candidate of [
+    DOD_CONVENTION_PATH,
     "CONTRIBUTING.md",
     "AGENTS.md",
     "CLAUDE.md",

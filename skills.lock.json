@@ -70,11 +70,11 @@
     {
       "name": "fieldnote-setup-profile",
       "version": "0.1.0",
-      "coreHash": "sha256:8f87a57c45c221a37e1003777efdd00d0e1342193d1424bf73566491c86335ce",
+      "coreHash": "sha256:ca2dc2951dfcb2d5559886c3b72bf590db6108260db06598d2f07e15f37375d0",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:2f39852e627429d306b445070416c65d1fd19de477e45590237c73d94b48c069"
+          "hash": "sha256:e89ec1b3f2b42c155901dd9a0468ebb4eb509b44fca4082c9d2f417c28730771"
         }
       }
     },

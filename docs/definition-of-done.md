@@ -27,6 +27,7 @@ search out of `node_modules` and any other vendored tree.
 The headings are fixed, so a skill can find its own section rather than
 reading the whole document and guessing which part applies to it.
 
+```markdown
 ## Always
 
 Rules that hold at every stage.
@@ -47,6 +48,7 @@ Done when it is ready for someone else to merge.
 ## Deployment
 
 Done when the change is actually live.
+```
 
 The order is the order the work passes through: brainstorm → PRD → do work →
 pull request → deployment.
@@ -54,6 +56,44 @@ pull request → deployment.
 Naming the stages is what makes the document writable. "When is a slice done?"
 cannot be answered until a slice has been defined; "when is a pull request
 ready to merge?" answers itself.
+
+## Worked example (this repository)
+
+```markdown
+# Definition of done
+
+## Always
+
+- Conventional Commit titles; breaking changes marked `!`
+- No coordinate that exists in only one repository (`npm run check:decoupling`)
+
+## PRD
+
+- The problem is stated before the solution
+- Sliced into tracer-bullet vertical issues, each independently shippable
+- Dependencies wired, so "takeable now" is computable
+
+## Do work
+
+- The promised behaviour works, and a test proves it
+- `npm run validate` and `npm run check:decoupling` pass
+- `cd cli && npm test && npm run typecheck` pass
+- `npm run catalog` re-run if any SKILL.md changed, and its output committed —
+  never hand-edited
+
+## Pull request
+
+- PR body filled with real evidence, not placeholders
+- Every CI check green
+- Not merged by its own author
+
+## Deployment
+
+- Release published and installs clean: `npx github:dervalp/fieldnote-skills
+  --all` into a scratch `FIELDNOTE_CLAUDE_DIR` puts every skill on disk
+- `fieldnote-skills doctor` reports no drift
+- README and `docs/the-loop.md` describe what actually ships now
+```
 
 ## Two bars, not one
 

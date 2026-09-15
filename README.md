@@ -10,6 +10,11 @@
 npx github:dervalp/fieldnote-skills
 ```
 
+The default run first asks what you want to install — the picker starts fully
+ticked, so a plain Enter installs everything — then filters by stage.
+`npx github:dervalp/fieldnote-skills --all` installs every skill with no
+prompts at all, which is what you want in CI or anywhere there is no TTY.
+
 Requires Node >=21.
 
 ## Why

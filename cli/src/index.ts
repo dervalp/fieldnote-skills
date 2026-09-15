@@ -28,7 +28,7 @@ Usage:
 
 Flags:
   --all         Install every skill without prompting (honours --stage)
-  --stage       Filter list by plan, build, review, or all
+  --stage       Filter list by setup, plan, build, review, or all
   --yes, -y     Skip confirmation prompts
   --json        Machine-readable output
   --force       Overwrite an existing .fieldnote/profile.md
