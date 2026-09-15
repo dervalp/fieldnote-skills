@@ -233,6 +233,10 @@ export async function runDoctor(env: Env, flags: DoctorFlags): Promise<number> {
           // able to tell "no drift here" from "this surface cannot be read".
           claudeAi: { inspectable: false, expected: expectedZips },
           upstream: { pins, latestChecked: false },
+          // Named explicitly even outside a repository (root: null, concerns:
+          // []) rather than omitted, for the same reason as claudeAi above: a
+          // machine consumer must be able to tell "not in a repository" from
+          // "this CLI version has no such field".
           repository: { root: env.repoRoot, concerns },
         },
         null,

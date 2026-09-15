@@ -362,7 +362,7 @@ test("names a concern file an installed skill reads and this repository lacks", 
     await mkdir(join(h.repoRoot, ".fieldnote", "concerns"), { recursive: true });
     await writeFile(join(h.repoRoot, ".fieldnote", "concerns", "shared.md"), "# Shared\n", "utf8");
 
-    const code = await runDoctor(h.env, {});
+    const code = await runDoctor(h.env, { strict: true });
 
     assert.equal(code, 0, "a missing concern file is not release drift");
     const out = h.logger.infos.join("\n");

@@ -95,13 +95,16 @@ test("the convention document shows every advised concern, so the copies cannot 
   }
 });
 
-test("classifyConcerns pairs what skills want with what the repository has", () => {
+test("classifyConcerns pairs what skills want with what the repository has, wantedBy sorted alphabetically regardless of insertion order", () => {
   const rows = classifyConcerns({
     present: ["shared", "ci"],
+    // "shared" is declared by fieldnote-fix-bug BEFORE fieldnote-do-work here
+    // — insertion order disagrees with alphabetical order, so the assertion
+    // below only passes if classifyConcerns actually sorts wantedBy.
     declaredBy: new Map([
-      ["fieldnote-do-work", ["shared"]],
       ["fieldnote-pr-monitor", ["ci"]],
       ["fieldnote-fix-bug", ["shared", "qa"]],
+      ["fieldnote-do-work", ["shared"]],
     ]),
   });
   assert.deepEqual(rows, [
