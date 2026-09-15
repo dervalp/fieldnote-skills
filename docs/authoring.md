@@ -22,10 +22,11 @@
      in. Most generic engineering-practice skills land here.
    - **`configured`** — the skill has one procedure, but some of its facts
      (a label, a command, a doc path) come from `.fieldnote/profile.md`.
-   - **`templated`** — the skill's spine is generic but part of it has to be
-     authored per repository (a domain-specific rules catalogue, a
-     package-graph script). Say so in the description, the way
-     `fieldnote-pr-monitor` names its Turbo dependency.
+   - **`templated`** — part of the skill's content is authored per
+     repository, in `.fieldnote/concerns/`. Declare which files the skill
+     always reads: `concerns: [shared, qa]`. Say so in the description too,
+     the way `fieldnote-pr-monitor` names its package-graph dependency. See
+     [docs/concerns.md](concerns.md).
 
 4. **Write the body.** There is no fixed section layout — a one-page
    PR-template filler doesn't need the sections a multi-phase delivery skill

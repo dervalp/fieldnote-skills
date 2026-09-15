@@ -26,11 +26,11 @@
     {
       "name": "fieldnote-pr-monitor",
       "version": "0.1.0",
-      "coreHash": "sha256:f980ec16deac57a49d4752200788d8bb0038c021853258db1fd482144f439799",
+      "coreHash": "sha256:c04c4c9b76ecf144fbc53ade63a355c3126455a62259d59a0d216a6cdf87cb1c",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:35491ec798d46fc0b6235f6f042493dc06322744a1bf1c113edcaf4b7ca916af"
+          "hash": "sha256:6666ba3212443a6922ea23588287841b5cf7c78d9b5eadf3344311a9de0b00a1"
         }
       }
     },

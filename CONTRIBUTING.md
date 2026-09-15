@@ -54,6 +54,9 @@ What the validator actually checks:
     `.fieldnote/profile.md`.
   - `templated` — a generic spine plus sections a repository has to author
     itself.
+  A `templated` skill must also carry `concerns:` — an inline list of the
+  `.fieldnote/concerns/` files it always reads, e.g. `concerns: [shared, qa]`.
+  No other variance may carry one.
 - **`surface`** — optional, defaults to `code`; one of `desktop`, `code`,
   `both`. A `desktop`-only skill may not ship `commands/`, `agents/`, or
   `hooks/`.
