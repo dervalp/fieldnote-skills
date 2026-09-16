@@ -167,6 +167,8 @@ rules a change has to respect here.
 
 ## Status
 
+Release process: [docs/RELEASING.md](docs/RELEASING.md).
+
 Nine of the thirteen skills fieldnote runs on ship here. The other four —
 `fieldnote-fix-bug`, `fieldnote-brainstorming`, `fieldnote-react-review` and
 `fieldnote-react-sweep` — still carry one company's language and framework

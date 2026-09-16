@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags: ['skills-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run validate
+      - run: npm run check:decoupling
+      - name: Verify tag matches release metadata
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node -e 'const fs=require("node:fs"); const tag=process.env.TAG; const release=JSON.parse(fs.readFileSync("release.json","utf8")).release; const lock=JSON.parse(fs.readFileSync("skills.lock.json","utf8")).release; if (tag!==release || tag!==lock) process.exit(1)'
+      - name: Publish immutable GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" --verify-tag --generate-notes
