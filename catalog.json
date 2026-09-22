@@ -32,6 +32,15 @@
       "variance": "configured"
     },
     {
+      "name": "fieldnote-brainstorming",
+      "stage": "plan",
+      "description": "Explore an idea to a settled design, then leave behind everything the next session needs — a before/after the change can be seen in, acceptance scenarios written in the domain's own words, and a published PRD issue. Use when a business user or engineer wants a change and nothing is written down yet, or when someone says \"brainstorm this\", \"I have an idea\", \"let's design this\", \"what should we build\". Ends by printing the next command, so a cleared context loses nothing.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "configured"
+    },
+    {
       "name": "fieldnote-prd-to-plan",
       "stage": "plan",
       "description": "Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions \"tracer bullets\".",

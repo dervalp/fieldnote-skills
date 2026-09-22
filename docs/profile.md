@@ -82,12 +82,16 @@ string, because label text varies repo to repo.
 - **`Labels.ready`** — the label meaning "ready for an agent to pick up."
 - **`Labels.needsPrd`** — the label meaning "needs a PRD before implementation
   can start."
+- **`Labels.prd`** — the label that marks an issue *as* a PRD, so a skill can
+  find the PRDs on the board. Distinct from `needsPrd`, which marks an issue
+  that still wants one.
 
 ```markdown
 ## Labels
 
 - **ready** — ready-for-agent
 - **needsPrd** — to-prd
+- **prd** — prd
 ```
 
 ### Commands
@@ -101,6 +105,9 @@ check` in another.
   checks (lint, typecheck, unit tests — whatever "check" means locally).
 - **`Commands.preflight`** — the command to run before opening a PR or
   requesting review (may be the same as `check`, or a longer chain).
+- **`Commands.scenarioCheck`** — the command that checks acceptance-scenario
+  wording against the glossary (`Docs.glossary`). Absent, a skill writing
+  scenarios checks the vocabulary by reading rather than by running.
 
 ```markdown
 ## Commands
@@ -108,6 +115,7 @@ check` in another.
 - **check** — pnpm check
 - **preflight** — pnpm check && pnpm build
 - **mutation** — pnpm mutation:changed
+- **scenarioCheck** — pnpm check:feature-glossary
 ```
 
 ### Docs
@@ -127,6 +135,17 @@ here; the profile only records *where* they are.
 - **`Docs.plans`** — the directory where implementation plans are written.
   Read today by `fieldnote-prd-to-plan`, which writes plans to `./plans/`
   unless this key names a different directory.
+- **`Docs.glossary`** — the domain glossary / ubiquitous language document.
+  The words a skill is allowed to use when it writes a scenario or names a
+  slice come from here.
+- **`Docs.acceptance`** — this repository's conventions for writing
+  acceptance scenarios: the style, what belongs in a scenario and what does
+  not. Absent, a skill falls back to `Docs.testing`.
+- **`Docs.scenarios`** — where acceptance-scenario files live. This one is a
+  path *pattern* rather than a single document, because scenarios are a tree
+  and not one file; write it with `<area>` and `<behaviour>` as placeholders.
+  Absent entirely, a repository has no scenario harness, and acceptance
+  criteria are written in prose in the PRD instead.
 
 ```markdown
 ## Docs
@@ -137,6 +156,9 @@ here; the profile only records *where* they are.
 - **verification** — docs/verification.md
 - **ciTriage** — docs/ci-triage.md
 - **plans** — ./plans
+- **glossary** — docs/glossary.md
+- **acceptance** — docs/acceptance-scenarios.md
+- **scenarios** — e2e/features/<area>/<behaviour>.feature
 ```
 
 ### Architecture (superseded)
@@ -312,12 +334,14 @@ document.
 
 - **ready** — ready-for-agent
 - **needsPrd** — to-prd
+- **prd** — prd
 
 ## Commands
 
 - **check** — pnpm check
 - **preflight** — pnpm check && pnpm build
 - **mutation** — pnpm mutation:changed
+- **scenarioCheck** — pnpm check:feature-glossary
 
 ## Docs
 
@@ -327,6 +351,9 @@ document.
 - **verification** — docs/verification.md
 - **ciTriage** — docs/ci-triage.md
 - **plans** — ./plans
+- **glossary** — docs/glossary.md
+- **acceptance** — docs/acceptance-scenarios.md
+- **scenarios** — e2e/features/<area>/<behaviour>.feature
 
 ## Architecture
 

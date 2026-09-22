@@ -11,6 +11,7 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 
 ## Plan
 
+- **fieldnote-brainstorming** (v0.1.0, configured) — Explore an idea to a settled design, then leave behind everything the next session needs — a before/after the change can be seen in, acceptance scenarios written in the domain's own words, and a published PRD issue. Use when a business user or engineer wants a change and nothing is written down yet, or when someone says "brainstorm this", "I have an idea", "let's design this", "what should we build". Ends by printing the next command, so a cleared context loses nothing.
 - **fieldnote-prd-to-plan** (v0.1.0, universal) — Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when the user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions "tracer bullets".
 - **fieldnote-setup-prd** (v0.1.0, configured) — Take a settled design straight to a ticketed epic in one pass — synthesize the PRD, then decompose it into tracer-bullet child issues with a wired-up dependency graph, publishing both. Use when a design is settled (straight out of a brainstorm/grill) and the user says "set up the PRD", "PRD it", or otherwise wants the PRD and the issue breakdown done together rather than as two separate steps. Presents ONE consolidated review and pauses only when a seam, slice, or dependency decision is genuinely ambiguous.
 
@@ -26,4 +27,4 @@ or pick individually with `npx github:dervalp/fieldnote-skills`.
 - **fieldnote-pull-request** (v0.1.0, configured) — Fill this repository's own PR template with domain impact, business rules, validation evidence, risk, rollback, reviewer focus, and Conventional Commit-aware context. Use when preparing, reviewing, or updating a pull request for this repository.
 - **fieldnote-testing** (v0.1.1, templated) — This repository's own testing conventions. Use when adding, changing, reviewing, or choosing tests; covers red-green-refactor, characterization tests, choosing test level, boundary cases at every validated edge, domain invariants, eval/scorer checks, UI workflow tests, and structured logging/correlation-id assertions.
 
-_Total: 9 skill(s)._
+_Total: 10 skill(s)._

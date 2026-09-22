@@ -3,8 +3,8 @@
 Thirteen skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
 become parallel waves of code, code becomes pull requests, and pull requests
 get merged without a human re-checking what CI and the agent reviewers
-already checked. Nine of the thirteen ship in this repository today. The
-other four are designed, not yet built — see
+already checked. Ten of the thirteen ship in this repository today. The
+other three are designed, not yet built — see
 [README § Status](../README.md#status) for why.
 
 ## Stage by stage
@@ -14,10 +14,13 @@ before anything else: writes `.fieldnote/profile.md` from what the repository
 itself says, and pushes for a written definition of done, which is what every
 later stage reads to decide whether it is finished.
 
-**Brainstorm** — `fieldnote-brainstorming` *(not yet shipped)*. Runs before
-any change is made: explores the idea, produces a before/after artifact and
-acceptance scenarios in the domain's own language, and hands off cleanly so
-planning can start cold.
+**Brainstorm** — `fieldnote-brainstorming` *(shipped)*. Runs before any
+change is made: explores the idea to a settled design, produces a before/after
+someone can look at and acceptance scenarios in the domain's own language,
+then cuts the feature branch and publishes the PRD issue. The handoff is the
+point — it leaves nothing in the transcript, so the next session starts cold.
+It publishes the PRD but not its children; its last line points at
+`fieldnote-setup-prd` to ticket the slices underneath.
 
 **Plan** — `fieldnote-setup-prd` and `fieldnote-prd-to-plan` *(shipped)*.
 `fieldnote-setup-prd` takes a settled design straight to a published PRD plus
@@ -58,7 +61,7 @@ The shipped skills still assume one missing skill exists.
 reference. `fieldnote-do-work`, which `fieldnote-parallel-wave` and
 `fieldnote-deliver` hand implementation to across 13 references, now ships
 and reads this repository's rules from `.fieldnote/concerns/`. Until a later
-phase ships the remaining four, bring your own step where they're named.
+phase ships the remaining three, bring your own step where they're named.
 
 For where to start using what's here, see
 [README § Two ways in](../README.md#two-ways-in).
