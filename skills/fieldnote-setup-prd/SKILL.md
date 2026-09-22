@@ -40,7 +40,11 @@ review, instead of as two separate checkpoints.
 ## Input
 
 Whatever design is already in the conversation context, optionally a reference to a plan/issue/doc to
-anchor on. Do **not** interview — synthesize what is already known from context. Default tracker is the
+anchor on. Do **not** interview — synthesize what is already known from context.
+
+Coming from `fieldnote-brainstorming`, the anchor is a **published PRD issue** and the conversation may
+be empty: read that issue for the design, and publish the child issues **under** it rather than writing
+a second PRD. Default tracker is the
 current repository's GitHub remote; child issues target the same repo.
 
 ## Process

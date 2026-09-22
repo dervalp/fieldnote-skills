@@ -2,6 +2,17 @@
   "release": "skills-v0.1.0",
   "skills": [
     {
+      "name": "fieldnote-brainstorming",
+      "version": "0.1.0",
+      "coreHash": "sha256:12551427db7f901fe8a222ffcced7ba8fe7b46c1fb577d0d74fc150a3ef29fc1",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:ef3d4b50cafc43a477caa1c56aa97377c543ed0e825aa2c142f8a83fcd599f1e"
+        }
+      }
+    },
+    {
       "name": "fieldnote-deliver",
       "version": "0.1.0",
       "coreHash": "sha256:47e549316405a8514a55c4f8f3dab1aecda461309a9a5a6e12631905a7e23533",
@@ -70,11 +81,11 @@
     {
       "name": "fieldnote-setup-prd",
       "version": "0.1.0",
-      "coreHash": "sha256:e0436e7ed331b6496d3d2d447c5c324eac7ea77645dde94788c6d19bc553e632",
+      "coreHash": "sha256:00c574c39653afc5e8c84876b60033dfc5ed4c3c7af4d20175aaab9056afa8a2",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:5149b6ceb313ae84a85e1bb879d47a1b328464850480101762457ad1526aa9db"
+          "hash": "sha256:3679c2e83441ea95d7cc8f0dca3df3702f9d513214e6bb1ec6a65bf3e2130ba3"
         }
       }
     },

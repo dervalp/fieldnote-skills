@@ -169,10 +169,10 @@ rules a change has to respect here.
 
 Release process: [docs/RELEASING.md](docs/RELEASING.md).
 
-Nine of the thirteen skills fieldnote runs on ship here. The other four —
-`fieldnote-fix-bug`, `fieldnote-brainstorming`, `fieldnote-react-review` and
-`fieldnote-react-sweep` — still carry one company's language and framework
-doctrine, and generalizing them is later work.
+Ten of the thirteen skills fieldnote runs on ship here. The other three —
+`fieldnote-fix-bug`, `fieldnote-react-review` and `fieldnote-react-sweep` —
+still carry one company's language and framework doctrine, and generalizing
+them is later work.
 
 One reference is still open: `fieldnote-pull-request` recognizes a pull
 request opened by `fieldnote-fix-bug`, which has not shipped yet.
@@ -203,3 +203,10 @@ to write a new one.
 ## Licence
 
 AGPL-3.0-only. See [LICENSE](LICENSE).
+
+**Third-party content.** Step 1 of `fieldnote-brainstorming` adapts the
+`brainstorming` skill from [obra/superpowers](https://github.com/obra/superpowers)
+— MIT, Copyright (c) 2025 Jesse Vincent. It is reproduced in the skill rather
+than invoked, so the skill works without that plugin installed; the MIT notice
+travels with it at the foot of
+[`skills/fieldnote-brainstorming/SKILL.md`](skills/fieldnote-brainstorming/SKILL.md).
