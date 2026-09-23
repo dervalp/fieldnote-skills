@@ -194,7 +194,7 @@ agent that reads a `skills/` folder works by pointing it there yourself.
 | `init` — scaffold a profile          | Shipped             |
 | Four templated skills                | Designed, not built |
 | Rendering from fieldnote's Act arm   | Designed, not built |
-| outbox CLI (check, open, settle, comment) | Shipped |
+| outbox CLI                           | Shipped             |
 
 ## Contributing
 
