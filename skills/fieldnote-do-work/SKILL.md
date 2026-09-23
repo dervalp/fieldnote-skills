@@ -166,6 +166,42 @@ that did not.
 return the wave's result shape. The orchestrator owns the watch; never watch
 CI from inside a wave.
 
+**When dispatched by `fieldnote-yolo-deliver`:** branch off the feature
+branch it names, not the base branch, and open the pull request into that
+feature branch with the label and title it gives you; stop after opening it,
+as above. Run the CLI as `npx github:dervalp/fieldnote-skills outbox …` (or
+`fieldnote-skills outbox …` where it is installed). Never ask a question —
+the person is not there. That beats "ask for it once" in the Preflight step:
+when `Commands → preflight` is absent, run `Commands → check`; when both are
+absent, push without one and say so in your result. The outbox folder is part
+of your territory, whatever the plan lists. What happens at a point the spec
+does not settle depends on whether the outbox is on:
+
+- **Outbox on.** A point the spec does not settle is recorded, not asked:
+  take the option easiest to undo, build it, and write one outbox item in the
+  folder you were given, as `<slice>-<nn>-<slug>.md`, with the front matter
+  `id` (the file name without `.md`), `prd`, `slice`, `rank`, `bears-on`,
+  `raised` (a `YYYY-MM-DD` date), `wave` and the four sections, each a `## `
+  heading and none empty: `What I had to decide`, `What I did meanwhile`,
+  `What it costs to change later`, `What I could not know` (that last one
+  begins with `(author)` and names the gap — never an invented reason). Rank
+  it `human-action` when only a person can do it (a secret, a grant, a console
+  step): the slice is then `blocked` — keep what is safe to keep, push, open
+  the pull request carrying the item, then return `blocked`, so the item
+  reaches the feature branch. Rank it `high` when it is hard to revert or
+  touches a rule under `.fieldnote/concerns/` or an ADR (then `bears-on` names
+  it); `medium` otherwise, with `bears-on: none`. Leaving the slice's
+  territory is itself such a point. Run `outbox check <id>` (the spec's id)
+  before pushing.
+- **Outbox off.** Stop and return `stopped`, naming the question — as you
+  would return "needs clarification" today.
+- **Either way**, a change that would **break** a rule the repository wrote
+  down returns `stopped` and writes no item. A `stopped` slice pushes nothing
+  and opens no pull request.
+
+Return `done`, `stopped` or `blocked`, the pull request link (none when
+stopped), the reason when stopped, and the outbox item files you wrote.
+
 ## Pair With
 
 - `fieldnote-testing` — choosing and adding tests.

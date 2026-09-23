@@ -26,11 +26,11 @@
     {
       "name": "fieldnote-do-work",
       "version": "0.1.0",
-      "coreHash": "sha256:c4be9e012e1d65e6b31b96a0d417bc7dc0a21e4edd32745086a0efcd98edabf9",
+      "coreHash": "sha256:b9b597ac7f7f17b5738142a9f332c406e2e4b3ddd99b71a40d839031f3f75515",
       "files": {
         "SKILL.md": {
           "role": "prompt",
-          "hash": "sha256:9d335ab323d5775ce6f86fa94b92dded4f461b85cce9179843195bbd9e7455fb"
+          "hash": "sha256:fff724a50baf53ba377f6df61757f3d0bcc2443feb1099c1897577785aad16ed"
         }
       }
     },
@@ -108,6 +108,28 @@
         "SKILL.md": {
           "role": "prompt",
           "hash": "sha256:83b84a88637ea315e9840886e6e00d5277b37b9f011c0d891d69c80eaa4a9982"
+        }
+      }
+    },
+    {
+      "name": "fieldnote-yolo-brainstorm",
+      "version": "0.1.0",
+      "coreHash": "sha256:7c4a8ec2c7713fc542d7ae1bd3896097a506bea3e4ba179e6ad5ea16b5eba459",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:7d57c2c34363ed87db2206864727cc2e96a2d7325d16d04e9a31fbf632528386"
+        }
+      }
+    },
+    {
+      "name": "fieldnote-yolo-deliver",
+      "version": "0.1.0",
+      "coreHash": "sha256:3c482bd2526d2713fc7d26b77a1d14e26385067481aee454ca1737c1c61cfa1e",
+      "files": {
+        "SKILL.md": {
+          "role": "prompt",
+          "hash": "sha256:6f07fefad3312e385e0dd3528e1d70833d406baa32f5db02c7ec76e2952019c9"
         }
       }
     }

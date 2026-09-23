@@ -1,9 +1,9 @@
 # The delivery loop
 
-Thirteen skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
+Fifteen skills, one loop: an idea becomes a PRD, a PRD becomes issues, issues
 become parallel waves of code, code becomes pull requests, and pull requests
 get merged without a human re-checking what CI and the agent reviewers
-already checked. Ten of the thirteen ship in this repository today. The
+already checked. Twelve of the fifteen ship in this repository today. The
 other three are designed, not yet built — see
 [README § Status](../README.md#status) for why.
 
@@ -36,6 +36,17 @@ child issues are takeable right now and hands that frontier to
 `fieldnote-parallel-wave`. Both stop at the human-merge gate. Both compose
 `fieldnote-do-work` *(shipped)* — the repository's own implementation
 practice — to actually write the code.
+
+**Yolo** — `fieldnote-yolo-brainstorm` and `fieldnote-yolo-deliver`
+*(shipped)*. The same loop without a human between slices. The brainstorm
+writes the spec as an **inbox file** in the repository, with its plan already
+cut into slices and waves; the build runs every wave as sub-pull-requests into
+one feature branch, merges them itself, and stops at one green pull request
+into the base branch, which a human merges. A slice that meets a question the
+spec does not answer takes the option easiest to undo and writes it down as an
+**outbox item** for a human to answer later — when the repository turns the
+outbox on (`Docs → outbox`). `fieldnote-skills outbox` checks, lists and
+settles those files.
 
 **Fix** — `fieldnote-fix-bug` *(not yet shipped)*. The same loop entered from
 a bug report instead of a PRD: reproduce it, prove the fix red before it's

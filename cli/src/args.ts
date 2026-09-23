@@ -4,7 +4,7 @@ export interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
-const VALUE_FLAGS = new Set(["stage", "agent"]);
+const VALUE_FLAGS = new Set(["stage", "agent", "verdict", "answer"]);
 const ALIASES: Record<string, string> = { y: "yes", h: "help" };
 
 /**
