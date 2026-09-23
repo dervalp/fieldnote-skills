@@ -5,6 +5,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { formatOutboxComment, ghIssueComments, upsertOutboxComment } from "../outbox/comment.js";
 import { loopConfig, type LoopConfig } from "../outbox/config.js";
 import { checkInboxSet, parseInbox, type InboxFile } from "../outbox/inbox.js";
 import { parseItem } from "../outbox/item.js";
@@ -113,6 +114,24 @@ function settle(
   return 0;
 }
 
+function comment({ root, config, deps }: Context, id: string): number {
+  if (config.tracker.kind !== "github") {
+    deps.logger.output("The tracker is not GitHub — the outbox lives in its files and the feature pull request.");
+    return 0;
+  }
+  if (!config.outbox) {
+    deps.logger.output("The outbox is off in this repository — no comment to keep.");
+    return 0;
+  }
+  const repoName =
+    config.tracker.repo ??
+    deps.gh(["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
+  const body = formatOutboxComment(id, openItems(root, config.outbox, id));
+  const result = upsertOutboxComment(ghIssueComments(deps.gh, repoName, id), body);
+  deps.logger.output(`Outbox comment on ${repoName}#${id}: ${result}.`);
+  return 0;
+}
+
 export async function runOutbox(
   sub: string | undefined,
   positionals: string[],
@@ -129,6 +148,10 @@ export async function runOutbox(
     case "settle": {
       const file = requireId(positionals, "settle <item-file> --verdict agreed|drifted --answer <file|->");
       return settle(context(deps), file, flags);
+    }
+    case "comment": {
+      const id = requireId(positionals, "comment <id>");
+      return comment(context(deps), id);
     }
     default:
       throw new UserError(

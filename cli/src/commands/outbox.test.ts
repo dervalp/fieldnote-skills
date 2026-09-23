@@ -154,3 +154,41 @@ test("settle with the outbox off is an error", async () => {
     /outbox is off/,
   );
 });
+
+const GH_PROFILE = PROFILE + "\n## Tracker\n- **kind** — github\n- **repo** — acme/app\n";
+
+test("comment: posts the list to the PRD issue through gh", async () => {
+  const root = repo({ ".fieldnote/profile.md": GH_PROFILE, "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium") });
+  const calls: string[][] = [];
+  const d = deps(root, {
+    gh: (args) => {
+      calls.push(args);
+      return "";
+    },
+  });
+  assert.equal(await runOutbox("comment", ["7"], {}, d), 0);
+  assert.equal(calls[1]![1], "repos/acme/app/issues/7/comments");
+  assert.match(d.logger.outputs.join("\n"), /created/);
+});
+
+test("comment: a file tracker is a no-op", async () => {
+  const d = deps(repo({ ".fieldnote/profile.md": PROFILE }));
+  assert.equal(await runOutbox("comment", ["7"], {}, d), 0);
+  assert.match(d.logger.outputs.join("\n"), /tracker is not GitHub/);
+});
+
+test("comment: no Tracker → repo asks gh for the current repository", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE + "\n## Tracker\n- **kind** — github\n",
+  });
+  const calls: string[][] = [];
+  const d = deps(root, {
+    gh: (args) => {
+      calls.push(args);
+      return args[0] === "repo" ? "acme/app\n" : "";
+    },
+  });
+  await runOutbox("comment", ["7"], {}, d);
+  assert.deepEqual(calls[0], ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]);
+  assert.equal(calls[1]![2], "repos/acme/app/issues/7/comments");
+});
