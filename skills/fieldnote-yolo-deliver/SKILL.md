@@ -46,19 +46,28 @@ A spec id: `/fieldnote-yolo-deliver 1015` (a PRD issue number) or `/fieldnote-yo
 
 ### 1. Find the spec
 
-Look for `<Docs → inbox>/<id>-*.md` on the base branch, then on the feature branches
-(`git ls-remote --heads <baseRemote> 'feat/*'`, then `git show <branch>:<path>`). The branch that
-holds it is the feature branch.
+Look for `<Docs → inbox>/<id>-*.md` on the base branch, then on the feature branches:
+`git ls-remote --heads <baseRemote> 'feat/*'`, then for each candidate branch
+`git ls-tree -r --name-only <branch> -- <Docs → inbox>/` and match the entry starting with `<id>-` —
+`git show` does not expand a glob, so read that exact path with `git show <branch>:<path>`. The
+branch that holds it is the feature branch.
 
 - **Not found** — stop: "No inbox file for `<id>`. Run `/fieldnote-yolo-brainstorm` first."
 - **`specOnMain` is `true`** and the inbox file is not on the base branch yet — stop and name the
   docs-only pull request waiting for a merge. Do not build.
-- **`blocked-by`** names an id whose feature pull request is not merged — stop and say which.
+- **`blocked-by`** names an id whose feature pull request is not merged — stop and say which. Once
+  every blocker's feature pull request is merged, its inbox file lives on `<baseRemote>/<baseBranch>`
+  — merge that into `feat/<topic>` (below) before running `outbox check`, so the blockers' inbox
+  files are present in this checkout.
 - **`plan: none`** — write the plan now, following step 5 of `fieldnote-yolo-brainstorm` (slices,
   territories, waves), commit it to the feature branch, set `plan:`, run `outbox check`. Then go on.
 
-Work in a worktree of the feature branch. Run `outbox check`; red stops here — the spec is broken,
-and building on it would be worse.
+Work in a worktree of the feature branch. When a declared blocker's feature pull request has just
+merged, merge `<baseRemote>/<baseBranch>` into it first. Then run `outbox check`; red stops here —
+the spec is broken, and building on it would be worse — **except** `blocked-by N names no inbox
+file`, which is expected while `N`'s inbox file lives only on its own unmerged `feat/<topic>` branch
+and is not in this checkout yet. That one failure is never "fixed" by removing the dependency; every
+other red means the file is wrong.
 
 ### 2. Build the board
 
@@ -118,7 +127,8 @@ waiting — say which.
 
 1. Merge `<baseRemote>/<baseBranch>` into `feat/<topic>`; resolve conflicts; run
    `Commands → preflight`.
-2. Run `outbox check`. Red: fix the item files — they are part of the deliverable.
+2. Run `outbox check`. Red: fix the file it names — an item or an inbox file — they are part of the
+   deliverable.
 3. Open (or update) **one** pull request, `feat/<topic>` → `<baseBranch>`, label `Labels → feature`,
    title in Conventional Commit form, body built with `fieldnote-pull-request`, plus:
 
@@ -138,6 +148,9 @@ waiting — say which.
    `Verdict: agreed` or `Verdict: drifted`.
    ```
 
+   `outbox open <id>` exits 1 whenever items are open — read here for its printed list, not for its
+   exit code.
+
 4. Watch the checks to green. On red: read the failing log, then `Docs → ciTriage` when it exists;
    fix, preflight, push. **Three attempts**, then mark it draft and comment what is stuck.
 5. With a GitHub tracker and the outbox on, run `outbox comment <id>`.
@@ -145,7 +158,8 @@ waiting — say which.
 ### 7. Report and stop
 
 One short report: the feature pull request and its check state; slices done / stopped / blocked; the
-open outbox items, worst first, from `outbox open <id>`. Then stop. **Never merge into the base
+open outbox items, worst first, from `outbox open <id>` — again read for its list; its exit code is 1
+whenever items are open, which is not a failure here. Then stop. **Never merge into the base
 branch.** Open items do not block the merge by themselves — the Outbox section is how a human finds
 them.
 

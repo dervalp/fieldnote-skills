@@ -82,8 +82,8 @@ override it.
 | Path              | What it is                                                                                                                                                      | Where it ends            |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | **Spike**         | A feasibility question ("can we…", "is it possible…", "quick and dirty is fine") whose output is an answer, not code you keep.                                   | Step 1. Nothing else.    |
-| **Bounded**       | A well-scoped change to code **that already exists in this repository**: a new flag, a small endpoint, a one-file fix.                                           | Steps 3 and 4.           |
-| **Architectural** | New projects, new subsystems, changes that restructure how components fit together or alter interfaces others depend on.                                        | Steps 2, 3 and 4.        |
+| **Bounded**       | A well-scoped change to code **that already exists in this repository**: a new flag, a small endpoint, a one-file fix.                                           | Steps 3, 4, 5 and 7 (plus 6 when the profile asks). |
+| **Architectural** | New projects, new subsystems, changes that restructure how components fit together or alter interfaces others depend on.                                        | Steps 2 through 7.       |
 
 - A **spike** presents the question and what you'll try in two or three sentences, gets a nod, then
   finds out as cheaply as correctness allows. Report findings as a recommendation; anything you built
@@ -114,7 +114,7 @@ simplicity is the artifact, never the approval.
 | "The spike works, so I'll keep the code"                              | A spike's output is an answer. Keeping the code is a new request — classify it.             |
 | "It grew, but I'm almost done — no need to re-classify"               | Hidden complexity upgrades the path mid-task. Stop and say so.                              |
 | "They approved the spike, so the follow-up is approved too"           | Each task gets its own classification and its own approval.                                 |
-| "The design is approved, so I can skip the PRD"                       | An approved design that lives only in this transcript dies with it. Step 4 is not optional. |
+| "The design is approved, so I can skip the inbox file"                | An approved design that lives only in this transcript dies with it. Step 4 is not optional. |
 
 ### Checklists
 
@@ -135,7 +135,7 @@ Classify first, announce the path, then work the list in order.
 3. Present a short design in chat — approach, what it touches, how it is tested
 4. Get approval — **stop and wait for an explicit yes**; presenting the design and starting in the same
    breath is skipping the gate
-5. Go to step 3 (observable behaviour only) and step 4
+5. Go to steps 3 (observable behaviour only), 4, 5 and 7 (plus 6 when the profile asks)
 
 **Architectural**
 
@@ -143,7 +143,7 @@ Classify first, announce the path, then work the list in order.
 2. Ask clarifying questions — one at a time: purpose, constraints, success criteria
 3. Propose two or three approaches — trade-offs, and your recommendation
 4. Present the design in sections scaled to their complexity; get approval after each section
-5. Go to steps 2, 3 and 4
+5. Go to steps 2 through 7
 
 ### The conversation itself
 
@@ -157,9 +157,9 @@ whole process.
 - Before asking detailed questions, assess scope. If the request describes several independent
   subsystems ("a platform with chat, file storage, billing and analytics"), flag it immediately. Don't
   spend questions refining the details of something that needs decomposing first.
-- If it is too large for one PRD, help decompose it into sub-projects: what the independent pieces are,
-  how they relate, what order they get built in. Then brainstorm the first one through the normal flow.
-  **Each sub-project gets its own PRD.**
+- If it is too large for one inbox file, help decompose it into sub-projects: what the independent
+  pieces are, how they relate, what order they get built in. Then brainstorm the first one through the
+  normal flow. **Each sub-project gets its own inbox file.**
 - For appropriately scoped work, ask questions **one at a time**.
 - Prefer multiple-choice questions where they fit; open-ended is fine too.
 - **One question per message.** If a topic needs more exploring, break it into several questions.
@@ -260,7 +260,7 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
    ---
    id: <id>
    title: <topic, in words>
-   blocked-by: none
+   blocked-by: none            # or [966, 970] — declared by a human, never inferred
    plan: none
    tracker: <github|file>
    ---
@@ -298,10 +298,15 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
 
    `blocked-by` names other inbox ids only when **the person says so** — never infer a dependency.
    The front matter never carries a status, a branch, a priority or a value; the check refuses them.
+   A declared blocker's inbox file may still live only on its own unmerged `feat/<topic>` branch —
+   see the note on `outbox check` in step 4.4 below.
 
 4. **Self-review, then check.** Placeholders, contradictions between Solution and Acceptance
    criteria, scope too big for one feature, anything readable two ways — fix inline. Then run
-   `outbox check`. Red means the file is wrong; fix the file.
+   `outbox check`. Red means the file is wrong; fix the file — **except** `blocked-by N names no
+   inbox file`, which is expected whenever `N`'s inbox file lives only on its own unmerged
+   `feat/<topic>` branch and is not in this checkout. That one failure is never "fixed" by removing
+   the dependency; every other red means the file is wrong.
 
 5. **Commit and push** the inbox file, the before/after, the scenarios and any glossary change on
    `feat/<topic>`.

@@ -175,15 +175,16 @@ instead depends on whether the outbox is on:
 - **Outbox on.** A point the spec does not settle is recorded, not asked:
   take the option easiest to undo, build it, and write one outbox item in the
   folder you were given, as `<slice>-<nn>-<slug>.md`, with the front matter
-  `id`, `prd`, `slice`, `rank`, `bears-on`, `raised`, `wave` and the four
-  sections `What I had to decide`, `What I did meanwhile`,
+  `id` (the file name without `.md`), `prd`, `slice`, `rank`, `bears-on`,
+  `raised` (a `YYYY-MM-DD` date), `wave` and the four sections, each a `## `
+  heading and none empty: `What I had to decide`, `What I did meanwhile`,
   `What it costs to change later`, `What I could not know` (that last one
   begins with `(author)` and names the gap — never an invented reason). Rank
   it `human-action` when only a person can do it (a secret, a grant, a console
   step) and return `blocked`; `high` when it is hard to revert or touches a
   rule under `.fieldnote/concerns/` or an ADR (then `bears-on` names it);
-  `medium` otherwise. Leaving the slice's territory is itself such a point.
-  Run `fieldnote-skills outbox check` before pushing.
+  `medium` otherwise, with `bears-on: none`. Leaving the slice's territory is
+  itself such a point. Run `fieldnote-skills outbox check` before pushing.
 - **Outbox off.** Stop and return `stopped`, naming the question — as you
   would return "needs clarification" today.
 - **Either way**, a change that would **break** a rule the repository wrote
