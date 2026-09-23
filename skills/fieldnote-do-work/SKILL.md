@@ -166,6 +166,32 @@ that did not.
 return the wave's result shape. The orchestrator owns the watch; never watch
 CI from inside a wave.
 
+**When dispatched by `fieldnote-yolo-deliver`:** branch off the feature
+branch it names, not the base branch, and open the pull request into that
+feature branch with the label and title it gives you; stop after opening it,
+as above. Never ask a question — the person is not there. What happens
+instead depends on whether the outbox is on:
+
+- **Outbox on.** A point the spec does not settle is recorded, not asked:
+  take the option easiest to undo, build it, and write one outbox item in the
+  folder you were given, as `<slice>-<nn>-<slug>.md`, with the front matter
+  `id`, `prd`, `slice`, `rank`, `bears-on`, `raised`, `wave` and the four
+  sections `What I had to decide`, `What I did meanwhile`,
+  `What it costs to change later`, `What I could not know` (that last one
+  begins with `(author)` and names the gap — never an invented reason). Rank
+  it `human-action` when only a person can do it (a secret, a grant, a console
+  step) and return `blocked`; `high` when it is hard to revert or touches a
+  rule under `.fieldnote/concerns/` or an ADR (then `bears-on` names it);
+  `medium` otherwise. Leaving the slice's territory is itself such a point.
+  Run `fieldnote-skills outbox check` before pushing.
+- **Outbox off.** Stop and return `stopped`, naming the question — as you
+  would return "needs clarification" today.
+- **Either way**, a change that would **break** a rule the repository wrote
+  down returns `stopped` and writes no item.
+
+Return `done`, `stopped` or `blocked`, the pull request link, and the outbox
+item files you wrote.
+
 ## Pair With
 
 - `fieldnote-testing` — choosing and adding tests.
