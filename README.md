@@ -29,11 +29,12 @@ absent for the seven around it.
 
 ## What this is
 
-Nine skills that do the loop: a settled design becomes a PRD with ticketed
+Eleven skills that do the loop: a settled design becomes a PRD with ticketed
 child issues, the issues that are takeable right now run as one parallel wave
 of worktrees and pull requests, each pull request arrives with real evidence
 in it, and the review board gets drained without re-reading what the checks
-already covered.
+already covered. Two of them — the yolo pair — run the whole loop unattended
+and write down every decision they took without asking.
 
 They read your repository's facts from one small file you write once, so they
 stop asking. They ran inside a private monorepo for months before this
@@ -169,7 +170,7 @@ rules a change has to respect here.
 
 Release process: [docs/RELEASING.md](docs/RELEASING.md).
 
-Ten of the thirteen skills fieldnote runs on ship here. The other three —
+Twelve of the fifteen skills fieldnote runs on ship here. The other three —
 `fieldnote-fix-bug`, `fieldnote-react-review` and `fieldnote-react-sweep` —
 still carry one company's language and framework doctrine, and generalizing
 them is later work.
@@ -188,11 +189,12 @@ agent that reads a `skills/` folder works by pointing it there yourself.
 |                                      | State               |
 | ------------------------------------ | ------------------- |
 | Plugin marketplace + npx install     | Shipped             |
-| Nine skills, profile-decoupled       | Shipped             |
+| Eleven skills, profile-decoupled     | Shipped             |
 | Installs for Claude Code and Codex   | Shipped             |
 | `init` — scaffold a profile          | Shipped             |
 | Four templated skills                | Designed, not built |
 | Rendering from fieldnote's Act arm   | Designed, not built |
+| outbox CLI (check, open, settle, comment) | Shipped |
 
 ## Contributing
 

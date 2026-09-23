@@ -32,6 +32,15 @@
       "variance": "configured"
     },
     {
+      "name": "fieldnote-yolo-deliver",
+      "stage": "build",
+      "description": "Build a spec written by fieldnote-yolo-brainstorm all the way to one green feature pull request without asking a single question — slices run as parallel waves of sub-pull-requests into a feature branch, merged by the agent, and every decision taken without asking is written down as an outbox item for a human to answer later. Use when someone says \"yolo it\", \"build it overnight\", \"deliver without asking\", or runs the command fieldnote-yolo-brainstorm printed. Never merges into the base branch.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "configured"
+    },
+    {
       "name": "fieldnote-brainstorming",
       "stage": "plan",
       "description": "Explore an idea to a settled design, then leave behind everything the next session needs — a before/after the change can be seen in, acceptance scenarios written in the domain's own words, and a published PRD issue. Use when a business user or engineer wants a change and nothing is written down yet, or when someone says \"brainstorm this\", \"I have an idea\", \"let's design this\", \"what should we build\". Ends by printing the next command, so a cleared context loses nothing.",
@@ -53,6 +62,15 @@
       "name": "fieldnote-setup-prd",
       "stage": "plan",
       "description": "Take a settled design straight to a ticketed epic in one pass — synthesize the PRD, then decompose it into tracer-bullet child issues with a wired-up dependency graph, publishing both. Use when a design is settled (straight out of a brainstorm/grill) and the user says \"set up the PRD\", \"PRD it\", or otherwise wants the PRD and the issue breakdown done together rather than as two separate steps. Presents ONE consolidated review and pauses only when a seam, slice, or dependency decision is genuinely ambiguous.",
+      "surface": "code",
+      "version": "0.1.0",
+      "mcp": [],
+      "variance": "configured"
+    },
+    {
+      "name": "fieldnote-yolo-brainstorm",
+      "stage": "plan",
+      "description": "Explore an idea to a settled design, then write it down as a spec file in the repository with its plan already cut into slices and waves, so an unattended build can start the moment the brainstorm ends. Use when someone wants a change built without being asked questions along the way — \"brainstorm and yolo it\", \"spec this so it can run overnight\", \"design it, then build it without me\". Pairs with fieldnote-yolo-deliver, whose command it prints last.",
       "surface": "code",
       "version": "0.1.0",
       "mcp": [],
