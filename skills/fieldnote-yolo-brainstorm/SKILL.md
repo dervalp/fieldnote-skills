@@ -22,8 +22,8 @@ After this skill, nobody is asked anything until the feature pull request is gre
 last moment a human is at the keyboard — every question that can be answered, gets answered here.
 
 This skill is self-contained: it depends on no other skill being installed. Its mechanics — what a
-well-formed inbox file is — are checked by the `fieldnote-skills outbox check` command, never by
-reading this page.
+well-formed inbox file is — are checked by the CLI's `outbox check` command (how to run it is below),
+never by reading this page.
 
 ## When to use
 
@@ -54,7 +54,7 @@ This skill reads:
 | `Parallelism → waveSize` | the widest a wave may be | `3` |
 
 Run the CLI as `npx github:dervalp/fieldnote-skills outbox …` (or `fieldnote-skills outbox …` where
-it is installed). It prints once which defaults it used.
+it is installed). Below, `outbox …` is short for that. It prints once which defaults it used.
 
 ---
 
@@ -230,7 +230,7 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
 
    ```bash
    git fetch <baseRemote>
-   git worktree add <path> -b feat/<topic> <baseRemote>/<baseBranch>
+   git worktree add <feature path> -b feat/<topic> <baseRemote>/<baseBranch>
    ```
 
 2. **With a GitHub tracker**, create the PRD issue first — its number is the spec's id. Its body is
@@ -251,8 +251,13 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
    ```
 
    Then edit the placeholder `<id>` in the body to the issue's number. **Without a GitHub
-   tracker**, the id is today's date as `YYYYMMDD`; if an inbox file with that id exists, add one to
-   it until it is free.
+   tracker**, the id is today's date as `YYYYMMDD` — but only once it is free everywhere. Another
+   spec's inbox file may live only on its own unmerged feature branch, so look in both places:
+   `<Docs → inbox>/<id>-*.md` in this checkout, and on every feature branch —
+   `git fetch <baseRemote>`, list them with
+   `git for-each-ref --format='%(refname:short)' refs/remotes/<baseRemote>/feat/`, and run
+   `git ls-tree -r --name-only <ref> -- <Docs → inbox>/` on each. Any entry starting with `<id>-`
+   means taken: add one to the id and look again.
 
 3. **Write the inbox file** at `<Docs → inbox>/<id>-<topic>.md`:
 
@@ -260,7 +265,7 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
    ---
    id: <id>
    title: <topic, in words>
-   blocked-by: none            # or [966, 970] — declared by a human, never inferred
+   blocked-by: none
    plan: none
    tracker: <github|file>
    ---
@@ -296,14 +301,16 @@ scenarios go into the inbox file's Acceptance criteria, marked *"no harness — 
    - Outbox: on (`<Docs → outbox>`) | off — an open question stops its slice
    ```
 
-   `blocked-by` names other inbox ids only when **the person says so** — never infer a dependency.
+   `blocked-by` is `none`, or a list of other inbox ids such as `[966, 970]` — and only when **the
+   person says so**; never infer a dependency. `plan` stays `none` until step 5. Write no comment
+   inside the front matter: the check reads every character after the colon as the value.
    The front matter never carries a status, a branch, a priority or a value; the check refuses them.
    A declared blocker's inbox file may still live only on its own unmerged `feat/<topic>` branch —
    see the note on `outbox check` in step 4.4 below.
 
 4. **Self-review, then check.** Placeholders, contradictions between Solution and Acceptance
    criteria, scope too big for one feature, anything readable two ways — fix inline. Then run
-   `outbox check`. Red means the file is wrong; fix the file — **except** `blocked-by N names no
+   `outbox check <id>`. Red means the file is wrong; fix the file — **except** `blocked-by N names no
    inbox file`, which is expected whenever `N`'s inbox file lives only on its own unmerged
    `feat/<topic>` branch and is not in this checkout. That one failure is never "fixed" by removing
    the dependency; every other red means the file is wrong.
@@ -342,7 +349,8 @@ Rules for cutting it:
 - **A slice is a tracer bullet** — one thin behaviour end to end, small enough to review in one
   sitting, with its own "done when".
 - **Territory is a promise.** It lists every file and folder the slice will touch. Read the code to
-  write it; don't guess.
+  write it; don't guess. The outbox folder, `<Docs → outbox>/<id>/`, is part of every slice's
+  territory without being listed.
 - **Waves.** A slice goes in the first wave after every slice it `Needs`. Two slices whose
   territories overlap never share a wave — move the later one down. No wave is wider than
   `Parallelism → waveSize`.
@@ -350,7 +358,7 @@ Rules for cutting it:
   cannot answer it either, write it into the spec's Decisions as the option easiest to undo and say
   so — the build will not ask.
 
-Set the inbox file's `plan:` to the plan's path and its Handoff's Plan line, run `outbox check`,
+Set the inbox file's `plan:` to the plan's path and its Handoff's Plan line, run `outbox check <id>`,
 commit, push.
 
 ## 6. Spec on the base branch — only when the profile asks
@@ -361,13 +369,21 @@ Put the same files on the base branch through a docs-only pull request a human m
 
 ```bash
 git fetch <baseRemote>
-git worktree add <path> -b docs/spec-<topic> <baseRemote>/<baseBranch>
-git -C <path> checkout feat/<topic> -- <inbox file> <plan> <before/after> <scenario files> <glossary, if changed>
+git worktree add <docs path> -b docs/spec-<topic> <baseRemote>/<baseBranch>
+git -C <docs path> checkout feat/<topic> -- <inbox file> <plan> <before/after> <scenario files> <glossary, if changed>
+git -C <docs path> commit -m "docs: spec for <topic>"
+git -C <docs path> push -u <baseRemote> docs/spec-<topic>
+gh pr create --head docs/spec-<topic> --base <baseBranch> --label <Labels → phase0> --title "docs: spec for <topic>" --body-file <file>
 ```
 
-Copy with `checkout`, never by retyping, so both branches hold byte-identical files. The pull request
-carries **no source file**; label it `Labels → phase0`; its body references the PRD issue without
-closing it. **Never merge it.** `fieldnote-yolo-deliver` refuses to start until it is merged.
+`<docs path>` is a new worktree, not the one holding `feat/<topic>`. Copy with `checkout`, never by
+retyping, so both branches hold byte-identical files. The pull request carries **no source file**;
+its body references the PRD issue without closing it. **Never merge it.** `fieldnote-yolo-deliver`
+refuses to start until it is merged.
+
+A review may change the docs-only pull request. Before it is merged, copy every such edit back to
+`feat/<topic>` the same way (`git -C <feature path> checkout docs/spec-<topic> -- <files>`, commit,
+push), so both branches hold the same files when the build starts.
 
 ## 7. The next command
 
@@ -392,7 +408,7 @@ Ask for a read, then print the next command alone on the last line of your reply
 ## References
 
 - `.fieldnote/profile.md` — the keys in the table above.
-- `fieldnote-skills outbox check` — what a well-formed inbox file is.
+- `outbox check` — what a well-formed inbox file is.
 - Next: `fieldnote-yolo-deliver`. The human-merged alternative: `fieldnote-brainstorming`.
 
 ## Licence notice for step 1

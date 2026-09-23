@@ -66,17 +66,26 @@ repository, then state the assumption).
 ## The inbox file
 
 `<Docs → inbox>/<id>-<topic>.md`, where `<id>` is the PRD issue number when
-there is one, and the date (`YYYYMMDD`) otherwise.
+there is one, and the date (`YYYYMMDD`) otherwise. A date id is taken only
+once it is free everywhere: the brainstorm fetches and looks for
+`<id>-*.md` in the inbox folder and on every `<baseRemote>/feat/*` branch
+(`git ls-tree`), because another spec may live only on its own unmerged
+feature branch, and adds one until no file claims it.
 
 Front matter, plain `key: value` lines, every field required:
 
 ```text
 id: 1015
 title: Inbox and planner
-blocked-by: none            # or [966, 970] — declared by a human, never inferred
-plan: plans/2026-09-23-inbox-and-planner.md   # or none, until planned
-tracker: github             # or file
+blocked-by: none
+plan: plans/2026-09-23-inbox-and-planner.md
+tracker: github
 ```
+
+`blocked-by` is `none` or a list such as `[966, 970]`, declared by a human,
+never inferred. `plan` is `none` until planned. `tracker` is `github` or
+`file`. A front matter carries no comments: everything after the colon is
+the value.
 
 **Forbidden:** `status`, `branch`, `priority`, `value`. Status is derived from
 pull requests, never written down — a written status is stale the moment it is
@@ -111,10 +120,14 @@ id: s3-01-default-country
 prd: 1015
 slice: s3
 rank: high
-bears-on: none              # a rule from .fieldnote/concerns/, an ADR, or none
+bears-on: none
 raised: 2026-09-23
 wave: 2
 ```
+
+`bears-on` names a rule from `.fieldnote/concerns/`, an ADR, or `none`. The
+file sits in the folder named by its `prd`, and its `id` starts with its
+`slice`.
 
 Four sections, exact headings, none empty:
 
@@ -128,7 +141,7 @@ Four sections, exact headings, none empty:
 
 | Rank | Meaning | The slice |
 | ---- | ------- | --------- |
-| `human-action` | Only a person can do it: a secret, a grant, a console step. | Returns `blocked`; the wave carries on. |
+| `human-action` | Only a person can do it: a secret, a grant, a console step. | Pushes and opens its pull request carrying the item, then returns `blocked`. The pull request is merged like a done one, so the item lands on the feature branch; the wave carries on. |
 | `high` | Hard to revert, or a wide blast radius. | Built; the item stays open. |
 | `medium` | Someone should know. | Built; the item stays open. |
 
@@ -137,7 +150,9 @@ Four sections, exact headings, none empty:
 goes up.
 
 **Stop, don't record.** A slice whose only way forward **breaks** a rule the
-repository wrote down stops that slice and writes no item. The wave carries on.
+repository wrote down stops that slice and writes no item. A stopped slice
+pushes nothing; `fieldnote-yolo-deliver` records its reason in the feature
+pull request's Slices table and in a comment. The wave carries on.
 
 ### Settling
 
@@ -151,9 +166,10 @@ verdict:
 - **drifted** — the answer contradicts it. The entry stays `Closed: no` until
   a later change reworks the feature. (Reworking automatically is out of v1.)
 
-The verdict comes from an explicit `Verdict: agreed|drifted` line or the
-`--verdict` flag. v1 does no word-matching on free text: without a verdict,
-`settle` refuses and says why.
+The verdict comes from an explicit `Verdict: agreed|drifted` line in the
+answer or the `--verdict` flag; given both, they must agree, or `settle`
+refuses and settles nothing. v1 does no word-matching on free text: without a
+verdict, `settle` refuses and says why.
 
 ## The CLI commands
 
@@ -162,9 +178,9 @@ outbox …`), no new dependency. Each reads the profile for its folders.
 
 | Command | Does |
 | ------- | ---- |
-| `outbox check [<id>]` | Validates every item file (front matter, four sections, `(author)` mark, rank floor) and every inbox file (fields, forbidden keys, `blocked-by` resolves, `plan:` resolves). Exit 1 when anything fails, listing every failure. |
+| `outbox check [<id>]` | Validates every item file (front matter, four sections, `(author)` mark, rank floor, `prd` matching its folder, `id` starting with its slice) and every inbox file (fields, forbidden keys, `blocked-by` resolves, `plan:` resolves). With `<id>`, only that spec: its inbox file(s), whose `blocked-by` still resolves against every inbox file, and its items. Exit 1 when anything fails, listing every failure. |
 | `outbox open <id>` | Lists open items by rank. Exit 0 when none, 1 otherwise. An unparseable file counts as open. |
-| `outbox settle <item> --verdict agreed\|drifted --answer <file\|->` | Appends to `settled.md`, deletes the item. Does not commit. |
+| `outbox settle <item> --answer <file\|-> [--verdict agreed\|drifted]` | Appends to `settled.md`, deletes the item. Does not commit. |
 | `outbox comment <id>` | Upserts one comment on the PRD issue, marked `<!-- fieldnote-outbox -->`, listing open items by rank. Edits by comment id, never "edit last". No-op when the tracker is not GitHub. |
 
 The rank floor, the forbidden-field rule and the item renderer live in one
@@ -187,16 +203,19 @@ restating the rules.
    glossary words first, pending marker, `Commands → scenarioCheck`.
 4. **The spec.** Cut `feat/<topic>` in a worktree off the base branch. With a
    GitHub tracker, create the PRD issue (label `Labels → prd`) whose body is a
-   pointer and a Handoff. Write the inbox file, run `outbox check`, commit
-   everything, push.
-5. **The plan** — slices, territories, waves, as above. Fill the inbox file's
-   `plan:`, commit, push. A plan that cannot be cut without an unanswered
+   pointer and a Handoff; without one, take a date id free everywhere (above).
+   Write the inbox file, run `outbox check <id>`, commit everything, push.
+5. **The plan** — slices, territories, waves, as above; the outbox folder is
+   part of every slice's territory without being listed. Fill the inbox file's
+   `plan:`, run `outbox check <id>`, commit, push. A plan that cannot be cut without an unanswered
    question stops here and asks — this is the last moment a human is present.
 6. **The docs-only pull request**, only when `Merge policy → specOnMain` is
    `true`: a branch off the base branch carrying the inbox file, the plan, the
    before/after and the pending scenarios — copied from the feature branch so
-   they are byte-identical — labelled `Labels → phase0`, no source file.
-   A human merges it.
+   they are byte-identical — committed, pushed from its own worktree, and
+   opened with `gh pr create --base <baseBranch> --label <Labels → phase0>`,
+   no source file. A human merges it. An edit made on that pull request is
+   copied back to `feat/<topic>` before the merge, so both hold the same files.
 7. **Print the next command** alone on the last line:
    `/fieldnote-yolo-deliver <id>`.
 
@@ -204,27 +223,45 @@ restating the rules.
 
 `stage: build`, `variance: configured`.
 
-1. **Find the spec.** The inbox file with this id, on the base branch or on
-   `feat/<topic>`. With `specOnMain` = `true` and the docs-only pull request
-   not yet merged, stop and say so. No plan yet: write one (step 5 of the
-   brainstorm), commit it to the feature branch, carry on.
+1. **Find the spec.** `git fetch <baseRemote>`, then the inbox file with this
+   id on the base branch; when it is not there, search the
+   `<baseRemote>/feat/*` refs with `git ls-tree`, only to find the file. The
+   feature branch is read from the inbox file's Handoff `Branch:` line and
+   confirmed to exist on the remote; the base branch is never the feature
+   branch. With `specOnMain` = `true` and the docs-only pull request not yet
+   merged, stop and say so. No plan yet: write one (step 5 of the brainstorm),
+   commit it to the feature branch, carry on. Before any commit or merge on
+   the feature branch, fetch and fast-forward it; push every commit; never
+   force-push. The check it runs is `outbox check <id>`.
 2. **Build the board** from GitHub: each slice's sub-PR, merged, open or
-   absent. Idempotent — a re-run only takes slices not yet merged.
+   absent — keeping only pull requests whose title ends with exactly
+   `[<id> <slice id>]` — plus the Slices table of an open feature pull request,
+   where earlier runs recorded `blocked` and `stopped` slices. Idempotent — a
+   re-run only takes slices not yet done, blocked or stopped.
 3. **Run the next wave.** One worktree subagent per slice, at most
    `Parallelism → waveSize` at once, each dispatched to `fieldnote-do-work` in
    yolo mode (below). Each returns `done`, `stopped` or `blocked`, the sub-PR
-   link, and the outbox items it wrote.
-4. **Merge each green sub-PR** into the feature branch, one at a time,
-   updating the next one before merging it. A sub-PR into a non-base branch
-   may get no CI run; `Commands → preflight` run in the slice's worktree
-   before its push is its grade.
+   link, and the outbox items it wrote. A `done` or `blocked` slice has pushed
+   and opened its sub-PR; a `stopped` one has pushed nothing.
+4. **Merge each green sub-PR** — `done` and `blocked` alike — into the
+   feature branch, one at a time, updating the next one before merging it and
+   waiting at most 30 minutes for its checks. A merged `blocked` slice brings
+   its `human-action` item onto the feature branch and is recorded as
+   `blocked`. A sub-PR into a non-base branch may get no CI run;
+   `Commands → preflight` (or `Commands → check` when it is absent) run in the
+   slice's worktree before its push is its grade — neither configured is said
+   in the report, never asked. A stop reason goes into the Reason column of
+   the feature pull request's Slices table and into a comment on the PRD issue
+   (GitHub tracker) or the feature pull request (file tracker).
 5. **Repeat** until every slice is `done`, `stopped` or `blocked`, or no slice
    is runnable.
 6. **Open the feature pull request** into the base branch (label
-   `Labels → feature`, body closing the PRD issue when there is one), merge
-   the base branch into the feature branch, run `Commands → preflight`, mark
-   it ready, and watch the checks to green — three attempts, then a comment,
-   as `fieldnote-do-work` does.
+   `Labels → feature`), merge the base branch into the feature branch, run
+   `Commands → preflight`, and watch the checks to green — three attempts,
+   then a comment, as `fieldnote-do-work` does. The body closes the PRD issue
+   only when every slice is done. Otherwise it says `Part of #<id>`, its first
+   line is "Incomplete: <n> slices stopped or blocked — see Slices.", and the
+   pull request is opened as a draft.
 7. **Report and stop.** The pull request, slices done / stopped / blocked, the
    check state, and every open item from `outbox open`. With a GitHub tracker,
    run `outbox comment`. The pull request body carries an Outbox section with
@@ -239,8 +276,11 @@ It never asks a question. Everything it would have asked is an outbox item.
 > `Labels → sub`; stop after opening it. Where the outbox is on, an open
 > question is recorded as an outbox item (ranked by the rules in
 > `fieldnote-yolo-deliver`) and the work carries on with the option easiest to
-> undo; a step only a person can do returns `blocked`; only breaking a written
-> rule returns `stopped`. Where the outbox is off, behave as today.
+> undo; a step only a person can do still pushes and opens the pull request,
+> carrying its item, then returns `blocked`; only breaking a written rule
+> returns `stopped`, and a stopped slice pushes nothing. Where the outbox is
+> off, behave as today. It runs `outbox check <id>`, treats the outbox folder
+> as part of its territory, and never asks for a missing preflight command.
 
 Nothing else in `fieldnote-do-work` changes.
 
