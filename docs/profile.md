@@ -85,6 +85,13 @@ string, because label text varies repo to repo.
 - **`Labels.prd`** — the label that marks an issue *as* a PRD, so a skill can
   find the PRDs on the board. Distinct from `needsPrd`, which marks an issue
   that still wants one.
+- **`Labels.feature`** — the label on the one pull request that carries a
+  feature into the base branch. Read by `fieldnote-yolo-deliver`. Absent:
+  `feature`.
+- **`Labels.sub`** — the label on a slice's pull request into its feature
+  branch. Absent: `sub-pr`.
+- **`Labels.phase0`** — the label on the docs-only pull request that puts a
+  spec on the base branch before any code. Absent: `phase-0`.
 
 ```markdown
 ## Labels
@@ -92,6 +99,9 @@ string, because label text varies repo to repo.
 - **ready** — ready-for-agent
 - **needsPrd** — to-prd
 - **prd** — prd
+- **feature** — feature
+- **sub** — sub-pr
+- **phase0** — phase-0
 ```
 
 ### Commands
@@ -146,6 +156,13 @@ here; the profile only records *where* they are.
   and not one file; write it with `<area>` and `<behaviour>` as placeholders.
   Absent entirely, a repository has no scenario harness, and acceptance
   criteria are written in prose in the PRD instead.
+- **`Docs.inbox`** — the folder holding inbox files, one spec per feature,
+  written by `fieldnote-yolo-brainstorm`. Absent: `docs/inbox`.
+- **`Docs.outbox`** — the folder holding outbox items, the decisions a slice
+  took without asking. **Setting it turns the outbox on**; `(none)` or absent
+  leaves it off, and a slice that meets an open question stops instead.
+- **`Docs.beforeAfter`** — the folder for committed before/after pages.
+  Absent: `<Docs.inbox>/before-after`.
 
 ```markdown
 ## Docs
@@ -159,6 +176,9 @@ here; the profile only records *where* they are.
 - **glossary** — docs/glossary.md
 - **acceptance** — docs/acceptance-scenarios.md
 - **scenarios** — e2e/features/<area>/<behaviour>.feature
+- **inbox** — docs/inbox
+- **outbox** — docs/outbox
+- **beforeAfter** — docs/inbox/before-after
 ```
 
 ### Architecture (superseded)
@@ -205,12 +225,16 @@ Facts about this repository's branch protection and merge mechanics — never
 - **`MergePolicy.adminMerge`** — `true` when an admin/owner can merge past a
   failing or missing required check (and so a skill should not treat that
   path as unavailable).
+- **`MergePolicy.specOnMain`** — `true` when a spec must reach the base
+  branch, through a docs-only pull request a human merges, before any code of
+  it is written. Absent: `false`.
 
 ```markdown
 ## Merge policy
 
 - **strictStatusChecks** — true
 - **adminMerge** — false
+- **specOnMain** — false
 ```
 
 ### Localization
@@ -335,6 +359,9 @@ document.
 - **ready** — ready-for-agent
 - **needsPrd** — to-prd
 - **prd** — prd
+- **feature** — feature
+- **sub** — sub-pr
+- **phase0** — phase-0
 
 ## Commands
 
@@ -354,6 +381,9 @@ document.
 - **glossary** — docs/glossary.md
 - **acceptance** — docs/acceptance-scenarios.md
 - **scenarios** — e2e/features/<area>/<behaviour>.feature
+- **inbox** — docs/inbox
+- **outbox** — docs/outbox
+- **beforeAfter** — docs/inbox/before-after
 
 ## Architecture
 
@@ -368,6 +398,7 @@ section empty and writes its rules there instead.
 
 - **strictStatusChecks** — true
 - **adminMerge** — false
+- **specOnMain** — false
 
 ## Localization
 
