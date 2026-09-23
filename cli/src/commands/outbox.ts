@@ -4,10 +4,11 @@
  * repository that wants a gate wires `outbox open <id>` into its own.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { loopConfig, type LoopConfig } from "../outbox/config.js";
 import { checkInboxSet, parseInbox, type InboxFile } from "../outbox/inbox.js";
 import { parseItem } from "../outbox/item.js";
+import { isVerdict, settleItem } from "../outbox/settle.js";
 import { inboxFilePaths, itemFilePaths, openItems } from "../outbox/store.js";
 import { findGitRoot } from "../paths.js";
 import { loadProfile } from "../profile.js";
@@ -81,6 +82,37 @@ function open({ root, config, deps }: Context, id: string, json: boolean): numbe
   return items.length === 0 ? 0 : 1;
 }
 
+function settle(
+  { root, config, deps }: Context,
+  file: string,
+  flags: Record<string, string | boolean>,
+): number {
+  if (!config.outbox) throw new UserError("The outbox is off in this repository — nothing to settle.");
+  if (!isVerdict(flags.verdict)) {
+    throw new UserError("--verdict agreed|drifted is required: settle never guesses a verdict.");
+  }
+  if (typeof flags.answer !== "string" || !flags.answer) {
+    throw new UserError("--answer <file|-> is required: the answer is kept verbatim.");
+  }
+  const answer =
+    flags.answer === "-"
+      ? deps.readStdin()
+      : readFileSync(isAbsolute(flags.answer) ? flags.answer : join(deps.cwd, flags.answer), "utf8");
+  const relFile = isAbsolute(file) ? file : join(deps.cwd, file);
+  const r = settleItem({
+    root,
+    outboxDir: config.outbox,
+    file: relFile,
+    verdict: flags.verdict,
+    answer,
+    date: deps.today(),
+  });
+  const id = r.removed.split("/").pop()!.replace(/\.md$/, "");
+  deps.logger.output(`Settled ${id} (${flags.verdict}).`);
+  deps.logger.output(`Appended to ${r.settled}, removed ${r.removed} — commit both in one commit.`);
+  return 0;
+}
+
 export async function runOutbox(
   sub: string | undefined,
   positionals: string[],
@@ -93,6 +125,10 @@ export async function runOutbox(
     case "open": {
       const id = requireId(positionals, "open <id>");
       return open(context(deps), id, Boolean(flags.json));
+    }
+    case "settle": {
+      const file = requireId(positionals, "settle <item-file> --verdict agreed|drifted --answer <file|->");
+      return settle(context(deps), file, flags);
     }
     default:
       throw new UserError(

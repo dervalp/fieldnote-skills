@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync as write } from "node:fs";
 import { join } from "node:path";
 import { runOutbox, type OutboxDeps } from "./outbox.js";
 import { FakeLogger } from "../testkit.js";
@@ -116,4 +116,41 @@ test("an unknown subcommand is a usage error", async () => {
 test("outside a git repository is an error", async () => {
   const d = { ...deps(repo({})), cwd: "/" };
   await assert.rejects(runOutbox("check", [], {}, d), /not inside a git repository/);
+});
+
+test("settle: needs a verdict", async () => {
+  const root = repo({ ".fieldnote/profile.md": PROFILE, "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium") });
+  const d = deps(root);
+  await assert.rejects(
+    runOutbox("settle", ["docs/outbox/7/s1-01-a.md"], { answer: "-" }, d),
+    /--verdict agreed\|drifted is required/,
+  );
+});
+
+test("settle: reads the answer from stdin with --answer -", async () => {
+  const root = repo({ ".fieldnote/profile.md": PROFILE, "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium") });
+  const d = deps(root, { readStdin: () => "Keep it." });
+  const code = await runOutbox("settle", ["docs/outbox/7/s1-01-a.md"], { verdict: "agreed", answer: "-" }, d);
+  assert.equal(code, 0);
+  assert.equal(existsSync(join(root, "docs/outbox/7/s1-01-a.md")), false);
+  assert.match(d.logger.outputs.join("\n"), /Settled s1-01-a \(agreed\)/);
+  assert.match(d.logger.outputs.join("\n"), /commit both/);
+});
+
+test("settle: reads the answer from a file", async () => {
+  const root = repo({ ".fieldnote/profile.md": PROFILE, "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium") });
+  write(join(root, "answer.txt"), "From a file.");
+  const d = deps(root);
+  assert.equal(
+    await runOutbox("settle", ["docs/outbox/7/s1-01-a.md"], { verdict: "drifted", answer: "answer.txt" }, d),
+    0,
+  );
+});
+
+test("settle with the outbox off is an error", async () => {
+  const d = deps(repo({}));
+  await assert.rejects(
+    runOutbox("settle", ["x.md"], { verdict: "agreed", answer: "-" }, d),
+    /outbox is off/,
+  );
 });
