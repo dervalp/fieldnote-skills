@@ -67,18 +67,28 @@ export function parseInbox(text: string, file: string): Parsed<InboxFile> {
   };
 }
 
-/** Rules that need the whole inbox: ids unique, blockers resolve, plans exist. */
-export function checkInboxSet(files: InboxFile[], planExists: (path: string) => boolean): string[] {
+/**
+ * Rules that need the whole inbox: ids unique, blockers resolve, plans exist.
+ * With `only`, the rules are applied to that id's file(s) alone; its blockers
+ * still resolve against every file.
+ */
+export function checkInboxSet(
+  files: InboxFile[],
+  planExists: (path: string) => boolean,
+  only?: string,
+): string[] {
   const errors: string[] = [];
   const byId = new Map<string, InboxFile[]>();
   for (const f of files) byId.set(f.id, [...(byId.get(f.id) ?? []), f]);
 
   for (const [id, group] of byId) {
+    if (only !== undefined && id !== only) continue;
     if (group.length > 1) {
       errors.push(`${group[1]!.file}: id ${id} is used by more than one inbox file`);
     }
   }
   for (const f of files) {
+    if (only !== undefined && f.id !== only) continue;
     for (const blocker of f.blockedBy) {
       if (!byId.has(blocker)) errors.push(`${f.file}: blocked-by ${blocker} names no inbox file`);
     }

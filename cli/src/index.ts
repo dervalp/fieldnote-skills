@@ -30,9 +30,12 @@ Usage:
   fieldnote-skills init              Scaffold .fieldnote/profile.md from this repo
                   [--force] [--print]
   fieldnote-skills outbox check [<id>]         Validate inbox files and outbox items
+                                               (with <id>: that spec only)
   fieldnote-skills outbox open <id> [--json]   List a PRD's open outbox items (exit 1 if any)
   fieldnote-skills outbox settle <item-file>   Settle one item with a human's answer
-                  --verdict agreed|drifted --answer <file|->
+                  --answer <file|-> [--verdict agreed|drifted]
+                  (the verdict: the answer's "Verdict: agreed|drifted"
+                  line, the flag, or both when they agree)
   fieldnote-skills outbox comment <id>         Upsert the outbox comment on the PRD issue
 
 Flags:

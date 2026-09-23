@@ -18,6 +18,32 @@ export function isVerdict(value: unknown): value is Verdict {
   return typeof value === "string" && (VERDICTS as readonly string[]).includes(value);
 }
 
+const VERDICT_LINE = /^Verdict:\s*(agreed|drifted)\s*$/im;
+
+/**
+ * The verdict of an answer: its `Verdict: agreed|drifted` line, the
+ * `--verdict` flag, or both when they agree. Never guessed from free text.
+ */
+export function resolveVerdict(flag: unknown, answer: string): Verdict {
+  if (flag !== undefined && !isVerdict(flag)) {
+    throw new UserError(`--verdict must be agreed or drifted, not "${String(flag)}" — nothing settled.`);
+  }
+  const match = VERDICT_LINE.exec(answer);
+  const line = match ? (match[1]!.toLowerCase() as Verdict) : undefined;
+  if (flag && line && flag !== line) {
+    throw new UserError(
+      `--verdict ${flag} disagrees with the answer's "Verdict: ${line}" line — nothing settled.`,
+    );
+  }
+  const verdict = (flag as Verdict | undefined) ?? line;
+  if (!verdict) {
+    throw new UserError(
+      'No verdict: start the answer with a line "Verdict: agreed" or "Verdict: drifted", or pass --verdict agreed|drifted. Settle never guesses a verdict.',
+    );
+  }
+  return verdict;
+}
+
 export function fenceFor(text: string): string {
   const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
   return "`".repeat(Math.max(3, longest + 1));

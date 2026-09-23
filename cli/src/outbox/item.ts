@@ -4,7 +4,7 @@
  * The rules here are the whole contract. Skills call the CLI rather than
  * restating them, so a rule changes in one place.
  */
-import { basename } from "node:path";
+import { basename, dirname } from "node:path";
 import { splitFrontMatter } from "./frontmatter.js";
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; errors: string[] };
@@ -63,6 +63,21 @@ export function parseSections(body: string): { heading: string; text: string }[]
     }
   }
   return sections.map((s) => ({ heading: s.heading, text: s.text.trim() }));
+}
+
+/**
+ * Where an item sits must agree with what it says: its folder is its prd, and
+ * its id starts with its slice. Checked by `outbox check`, not by parseItem,
+ * so a misplaced item still lists as open.
+ */
+export function placementErrors(item: OutboxItem, file: string): string[] {
+  const errors: string[] = [];
+  const folder = basename(dirname(file));
+  if (item.prd !== folder) errors.push(`prd "${item.prd}" does not match its folder "${folder}"`);
+  if (!item.id.startsWith(`${item.slice}-`)) {
+    errors.push(`id "${item.id}" does not start with its slice "${item.slice}-"`);
+  }
+  return errors;
 }
 
 export function parseItem(text: string, file: string): Parsed<OutboxItem> {

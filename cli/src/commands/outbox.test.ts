@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { runOutbox, type OutboxDeps } from "./outbox.js";
 import { FakeLogger } from "../testkit.js";
 import { item, repo } from "../outbox/fixtures.js";
+import { UserError } from "../types.js";
 
 const PROFILE = `## Docs
 - **inbox** — docs/inbox
@@ -123,7 +124,7 @@ test("settle: needs a verdict", async () => {
   const d = deps(root);
   await assert.rejects(
     runOutbox("settle", ["docs/outbox/7/s1-01-a.md"], { answer: "-" }, d),
-    /--verdict agreed\|drifted is required/,
+    /No verdict: start the answer with a line "Verdict: agreed" or "Verdict: drifted", or pass --verdict/,
   );
 });
 
@@ -191,4 +192,153 @@ test("comment: no Tracker → repo asks gh for the current repository", async ()
   await runOutbox("comment", ["7"], {}, d);
   assert.deepEqual(calls[0], ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]);
   assert.equal(calls[1]![2], "repos/acme/app/issues/7/comments");
+});
+
+// --- check <id>: scoped to one spec ---
+
+test("check <id>: ignores other inbox files and other ids' items", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/inbox/7-seven.md": INBOX,
+    "docs/inbox/8-eight.md": INBOX.replace("id: 7", "id: 8").replace("blocked-by: none", "blocked-by: [99]"),
+    "docs/outbox/8/s1-01-a.md": item("s1-01-a", "medium", "shared.md#money", "8"),
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", ["7"], {}, d), 0);
+  assert.deepEqual(d.logger.errors, []);
+});
+
+test("check <id>: its blocked-by resolves against the other inbox files", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/inbox/7-seven.md": INBOX.replace("blocked-by: none", "blocked-by: [8]"),
+    "docs/inbox/8-eight.md": INBOX.replace("id: 7", "id: 8"),
+  });
+  assert.equal(await runOutbox("check", ["7"], {}, deps(root)), 0);
+});
+
+test("check <id>: reports its own unresolved blocker, missing plan and bad items", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/inbox/7-seven.md": INBOX.replace("blocked-by: none", "blocked-by: [9]").replace(
+      "plan: none",
+      "plan: plans/missing.md",
+    ),
+    "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium", "shared.md#money"),
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", ["7"], {}, d), 1);
+  const out = d.logger.errors.join("\n");
+  assert.match(out, /blocked-by 9 names no inbox file/);
+  assert.match(out, /plan "plans\/missing\.md" does not exist/);
+  assert.match(out, /rank "medium" is below the floor/);
+});
+
+test("check <id>: reports an unparseable inbox file of that id", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/inbox/7-seven.md": INBOX.replace("tracker: file", "tracker: file\nstatus: done"),
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", ["7"], {}, d), 1);
+  assert.match(d.logger.errors.join("\n"), /"status" is not allowed/);
+});
+
+test("check <id>: two inbox files with that id is an error", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/inbox/7-seven.md": INBOX,
+    "docs/inbox/7-other.md": INBOX,
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", ["7"], {}, d), 1);
+  assert.match(d.logger.errors.join("\n"), /id 7 is used by more than one inbox file/);
+});
+
+// --- check: an item must sit where its front matter says ---
+
+test("check: an item whose prd differs from its folder is an error", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium", "none", "8"),
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", [], {}, d), 1);
+  assert.match(d.logger.errors.join("\n"), /docs\/outbox\/7\/s1-01-a\.md: prd "8" does not match its folder "7"/);
+});
+
+test("check: an item whose id does not start with its slice is an error", async () => {
+  const root = repo({
+    ".fieldnote/profile.md": PROFILE,
+    "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium").replace("slice: s1", "slice: s2"),
+  });
+  const d = deps(root);
+  assert.equal(await runOutbox("check", [], {}, d), 1);
+  assert.match(d.logger.errors.join("\n"), /id "s1-01-a" does not start with its slice "s2-"/);
+});
+
+// --- settle: the verdict from the answer's Verdict line or the flag ---
+
+function settleRepo() {
+  return repo({ ".fieldnote/profile.md": PROFILE, "docs/outbox/7/s1-01-a.md": item("s1-01-a", "medium") });
+}
+const ITEM = "docs/outbox/7/s1-01-a.md";
+
+test("settle: a Verdict line in the answer is enough", async () => {
+  const root = settleRepo();
+  const d = deps(root, { readStdin: () => "Verdict: drifted\nLeave it blank." });
+  assert.equal(await runOutbox("settle", [ITEM], { answer: "-" }, d), 0);
+  assert.match(d.logger.outputs.join("\n"), /Settled s1-01-a \(drifted\)/);
+});
+
+test("settle: the Verdict line is found on any line, any case", async () => {
+  const root = settleRepo();
+  const d = deps(root, { readStdin: () => "Thanks.\nverdict:   Agreed  \n" });
+  assert.equal(await runOutbox("settle", [ITEM], { answer: "-" }, d), 0);
+  assert.match(d.logger.outputs.join("\n"), /\(agreed\)/);
+});
+
+test("settle: flag and line agreeing is fine", async () => {
+  const root = settleRepo();
+  const d = deps(root, { readStdin: () => "Verdict: agreed\nKeep it." });
+  assert.equal(await runOutbox("settle", [ITEM], { verdict: "agreed", answer: "-" }, d), 0);
+});
+
+test("settle: flag and line disagreeing refuses and settles nothing", async () => {
+  const root = settleRepo();
+  const d = deps(root, { readStdin: () => "Verdict: drifted\nChange it." });
+  await assert.rejects(
+    runOutbox("settle", [ITEM], { verdict: "agreed", answer: "-" }, d),
+    /--verdict agreed disagrees with the answer's "Verdict: drifted"/,
+  );
+  assert.equal(existsSync(join(root, ITEM)), true);
+});
+
+test("settle: a --verdict that is neither agreed nor drifted is refused", async () => {
+  const root = settleRepo();
+  const d = deps(root, { readStdin: () => "Keep it." });
+  await assert.rejects(runOutbox("settle", [ITEM], { verdict: "yes", answer: "-" }, d), /--verdict must be agreed or drifted/);
+});
+
+test("settle: a missing answer file is a plain error", async () => {
+  const root = settleRepo();
+  const d = deps(root);
+  await assert.rejects(
+    runOutbox("settle", [ITEM], { verdict: "agreed", answer: "nope.txt" }, d),
+    (err: Error) => err instanceof UserError && /answer file nope\.txt cannot be read/.test(err.message),
+  );
+  assert.equal(existsSync(join(root, ITEM)), true);
+});
+
+test("comment: a gh failure is a plain error", async () => {
+  const root = repo({ ".fieldnote/profile.md": GH_PROFILE });
+  const d = deps(root, {
+    gh: () => {
+      throw new Error("Command failed: gh api\nHTTP 404: Not Found");
+    },
+  });
+  await assert.rejects(
+    runOutbox("comment", ["7"], {}, d),
+    (err: Error) => err instanceof UserError && /gh failed: .*HTTP 404: Not Found/s.test(err.message),
+  );
 });

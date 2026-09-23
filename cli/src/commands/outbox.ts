@@ -4,12 +4,12 @@
  * repository that wants a gate wires `outbox open <id>` into its own.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { isAbsolute, join } from "node:path";
+import { basename, isAbsolute, join } from "node:path";
 import { formatOutboxComment, ghIssueComments, upsertOutboxComment } from "../outbox/comment.js";
 import { loopConfig, type LoopConfig } from "../outbox/config.js";
 import { checkInboxSet, parseInbox, type InboxFile } from "../outbox/inbox.js";
-import { parseItem } from "../outbox/item.js";
-import { isVerdict, settleItem } from "../outbox/settle.js";
+import { parseItem, placementErrors } from "../outbox/item.js";
+import { resolveVerdict, settleItem } from "../outbox/settle.js";
 import { inboxFilePaths, itemFilePaths, openItems } from "../outbox/store.js";
 import { findGitRoot } from "../paths.js";
 import { loadProfile } from "../profile.js";
@@ -44,20 +44,28 @@ function requireId(positionals: string[], usage: string): string {
   return id;
 }
 
+/**
+ * With no id, every inbox file and every item. With an id, only that spec:
+ * its inbox file(s) — whose blockers still resolve against every inbox file —
+ * and its items, so another spec's broken file never reds this one.
+ */
 function check({ root, config, deps }: Context, id: string | undefined): number {
   const errors: string[] = [];
   const inbox: InboxFile[] = [];
   for (const file of inboxFilePaths(root, config.inbox)) {
     const parsed = parseInbox(readFileSync(join(root, file), "utf8"), file);
     if (parsed.ok) inbox.push(parsed.value);
-    else errors.push(...parsed.errors.map((e) => `${file}: ${e}`));
+    else if (id === undefined || basename(file).startsWith(`${id}-`)) {
+      errors.push(...parsed.errors.map((e) => `${file}: ${e}`));
+    }
   }
-  errors.push(...checkInboxSet(inbox, (plan) => existsSync(join(root, plan))));
+  errors.push(...checkInboxSet(inbox, (plan) => existsSync(join(root, plan)), id));
 
   if (config.outbox) {
     for (const file of itemFilePaths(root, config.outbox, id)) {
       const parsed = parseItem(readFileSync(join(root, file), "utf8"), file);
-      if (!parsed.ok) errors.push(...parsed.errors.map((e) => `${file}: ${e}`));
+      const found = parsed.ok ? placementErrors(parsed.value, file) : parsed.errors;
+      errors.push(...found.map((e) => `${file}: ${e}`));
     }
   }
 
@@ -89,29 +97,45 @@ function settle(
   flags: Record<string, string | boolean>,
 ): number {
   if (!config.outbox) throw new UserError("The outbox is off in this repository — nothing to settle.");
-  if (!isVerdict(flags.verdict)) {
-    throw new UserError("--verdict agreed|drifted is required: settle never guesses a verdict.");
-  }
   if (typeof flags.answer !== "string" || !flags.answer) {
     throw new UserError("--answer <file|-> is required: the answer is kept verbatim.");
   }
-  const answer =
-    flags.answer === "-"
-      ? deps.readStdin()
-      : readFileSync(isAbsolute(flags.answer) ? flags.answer : join(deps.cwd, flags.answer), "utf8");
+  const answer = flags.answer === "-" ? deps.readStdin() : readAnswerFile(deps.cwd, flags.answer);
+  const verdict = resolveVerdict(flags.verdict, answer);
   const relFile = isAbsolute(file) ? file : join(deps.cwd, file);
   const r = settleItem({
     root,
     outboxDir: config.outbox,
     file: relFile,
-    verdict: flags.verdict,
+    verdict,
     answer,
     date: deps.today(),
   });
-  const id = r.removed.split("/").pop()!.replace(/\.md$/, "");
-  deps.logger.output(`Settled ${id} (${flags.verdict}).`);
+  const id = basename(r.removed, ".md");
+  deps.logger.output(`Settled ${id} (${verdict}).`);
   deps.logger.output(`Appended to ${r.settled}, removed ${r.removed} — commit both in one commit.`);
   return 0;
+}
+
+function readAnswerFile(cwd: string, path: string): string {
+  try {
+    return readFileSync(isAbsolute(path) ? path : join(cwd, path), "utf8");
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code ?? "error";
+    throw new UserError(`The answer file ${path} cannot be read (${code}) — nothing settled.`);
+  }
+}
+
+/** gh, with its failure turned into a plain message instead of a stack trace. */
+function plainGh(gh: OutboxDeps["gh"]): OutboxDeps["gh"] {
+  return (args) => {
+    try {
+      return gh(args);
+    } catch (err) {
+      const message = err instanceof Error ? err.message.trim() : String(err);
+      throw new UserError(`gh failed: ${message}`);
+    }
+  };
 }
 
 function comment({ root, config, deps }: Context, id: string): number {
@@ -123,11 +147,11 @@ function comment({ root, config, deps }: Context, id: string): number {
     deps.logger.output("The outbox is off in this repository — no comment to keep.");
     return 0;
   }
+  const gh = plainGh(deps.gh);
   const repoName =
-    config.tracker.repo ??
-    deps.gh(["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
+    config.tracker.repo ?? gh(["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
   const body = formatOutboxComment(id, openItems(root, config.outbox, id));
-  const result = upsertOutboxComment(ghIssueComments(deps.gh, repoName, id), body);
+  const result = upsertOutboxComment(ghIssueComments(gh, repoName, id), body);
   deps.logger.output(`Outbox comment on ${repoName}#${id}: ${result}.`);
   return 0;
 }
@@ -146,7 +170,7 @@ export async function runOutbox(
       return open(context(deps), id, Boolean(flags.json));
     }
     case "settle": {
-      const file = requireId(positionals, "settle <item-file> --verdict agreed|drifted --answer <file|->");
+      const file = requireId(positionals, "settle <item-file> --answer <file|-> [--verdict agreed|drifted]");
       return settle(context(deps), file, flags);
     }
     case "comment": {

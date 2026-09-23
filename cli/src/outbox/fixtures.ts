@@ -40,9 +40,14 @@ export function repo(files: Record<string, string>): string {
   return root;
 }
 
-/** GOOD_ITEM re-keyed: its id, rank, bears-on and decision line changed. */
-export const item = (id: string, rank: string, bearsOn = "none") =>
+/**
+ * GOOD_ITEM re-keyed: its id, rank, bears-on and decision line changed; its
+ * slice is the id's first segment and its prd is 7, the folder tests use.
+ */
+export const item = (id: string, rank: string, bearsOn = "none", prd = "7") =>
   GOOD_ITEM.replace("id: s3-01-default-country", `id: ${id}`)
+    .replace("slice: s3", `slice: ${id.split("-")[0]}`)
+    .replace("prd: 1015", `prd: ${prd}`)
     .replace("rank: medium", `rank: ${rank}`)
     .replace("bears-on: none", `bears-on: ${bearsOn}`)
     .replace("Which country a new contact gets when none is given.", `Decision ${id}.`);
